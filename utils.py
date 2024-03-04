@@ -4,7 +4,7 @@ from functools import wraps
 
 def handle_exception(
         _func=None,
-        *,
+        *,  # This asterisk means that you can’t call the remaining arguments as positional arguments.
         has_funny_message_shown_on_ui=True,
         has_random_message_printed_out=False,
         funny_message="Unfortunately, our app is sleeping now 😴 Please try again when it wakes up 🫣"
@@ -63,6 +63,10 @@ def handle_exception(
             return result
         return wrapper_print_funny_message
 
+    # If you’ve called @handle_exception without arguments, 
+    # then the decorated function will be passed in as _func. 
+    # If you’ve called it with arguments, then _func will be None, 
+    # and some of the keyword arguments may have been changed from their default values. 
     if _func is None:
         return decorator_print_funny_message
     else:
