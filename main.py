@@ -32,7 +32,7 @@ if dish_description:
                     """
     ingredient_df = openai_api.estimate_and_extract_dish_info(
         dish_description=dish_description,
-        prompt=ingredient_estimation_prompt
+        ingredient_estimation_prompt=ingredient_estimation_prompt
     )
 
 # 2. Nutrient actual intake vs recommended intake
