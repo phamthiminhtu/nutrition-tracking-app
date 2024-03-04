@@ -3,13 +3,17 @@ from openai import OpenAI
 import pandas as pd
 import streamlit as st
 
-class IngredientExtracter:
+class OpenAIAssistant:
     def __init__(self, openai_client) -> None:
         self.openai_client = openai_client
 
-    def estimate_ingredients(self, dish_description) -> dict:
+    def estimate_ingredients(self, prompt) -> dict:
         '''
-            # tutorial: https://platform.openai.com/docs/quickstart?context=python
+            - To get this running, you should have your OPENAI_API_KEY stored in your environment variables.
+                Details at: 
+                    - https://platform.openai.com/docs/quickstart?context=python#:~:text=write%20any%20code.-,MacOS,-Windows
+                    - https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key
+            - Tutorial: https://platform.openai.com/docs/quickstart?context=python
         '''
         seed = 1234 # to get deterministic estimation
         try:
@@ -18,13 +22,7 @@ class IngredientExtracter:
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant designed to output JSON with format ingredient: weight (interger type)."},
-                    {"role": "user", "content": f"""
-                        Given the input which is the description of a dish,
-                        guess the ingredients of that dish
-                        and estimate the weight of each ingredient in gram for one serve,
-                        just 1 estimate for each ingredient and return the output in a python dictionary.
-                        Input ```{dish_description}```
-                    """}
+                    {"role": "user", "content": prompt}
                 ],
                 seed=seed,
                 response_format={ "type": "json_object"}
@@ -60,7 +58,7 @@ class IngredientExtracter:
             print(e)
         return df
 
-    def estimate_and_extract_dish_info(self, dish_description, df=None) -> pd.DataFrame:
+    def estimate_and_extract_dish_info(self, dish_description, prompt, df=None) -> pd.DataFrame:
         """
             Get user's input: str - description of the dish.
             Return a dataframe containin info regarding weights of dish's ingredients.
@@ -68,7 +66,7 @@ class IngredientExtracter:
         if df is None:
             df = pd.DataFrame()
         if dish_description:
-            result = self.estimate_ingredients(dish_description=dish_description)
+            result = self.estimate_ingredients(prompt=prompt)
             if result.get("status") == 200:
                 df = self.extract_estimation_to_dataframe(estimation=result.get("value"))
                 if not df.empty:
