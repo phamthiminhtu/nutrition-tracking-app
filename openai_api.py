@@ -2,11 +2,13 @@ import json
 from openai import OpenAI
 import pandas as pd
 import streamlit as st
+from utils import handle_exception
 
 class OpenAIAssistant:
     def __init__(self, openai_client) -> None:
         self.openai_client = openai_client
-
+    
+    @handle_exception
     def run_prompt(self, prompt) -> dict:
         '''
             - To get this running, you should have your OPENAI_API_KEY stored in your environment variables.
@@ -18,31 +20,23 @@ class OpenAIAssistant:
             - Output: JSON-like string.
         '''
         seed = 1234 # to get deterministic estimation
-        try:
-
-            completion = self.openai_client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant designed to output JSON with format ingredient: weight (interger type)."},
-                    {"role": "user", "content": prompt}
-                ],
-                seed=seed,
-                response_format={ "type": "json_object"}
-            )
-            estimation = completion.choices[0].message.content
-            result = {
-                "status": 200,
-                "value": estimation
-            }
-            print(result)
-        except Exception as e:
-            result = {
-                "status": 400,
-                "value": "Unfortunately, our app is sleeping now 😴 Please try again when it wakes up 🫣",
-                "exception": e
-            }
+        completion = self.openai_client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant designed to output JSON with format ingredient: weight (interger type)."},
+                {"role": "user", "content": prompt}
+            ],
+            seed=seed,
+            response_format={ "type": "json_object"}
+        )
+        estimation = completion.choices[0].message.content
+        result = {
+            "status": 200,
+            "value": estimation
+        }
         return result
 
+    @handle_exception(has_random_message_printed_out=True)
     def extract_estimation_to_dataframe(self, estimation, df=None, headers=None) -> pd.DataFrame:
         """
             Input: json-like string
@@ -52,12 +46,9 @@ class OpenAIAssistant:
             df = pd.DataFrame()
         if headers is None:
             headers = ["Ingredient", "Estimated weight (g)"]
-        try:
-            if estimation:
-                estimation_dict = json.loads(estimation)
-                df = pd.DataFrame(estimation_dict.items(), columns=headers)
-        except Exception as e:
-            print(e)
+        if estimation:
+            estimation_dict = json.loads(estimation)
+            df = pd.DataFrame(estimation_dict.items(), columns=headers)
         return df
 
     def estimate_and_extract_dish_info(self, dish_description, ingredient_estimation_prompt, df=None) -> pd.DataFrame:
