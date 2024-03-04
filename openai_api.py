@@ -7,13 +7,15 @@ class OpenAIAssistant:
     def __init__(self, openai_client) -> None:
         self.openai_client = openai_client
 
-    def estimate_ingredients(self, prompt) -> dict:
+    def run_prompt(self, prompt) -> dict:
         '''
             - To get this running, you should have your OPENAI_API_KEY stored in your environment variables.
                 Details at: 
                     - https://platform.openai.com/docs/quickstart?context=python#:~:text=write%20any%20code.-,MacOS,-Windows
                     - https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key
             - Tutorial: https://platform.openai.com/docs/quickstart?context=python
+            - Input: prompt.
+            - Output: JSON-like string.
         '''
         seed = 1234 # to get deterministic estimation
         try:
@@ -58,15 +60,15 @@ class OpenAIAssistant:
             print(e)
         return df
 
-    def estimate_and_extract_dish_info(self, dish_description, prompt, df=None) -> pd.DataFrame:
+    def estimate_and_extract_dish_info(self, dish_description, ingredient_estimation_prompt, df=None) -> pd.DataFrame:
         """
             Get user's input: str - description of the dish.
-            Return a dataframe containin info regarding weights of dish's ingredients.
+            Return a dataframe containing info regarding weights of dish's ingredients.
         """
         if df is None:
             df = pd.DataFrame()
         if dish_description:
-            result = self.estimate_ingredients(prompt=prompt)
+            result = self.run_prompt(prompt=ingredient_estimation_prompt)
             if result.get("status") == 200:
                 df = self.extract_estimation_to_dataframe(estimation=result.get("value"))
                 if not df.empty:
