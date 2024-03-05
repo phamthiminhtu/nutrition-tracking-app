@@ -1,7 +1,7 @@
 import os
 import time
 import streamlit as st
-from openai_api import *
+from core.openai_api import *
 
 OPENAI_API_KEY = "OPENAI_API_KEY"
 OPENAI_CLIENT = OpenAI(
