@@ -1,12 +1,15 @@
 import os
 import time
+import pickle
 import streamlit as st
+import streamlit_authenticator as stauth #pip install streamlit-authenticator==0.1.5 
+from pathlib import Path
 from openai_api import *
 
-OPENAI_API_KEY = "OPENAI_API_KEY"
+"""OPENAI_API_KEY = "OPENAI_API_KEY"
 OPENAI_CLIENT = OpenAI(
   api_key=os.environ.get(OPENAI_API_KEY),
-)
+)"""
 
 # @Nyan
 # Login option.
@@ -14,26 +17,42 @@ OPENAI_CLIENT = OpenAI(
 # Authenticator.log_in()
 # Authenticator.recover_password()
 # Authenticator.create_new_account()
+names = ['nyan','micheal', 'tu']
+usernames = ['nhtun', 'myaputra','tpham']
+file_path = Path(__file__).parent / "hashed_pw.pkl"
+with file_path.open("rb") as file:
+    hashed_passwords = pickle.load(file)
+authenticator = stauth.Authenticate(names, usernames,hashed_passwords,'nutrients_dashboard','abcd')
+name, authentication_status, username = authenticator.login('Login', 'main')
 
-dish_description = st.text_input(
-    "What have you eaten today? 😋"
-)
-st.session_state["dish_description"] = dish_description
+if authentication_status == False:
+    st.error('Username/password is incorrect')
 
-openai_api = OpenAIAssistant(openai_client=OPENAI_CLIENT)
+if authentication_status == None:
+    st.warning('Please enter your username and password')
 
-if dish_description:
-    ingredient_estimation_prompt = f"""
-                        Given the input which is the description of a dish,
-                        guess the ingredients of that dish
-                        and estimate the weight of each ingredient in gram for one serve,
-                        just 1 estimate for each ingredient and return the output in a python dictionary.
-                        Input ```{dish_description}```
-                    """
-    ingredient_df = openai_api.estimate_and_extract_dish_info(
-        dish_description=dish_description,
-        ingredient_estimation_prompt=ingredient_estimation_prompt
+if authentication_status:
+    authenticator.logout('Logout', 'sidebar')
+    st.sidebar.title(f"Welcome {name}")
+    dish_description = st.text_input(
+        "What have you eaten today? 😋"
     )
+    st.session_state["dish_description"] = dish_description
+
+    openai_api = OpenAIAssistant(openai_client=OPENAI_CLIENT)
+
+    if dish_description:
+        ingredient_estimation_prompt = f"""
+                            Given the input which is the description of a dish,
+                            guess the ingredients of that dish
+                            and estimate the weight of each ingredient in gram for one serve,
+                            just 1 estimate for each ingredient and return the output in a python dictionary.
+                            Input ```{dish_description}```
+                        """
+        ingredient_df = openai_api.estimate_and_extract_dish_info(
+            dish_description=dish_description,
+            ingredient_estimation_prompt=ingredient_estimation_prompt
+        )
 
 # 2. Nutrient actual intake vs recommended intake
 # @Michael @Johnny
