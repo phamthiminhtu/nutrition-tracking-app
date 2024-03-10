@@ -1,6 +1,6 @@
 file_path = "data/csv/recommended_nutrients.csv"
-create_recommended_nutrients_query = f"""
-    CREATE OR REPLACE TABLE recommended_nutrients (
+create_recommended_nutrients_query = """
+    CREATE OR REPLACE TABLE ilab.main.recommended_nutrients (
         gender STRING,
         age_start FLOAT,
         age_end_inclusive FLOAT,
@@ -9,7 +9,7 @@ create_recommended_nutrients_query = f"""
         daily_requirement_microgram_upper_bound FLOAT
     );
 
-    INSERT INTO recommended_nutrients 
+    INSERT INTO ilab.main.recommended_nutrients 
     SELECT * 
     FROM read_csv(
         '{file_path}',
