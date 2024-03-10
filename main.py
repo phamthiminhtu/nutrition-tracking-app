@@ -2,6 +2,8 @@ import os
 import time
 import streamlit as st
 from core.openai_api import *
+from core.duckdb_connector import *
+
 
 OPENAI_API_KEY = "OPENAI_API_KEY"
 OPENAI_CLIENT = OpenAI(
@@ -52,11 +54,50 @@ if dish_description:
 
 # 4. Store data into duckdb
 # @Tu
-# Take the input from step 2 + email + date, save them into duckdb.
-# Side note: Either hash(email, date+hour+minute) to ensure that the user does not 
-# submit the same dish twicw.
-# or ask confirmation from user.
-    
+### TODO: replace this with actual input
+is_logged_in = True
+user_id = "tu@gmail.com"
+user_intake_df = pd.DataFrame(
+    [
+        {
+            "user_id": "tu@gmail.com",
+            "gender": "female",
+            "age": 20,
+            "dish_description": "beef burger",
+            "nutrient": "protein",
+            "actual_intake": 2,
+        },
+        {
+            "user_id": "tu@gmail.com",
+            "gender": "female",
+            "age": 20,
+            "dish_description": "beef burger",
+            "nutrient": "vitamin a",
+            "actual_intake": 3,
+        }
+    ]
+)
+###
+has_historical_data_saved = st.selectbox(
+    "Do you want to save this meal info?",
+    ("Yes", 'No'),
+    index=None,
+    placeholder="Select your answer..."
+)
+if has_historical_data_saved == "Yes":
+    if is_logged_in:
+        duckdb = DuckdbConnector()
+        storing_historical_data_result = duckdb.save_user_nutrient_intake(dish_description, user_id)
+        if storing_historical_data_result.get("status") == 200:
+            storing_historical_data_message = storing_historical_data_result.get("message")
+            st.write(storing_historical_data_message)
+    else:
+        login_or_create_account = st.selectbox(
+            "Looks like you haven't logged in, do you want to log in to save this meal's intake estimation?",
+            ("Yes", 'No'),
+            index=None,
+            placeholder="Select your answer..."
+        )
 
 # 5. Recommend dish.
 # @Anika

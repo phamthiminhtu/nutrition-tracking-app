@@ -2,7 +2,7 @@ import json
 from openai import OpenAI
 import pandas as pd
 import streamlit as st
-from utils import handle_exception
+from core.utils import handle_exception
 
 class OpenAIAssistant:
     def __init__(self, openai_client) -> None:
