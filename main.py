@@ -80,18 +80,14 @@ user_intake_df_temp = pd.DataFrame(
     ]
 )
 
-### 
+###
 
 # 4 + 5. Get user's age + gender
 # @Tu
-has_user_personal_info_input_manually = main_app_miscellaneous.check_whether_user_needs_to_input_personal_info_manually(
-    user_id=user_id,
-    is_logged_in=is_logged_in
+user_personal_data = main_app_miscellaneous.get_user_personal_data(
+    is_logged_in=is_logged_in,
+    user_id=user_id
 )
-
-# If user has not logged in or we don't have user's data, manual input age + gender
-if has_user_personal_info_input_manually:
-    user_personal_data = main_app_miscellaneous.get_user_personal_info_manual_input()
 
 # 6. Join with recommended intake
 # @Tu
@@ -103,7 +99,7 @@ if user_personal_data.get("status") == 200:
     )
     user_recommended_intake_df["dish_description"] = dish_description
 
-# 6. @Michael 
+# 6. @Michael
 # Visualize data
 
 
@@ -115,29 +111,12 @@ user_recommended_intake_df["user_id"] = user_id
 ###
 
 if not user_recommended_intake_df.empty:
-    has_historical_data_saved = st.selectbox(
-        "Do you want to save this meal info?",
-        ("Yes", 'No'),
-        index=None,
-        placeholder="Select your answer..."
+    result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_their_data(
+        dish_description=dish_description,
+        user_id=user_id,
+        is_logged_in=is_logged_in
     )
-    if has_historical_data_saved == "Yes":
-        if is_logged_in:
-            storing_historical_data_result = duckdb.save_user_data(
-                dish_description=dish_description,
-                user_id=user_id,
-                user_intake_df_temp_name="user_intake_df_temp"
-            )
-            if storing_historical_data_result.get("status") == 200:
-                storing_historical_data_message = storing_historical_data_result.get("message")
-                st.write(storing_historical_data_message)
-        else:
-            login_or_create_account = st.selectbox(
-                "Looks like you haven't logged in, do you want to log in to save this meal's intake estimation?",
-                ("Yes", 'No'),
-                index=None,
-                placeholder="Select your answer..."
-            )
+    login_or_create_account = result.get("login_or_create_account")
 
 
 
