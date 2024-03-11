@@ -90,15 +90,13 @@ user_personal_data = main_app_miscellaneous.get_user_personal_data(
 )
 
 # 6. Join with recommended intake
+# Only run when we have user_personal_data
 # @Tu
-if user_personal_data.get("status") == 200:
-    user_recommended_intake_df = main_app_miscellaneous.combine_and_show_users_recommended_intake(
-        user_personal_data=user_personal_data,
-        user_intake_df_temp=user_intake_df_temp,
-        user_intake_df_temp_name="user_intake_df_temp"
-    )
-    user_recommended_intake_df["dish_description"] = dish_description
-
+user_recommended_intake_df = main_app_miscellaneous.combine_and_show_users_recommended_intake(
+    user_personal_data=user_personal_data,
+    user_intake_df_temp=user_intake_df_temp,
+    user_intake_df_temp_name="user_intake_df_temp"
+)
 # 6. @Michael
 # Visualize data
 
@@ -118,6 +116,9 @@ if not user_recommended_intake_df.empty:
     )
     login_or_create_account = result.get("login_or_create_account")
 
+
+
+# Flow 3 - user wants to get their historical data
 
 
 # 5. Recommend dish.
