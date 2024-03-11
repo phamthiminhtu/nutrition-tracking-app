@@ -24,28 +24,6 @@ class MainAppMiscellaneous:
         self.db = DuckdbConnector()
 
     @handle_exception(has_random_message_printed_out=True)
-    def get_user_personal_info_manual_input(self):
-        event = threading.Event()
-        # wait until user input
-        user_gender = st.selectbox(
-            "Please select your gender.",
-            ("male", 'female'),
-            index=None,
-            placeholder="Select your gender..."
-        )
-        user_age_input = st.number_input("How old are you?", value=None, placeholder="Type a number...")
-        while user_age_input is None or user_gender is None:
-            event.wait()
-            event.clear()
-
-        user_personal_data = {
-            "status": 200,
-            "gender": user_gender,
-            "age": float(user_age_input)
-        }
-        return user_personal_data
-
-    @handle_exception(has_random_message_printed_out=True)
     def get_user_recommended_intake(
             self,
             user_intake_df_temp_name
@@ -92,25 +70,92 @@ class MainAppMiscellaneous:
         ):
         has_user_personal_info_input_manually = True
         user_input_personal_info_agreement = None
+        st.write("We need your age and gender to suggest the recommended intake.")
+        user_input_personal_info_agreement = st.selectbox(
+            "But looks like we just meet for the first time, do you want to manually input your info?",
+            ("Yes", 'No'),
+            index=None,
+            placeholder="Select your answer..."
+        )
+        event = threading.Event()
+        # if user does not confirm within time_out time period
+        # return has_user_personal_info_input_manually as True
+        while user_input_personal_info_agreement is None:
+            if event.wait(time_out):
+                event.clear()
+        if user_input_personal_info_agreement != "Yes":
+            has_user_personal_info_input_manually = False
+        return has_user_personal_info_input_manually
+
+    def get_user_personal_info_manual_input(self):
+        event = threading.Event()
+        # wait until user input
+        user_gender = st.selectbox(
+            "Please select your gender.",
+            ("male", 'female'),
+            index=None,
+            placeholder="Select your gender..."
+        )
+        user_age_input = st.number_input("How old are you?", value=None, placeholder="Type a number...")
+        while user_age_input is None or user_gender is None:
+            event.wait()
+            event.clear()
+
+        user_personal_data = {
+            "status": 200,
+            "gender": user_gender,
+            "age": float(user_age_input)
+        }
+        return user_personal_data
+
+    def get_user_personal_data_from_database(self, user_id):
+        user_personal_data = self.db.get_user_personal_data(user_id=user_id)
+        return user_personal_data
+
+    @handle_exception(has_random_message_printed_out=True)
+    def get_user_personal_data(self, is_logged_in, user_id):
+        user_personal_data = {}
         if is_logged_in:
-            # If user has logged in, get personal data from the database
-            user_personal_data = self.duckdb.get_user_personal_data(user_id=user_id)
-            if user_personal_data:
-                has_user_personal_info_input_manually = False
+            user_personal_data = self.get_user_personal_data_from_database(user_id=user_id)
+
+        if user_personal_data.get("status", 400) != 200:
+            has_user_personal_info_input_manually = self.check_whether_user_needs_to_input_personal_info_manually(
+                user_id=user_id,
+                is_logged_in=is_logged_in
+            )
+            # If user has not logged in or we don't have user's data, manual input age + gender
+            if has_user_personal_info_input_manually:
+                user_personal_data = self.get_user_personal_info_manual_input()
+        return user_personal_data
+
+    def get_user_confirmation_and_try_to_save_their_data(self, dish_description, user_id, is_logged_in):
+        result = {
+            "status": 200,
+            "login_or_create_account": "No"
+        }
+        has_historical_data_saved = st.selectbox(
+            "Do you want to save this meal info?",
+            ("Yes", 'No'),
+            index=None,
+            placeholder="Select your answer..."
+        )
+        if has_historical_data_saved == "Yes":
+            if is_logged_in:
+                storing_historical_data_result = self.db.save_user_data(
+                    dish_description=dish_description,
+                    user_id=user_id,
+                    user_intake_df_temp_name="user_intake_df_temp"
+                )
+                if storing_historical_data_result.get("status") == 200:
+                    storing_historical_data_message = storing_historical_data_result.get("message")
+                    st.write(storing_historical_data_message)
             else:
-                st.write("We need your age and gender to suggest the recommended intake.")
-                user_input_personal_info_agreement = st.selectbox(
-                    "But looks like we just meet for the first time, do you want to manually input your info?",
+                login_or_create_account = st.selectbox(
+                    "Looks like you haven't logged in, do you want to log in to save this meal's intake estimation?",
                     ("Yes", 'No'),
                     index=None,
                     placeholder="Select your answer..."
                 )
-                event = threading.Event()
-                # if user does not confirm within time_out time period
-                # return has_user_personal_info_input_manually as True
-                while user_input_personal_info_agreement is None:
-                    if event.wait(time_out):
-                        event.clear()
-                if user_input_personal_info_agreement != "Yes":
-                    has_user_personal_info_input_manually = False
-        return has_user_personal_info_input_manually
+                result["login_or_create_account"] = login_or_create_account
+        return result
+
