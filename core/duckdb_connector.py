@@ -122,7 +122,6 @@ class DuckdbConnector:
             parameters=parameters
         )
 
-    @handle_exception(has_random_message_printed_out=True)
     def save_user_data(
         self,
         dish_description: str,
