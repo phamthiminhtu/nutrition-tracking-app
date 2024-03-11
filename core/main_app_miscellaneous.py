@@ -100,15 +100,11 @@ class MainAppMiscellaneous:
         }
         return user_personal_data
 
-    def get_user_personal_data_from_database(self, user_id):
-        user_personal_data = self.db.get_user_personal_data(user_id=user_id)
-        return user_personal_data
-
     @handle_exception(has_random_message_printed_out=True)
     def get_user_personal_data(self, is_logged_in, user_id):
         user_personal_data = {}
         if is_logged_in:
-            user_personal_data = self.get_user_personal_data_from_database(user_id=user_id)
+            user_personal_data = self.db.get_user_personal_data(user_id=user_id)
 
         if user_personal_data.get("status", 400) != 200:
             has_user_personal_info_input_manually = self.check_whether_user_needs_to_input_personal_info_manually()
