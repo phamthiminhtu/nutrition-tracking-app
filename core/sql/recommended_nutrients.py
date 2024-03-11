@@ -5,8 +5,8 @@ create_recommended_nutrients_query = """
         age_start FLOAT,
         age_end_inclusive FLOAT,
         nutrient_lower STRING,
-        daily_requirement_microgram_lower_bound FLOAT,
-        daily_requirement_microgram_upper_bound FLOAT
+        daily_requirement_intake FLOAT,
+        unit STRING
     );
 
     INSERT INTO ilab.main.recommended_nutrients 
