@@ -6,11 +6,12 @@ from core.duckdb_connector import *
 from core.main_app_miscellaneous import *
 
 
-main_app_miscellaneous = MainAppMiscellaneous()
 OPENAI_API_KEY = "OPENAI_API_KEY"
 OPENAI_CLIENT = OpenAI(
   api_key=os.environ.get(OPENAI_API_KEY),
 )
+main_app_miscellaneous = MainAppMiscellaneous()
+
 
 # @Nyan
 # Login option.
