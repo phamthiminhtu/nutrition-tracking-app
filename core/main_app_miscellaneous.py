@@ -1,3 +1,4 @@
+import time
 import jinja2
 import threading
 import pandas as pd
@@ -8,9 +9,10 @@ from core.sql.user_daily_nutrient_intake import anonymous_user_daily_nutrient_in
 
 
 RECOMMENDED_DAILY_NUTRIENT_INTAKE_TABLE_ID = "ilab.main.recommended_nutrients"
-USER_INTAKE_COLUMNS_MAP = {
+USER_INTAKE_COLUMNS_DICT = {
     "gender": "Gender",
     "age": "Age",
+    "dish_description": "Dish",
     "nutrient": "Nutrient",
     "actual_intake": "Actual intake",
     "daily_recommended_intake": "Daily recommended intake",
@@ -56,34 +58,24 @@ class MainAppMiscellaneous:
             user_recommended_intake_df = self.get_user_recommended_intake(
                 user_intake_df_temp_name=user_intake_df_temp_name
             )
-            user_recommended_intake_df_to_show = user_recommended_intake_df.rename(columns=USER_INTAKE_COLUMNS_MAP)
-            columns_to_show = USER_INTAKE_COLUMNS_MAP.values()
+            user_recommended_intake_df_to_show = user_recommended_intake_df.rename(columns=USER_INTAKE_COLUMNS_DICT)
+            columns_to_show = USER_INTAKE_COLUMNS_DICT.values()
+            st.write("Just one moment, we are doing the science 😎 ...")
+            time.sleep(2)
             st.dataframe(user_recommended_intake_df_to_show[columns_to_show])
         return user_recommended_intake_df
 
     @handle_exception(has_random_message_printed_out=True)
-    def check_whether_user_needs_to_input_personal_info_manually(
-            self,
-            user_id,
-            is_logged_in,
-            time_out=120
-        ):
+    def check_whether_user_needs_to_input_personal_info_manually(self):
         has_user_personal_info_input_manually = True
         user_input_personal_info_agreement = None
         st.write("We need your age and gender to suggest the recommended intake.")
         user_input_personal_info_agreement = st.selectbox(
             "But looks like we just meet for the first time, do you want to manually input your info?",
-            ("Yes", 'No'),
-            index=None,
+            ("Yes, let's do it!", 'No'),
             placeholder="Select your answer..."
         )
-        event = threading.Event()
-        # if user does not confirm within time_out time period
-        # return has_user_personal_info_input_manually as True
-        while user_input_personal_info_agreement is None:
-            if event.wait(time_out):
-                event.clear()
-        if user_input_personal_info_agreement != "Yes":
+        if user_input_personal_info_agreement == "No":
             has_user_personal_info_input_manually = False
         return has_user_personal_info_input_manually
 
@@ -91,7 +83,7 @@ class MainAppMiscellaneous:
         event = threading.Event()
         # wait until user input
         user_gender = st.selectbox(
-            "Please select your gender.",
+            "Please select your gender",
             ("male", 'female'),
             index=None,
             placeholder="Select your gender..."
@@ -119,15 +111,13 @@ class MainAppMiscellaneous:
             user_personal_data = self.get_user_personal_data_from_database(user_id=user_id)
 
         if user_personal_data.get("status", 400) != 200:
-            has_user_personal_info_input_manually = self.check_whether_user_needs_to_input_personal_info_manually(
-                user_id=user_id,
-                is_logged_in=is_logged_in
-            )
+            has_user_personal_info_input_manually = self.check_whether_user_needs_to_input_personal_info_manually()
             # If user has not logged in or we don't have user's data, manual input age + gender
             if has_user_personal_info_input_manually:
                 user_personal_data = self.get_user_personal_info_manual_input()
         return user_personal_data
 
+    @handle_exception(has_random_message_printed_out=True)
     def get_user_confirmation_and_try_to_save_their_data(self, dish_description, user_id, is_logged_in):
         result = {
             "status": 200,

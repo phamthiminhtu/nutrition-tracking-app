@@ -37,12 +37,14 @@ anonymous_user_daily_nutrient_intake_query_template = """
                 gender,
                 age,
                 nutrient,
+                dish_description,
                 SUM(actual_intake) AS actual_intake
             FROM {{ user_intake_df_temp_name }}
             GROUP BY
                 gender,
                 age,
-                nutrient)
+                nutrient,
+                dish_description)
 
         ,recommended_daily_nutrient_intake_source AS
             (SELECT * FROM {{ recommended_daily_nutrient_intake_table_id }})
