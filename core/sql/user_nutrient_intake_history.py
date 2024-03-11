@@ -1,5 +1,5 @@
 create_user_nutrient_intake_history_query = """
-    CREATE OR REPLACE TABLE user_nutrient_intake_history (
+    CREATE OR REPLACE TABLE ilab.main.user_nutrient_intake_history (
         user_id STRING,
         gender STRING,
         age FLOAT,
@@ -7,13 +7,13 @@ create_user_nutrient_intake_history_query = """
         meal_id STRING,
         create_timestamp TIMESTAMP,
         nutrient STRING,
-        actual_intake_microgram FLOAT
+        actual_intake FLOAT
     );
 """
 
-insert_new_record_user_nutrient_intake_history_query = """
-    INSERT INTO {table_name} BY NAME 
-    (WITH 
+insert_new_record_user_nutrient_intake_history_query_template = """
+    INSERT INTO {{ table_id }} BY NAME
+    (WITH
         source_raw AS
             (SELECT
                 user_id AS user_id,
@@ -25,7 +25,7 @@ insert_new_record_user_nutrient_intake_history_query = """
                 $created_datetime_tzsyd AS created_datetime_tzsyd,
                 nutrient AS nutrient,
                 actual_intake AS actual_intake
-            FROM user_intake_df
+            FROM {{ user_intake_df_temp_name }}
             )
 
         ,source AS
@@ -43,12 +43,12 @@ insert_new_record_user_nutrient_intake_history_query = """
             )
 
         ,target AS (
-            SELECT * FROM {table_name}
+            SELECT * FROM {{ table_id }}
         )
 
         ,records_to_insert AS (
             SELECT
-                s.* 
+                s.*
             FROM source AS s
             LEFT JOIN target AS t
             ON s.meal_id = t.meal_id
