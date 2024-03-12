@@ -9,7 +9,7 @@ from core.utils import handle_exception
 from core.sql.user_daily_nutrient_intake import anonymous_user_daily_nutrient_intake_query_template, combine_user_actual_vs_recommend_intake_logic
 
 
-RECOMMENDED_DAILY_NUTRIENT_INTAKE_TABLE_ID = "ilab.main.recommended_nutrients"
+RECOMMENDED_DAILY_NUTRIENT_INTAKE_TABLE_ID = "ilab.main.daily_nutrients_recommendation"
 USER_INTAKE_COLUMNS_DICT = {
     "gender": "Gender",
     "age": "Age",
@@ -17,7 +17,7 @@ USER_INTAKE_COLUMNS_DICT = {
     "nutrient": "Nutrient",
     "actual_intake": "Actual intake",
     "daily_recommended_intake": "Daily recommended intake",
-    "unit": "Unit",
+    "measurement": "Measurement",
     "intake_diff_percent": "Intake difference (%)"
 }
 

@@ -52,7 +52,7 @@ user_intake_df_temp = pd.DataFrame(
             "gender": "female",
             "age": 20,
             "dish_description": "beef burger",
-            "nutrient": "protein",
+            "nutrient": "Protein",
             "actual_intake": 2,
         },
         {
@@ -60,7 +60,7 @@ user_intake_df_temp = pd.DataFrame(
             "gender": "female",
             "age": 20,
             "dish_description": "beef burger",
-            "nutrient": "vitamin a",
+            "nutrient": "Vitamin A",
             "actual_intake": 3,
         }
     ]
