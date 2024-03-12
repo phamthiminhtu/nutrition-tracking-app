@@ -26,8 +26,8 @@ st.set_page_config(layout='wide')
 ### TODO: replace this with actual input
 is_logged_in = True
 user_name = "Tu"
-user_id = "abc"
-# user_id = "tu@gmail.com"
+# user_id = "abc"
+user_id = "tu@gmail.com"
 ###
 
 main_app_miscellaneous.say_hello(user_name=user_name)
@@ -39,10 +39,13 @@ track_new_meal_tab, user_recommended_intake_history_tab = st.tabs(
 
 # Flow 3 - 12. User wants to get their historical data
 logging.info("-----------Running get_user_historical_data()-----------")
+selected_date_range = main_app_miscellaneous.select_date_range(layout_position=user_recommended_intake_history_tab)
+
 user_recommended_intake_history_df = main_app_miscellaneous.show_user_historical_data_result(
     is_logged_in=is_logged_in,
     user_id=user_id,
-    layout_position=user_recommended_intake_history_tab
+    layout_position=user_recommended_intake_history_tab,
+    selected_date_range=selected_date_range
 )
 logging.info("-----------Finished get_user_input_dish_and_estimate_ingredients.-----------")
 
