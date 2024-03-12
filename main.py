@@ -1,5 +1,5 @@
 import os
-import time
+import logging
 import streamlit as st
 from core.openai_api import *
 from core.duckdb_connector import *
@@ -10,8 +10,8 @@ OPENAI_API_KEY = "OPENAI_API_KEY"
 OPENAI_CLIENT = OpenAI(
   api_key=os.environ.get(OPENAI_API_KEY),
 )
-main_app_miscellaneous = MainAppMiscellaneous()
-
+main_app_miscellaneous = MainAppMiscellaneous(openai_client=OPENAI_CLIENT)
+logging.basicConfig(level=logging.INFO)
 
 # @Nyan
 # Login option.
@@ -20,25 +20,11 @@ main_app_miscellaneous = MainAppMiscellaneous()
 # Authenticator.recover_password()
 # Authenticator.create_new_account()
 
-dish_description = st.text_input(
-    "What have you eaten today? 😋"
-)
-st.session_state["dish_description"] = dish_description
-
-openai_api = OpenAIAssistant(openai_client=OPENAI_CLIENT)
-
-if dish_description:
-    ingredient_estimation_prompt = f"""
-                        Given the input which is the description of a dish,
-                        guess the ingredients of that dish
-                        and estimate the weight of each ingredient in gram for one serve,
-                        just 1 estimate for each ingredient and return the output in a python dictionary.
-                        Input ```{dish_description}```
-                    """
-    ingredient_df = openai_api.estimate_and_extract_dish_info(
-        dish_description=dish_description,
-        ingredient_estimation_prompt=ingredient_estimation_prompt
-    )
+# 1. Get dish description from user and estimate its ingredients
+logging.info("-----------Running get_user_input_dish_and_estimate_ingredients()-----------")
+dish_description = st.text_input("What have you eaten today? 😋").strip()
+ingredient_df = main_app_miscellaneous.get_user_input_dish_and_estimate_ingredients(dish_description=dish_description)
+logging.info("-----------Finished get_user_input_dish_and_estimate_ingredients.-----------")
 
 # 2-3. Nutrient actual intake
 # @Michael @Johnny
@@ -54,7 +40,6 @@ if dish_description:
 # @Nyan
 # TODO: create the a table storing user's personal data: age, gender etc.
 # Update this data if there are any changes.
-
 
 
 ### TODO: replace this with actual input
@@ -85,19 +70,25 @@ user_intake_df_temp = pd.DataFrame(
 
 # 4 + 5. Get user's age + gender
 # @Tu
+logging.info("----------- Running get_user_personal_data()-----------")
 user_personal_data = main_app_miscellaneous.get_user_personal_data(
     is_logged_in=is_logged_in,
-    user_id=user_id
+    user_id=user_id,
+    has_user_intake_df_temp_empty=user_intake_df_temp.empty
 )
+logging.info("-----------finished get_user_personal_data-----------")
 
 # 6. Join with recommended intake
 # Only run when we have user_personal_data
 # @Tu
+logging.info("-----------Running combine_and_show_users_recommended_intake()-----------")
 user_recommended_intake_df = main_app_miscellaneous.combine_and_show_users_recommended_intake(
     user_personal_data=user_personal_data,
     user_intake_df_temp=user_intake_df_temp,
     user_intake_df_temp_name="user_intake_df_temp"
 )
+logging.info("-----------Finished combine_and_show_users_recommended_intake-----------")
+
 # 6. @Michael
 # Visualize data
 
@@ -109,6 +100,7 @@ user_recommended_intake_df = main_app_miscellaneous.combine_and_show_users_recom
 user_recommended_intake_df["user_id"] = user_id
 ###
 
+logging.info("-----------Running get_user_confirmation_and_try_to_save_their_data()-----------")
 if not user_recommended_intake_df.empty:
     result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_their_data(
         dish_description=dish_description,
@@ -116,7 +108,7 @@ if not user_recommended_intake_df.empty:
         is_logged_in=is_logged_in
     )
     login_or_create_account = result.get("login_or_create_account")
-
+logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_data-----------")
 
 
 # Flow 3 - user wants to get their historical data
