@@ -2,7 +2,7 @@ import json
 from openai import OpenAI
 import pandas as pd
 import streamlit as st
-from utils import handle_exception
+from core.utils import handle_exception
 
 class OpenAIAssistant:
     def __init__(self, openai_client) -> None:
@@ -51,7 +51,13 @@ class OpenAIAssistant:
             df = pd.DataFrame(estimation_dict.items(), columns=headers)
         return df
 
-    def estimate_and_extract_dish_info(self, dish_description, ingredient_estimation_prompt, df=None) -> pd.DataFrame:
+    def estimate_and_extract_dish_info(
+        self,
+        dish_description,
+        ingredient_estimation_prompt,
+        df=None,
+        layout_position=st
+    ) -> pd.DataFrame:
         """
             Get user's input: str - description of the dish.
             Return a dataframe containing info regarding weights of dish's ingredients.
@@ -63,12 +69,12 @@ class OpenAIAssistant:
             if result.get("status") == 200:
                 df = self.extract_estimation_to_dataframe(estimation=result.get("value"))
                 if not df.empty:
-                    st.write(f'Here is our estimated weight of each ingredient for one serving of 🍕 {dish_description} 🍳:')
-                    st.dataframe(df)
+                    layout_position.write(f'Here is our estimated weight of each ingredient for one serving of 🍕 {dish_description} 🍳:')
+                    layout_position.dataframe(df)
                 else:
                     message = "Sorry, we've tried our best but cannot estimate the ingredients of your dish. Can you try to describe it differently?"
-                    st.write(message)
+                    layout_position.write(message)
             else:
-                st.write(result.get("value"))
+                layout_position.write(result.get("value"))
                 print(result.get("exception"))
         return df
