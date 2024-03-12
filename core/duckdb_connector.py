@@ -36,7 +36,6 @@ class DuckdbConnector:
         if parameters is None:
             parameters = {}
         with duckdb.connect(self.database_path, read_only=self.read_only) as con:
-            print(sql)
             query_connector = con.execute(sql, parameters=parameters)
             if result_format == 'list':
                 query_result = query_connector.fetchall()
@@ -153,11 +152,12 @@ class DuckdbConnector:
         return result
 
     @handle_exception(has_random_message_printed_out=True)
-    def get_user_personal_data(
+    def get_user_personal_data_from_database(
             self,
             user_id,
             table_id=USER_NUTRIENT_INTAKE_HISTORY_TABLE_ID  #TODO: replace with user's personal data table
         ) -> dict:
+        user_personal_data = {}
         query_template = self.jinja_environment.from_string(
             """
                 SELECT

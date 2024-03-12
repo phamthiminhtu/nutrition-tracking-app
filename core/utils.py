@@ -36,9 +36,9 @@ def handle_exception(
     '''
 
     funny_message_list = [
-        "Unfortunately, our app is sleeping now 😴 Please try again when it wakes up 🫣",
-        "Oops! Random Error - Thoughtful error 🤪",
-        "Oops! ❌ Operation completed, but that doesn't mean it's error free ❌"
+        ":red[Unfortunately, our app is sleeping now 😴 Please try again when it wakes up 🫣]",
+        ":red[Oops! Random Error - Thoughtful error 🤪]",
+        ":red[Oops! ❌ Operation completed, but that doesn't mean it's error free ❌]"
     ]
 
     def decorator_print_funny_message(func):

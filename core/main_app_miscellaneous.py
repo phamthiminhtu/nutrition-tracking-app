@@ -6,10 +6,11 @@ import streamlit as st
 from core.openai_api import *
 from core.duckdb_connector import *
 from core.utils import handle_exception
-from core.sql.user_daily_nutrient_intake import anonymous_user_daily_nutrient_intake_query_template, combine_user_actual_vs_recommend_intake_logic
+from core.sql.user_daily_recommended_intake_history import anonymous_user_daily_nutrient_intake_query_template, combine_user_actual_vs_recommend_intake_logic
 
 
 RECOMMENDED_DAILY_NUTRIENT_INTAKE_TABLE_ID = "ilab.main.daily_nutrients_recommendation"
+USER_DAILY_RECOMMENDED_INTAKE_HISTORY_TABLE_ID = "ilab.main.user_daily_recommended_intake_history"
 USER_INTAKE_COLUMNS_DICT = {
     "gender": "Gender",
     "age": "Age",
@@ -28,9 +29,21 @@ class MainAppMiscellaneous:
         self.openai_api = OpenAIAssistant(openai_client=openai_client)
 
     @handle_exception(has_random_message_printed_out=True)
+    def say_hello(
+        self,
+        user_name=None,
+        layout_position=st,
+    ) -> None:
+        if user_name:
+            layout_position.write(f"It's good to see you back, {user_name}! What would you like to do today?")
+        else:
+            layout_position.write("Hello there, how can we help you?")
+
+    @handle_exception(has_random_message_printed_out=True)
     def get_user_input_dish_and_estimate_ingredients(
         self,
-        dish_description: str
+        dish_description: str,
+        layout_position=st
     ) -> pd.DataFrame:
         # st.session_state["dish_description"] = dish_description
         ingredient_df = pd.DataFrame()
@@ -45,17 +58,21 @@ class MainAppMiscellaneous:
             """
             ingredient_df = self.openai_api.estimate_and_extract_dish_info(
                 dish_description=dish_description,
-                ingredient_estimation_prompt=ingredient_estimation_prompt
+                ingredient_estimation_prompt=ingredient_estimation_prompt,
+                layout_position=layout_position
             )
             ingredient_df["dish_description"] = dish_description
         return ingredient_df
 
     @handle_exception(has_random_message_printed_out=True)
-    def check_whether_user_needs_to_input_personal_info_manually(self) -> bool:
+    def check_whether_user_needs_to_input_personal_info_manually(
+        self,
+        layout_position = st
+    ) -> bool:
         has_user_personal_info_input_manually = True
         user_input_personal_info_agreement = None
-        st.write("We need your age 📆 and gender ♀♂ to suggest the recommended intake.")
-        user_input_personal_info_agreement = st.selectbox(
+        layout_position.write("We need your age 📆 and gender ♀♂ to suggest the recommended intake.")
+        user_input_personal_info_agreement = layout_position.selectbox(
             "But looks like we've just met for the first time, do you want to manually input your info?",
             ("Yes, let's do it!", 'No'),
             placeholder="Select your answer..."
@@ -64,15 +81,18 @@ class MainAppMiscellaneous:
             has_user_personal_info_input_manually = False
         return has_user_personal_info_input_manually
 
-    def get_user_personal_info_manual_input(self) -> dict:
+    def get_user_personal_info_manual_input(
+        self,
+        layout_position=st
+    ) -> dict:
 
-        user_gender = st.selectbox(
+        user_gender = layout_position.selectbox(
             "Please select your gender",
             ("male", 'female'),
             index=None,
             placeholder="Select your gender..."
         )
-        user_age_input = st.number_input("How old are you?", value=None, placeholder="Type a number...")
+        user_age_input = layout_position.number_input("How old are you?", value=None, placeholder="Type a number...")
 
         # wait until user input
         event = threading.Event()
@@ -92,18 +112,25 @@ class MainAppMiscellaneous:
         self,
         is_logged_in: bool,
         user_id: str,
-        has_user_intake_df_temp_empty: bool
+        has_user_intake_df_temp_empty: bool,
+        layout_position=st
     ) -> dict:
-        user_personal_data = {}
+        user_personal_data = {"status": 0}
+        print(user_personal_data)
         if not has_user_intake_df_temp_empty:
             if is_logged_in:
-                user_personal_data = self.db.get_user_personal_data(user_id=user_id)
+                user_personal_data = self.db.get_user_personal_data_from_database(user_id=user_id)
 
             if user_personal_data.get("status", 400) != 200:
-                has_user_personal_info_input_manually = self.check_whether_user_needs_to_input_personal_info_manually()
+                has_user_personal_info_input_manually = self.check_whether_user_needs_to_input_personal_info_manually(
+                    layout_position=layout_position
+                )
                 # If user has not logged in or we don't have user's data, get them manually input their age + gender
                 if has_user_personal_info_input_manually:
-                    user_personal_data = self.get_user_personal_info_manual_input()
+                    user_personal_data = self.get_user_personal_info_manual_input(
+                        layout_position=layout_position
+                    )
+        
         return user_personal_data
 
     @handle_exception(has_random_message_printed_out=True)
@@ -130,7 +157,8 @@ class MainAppMiscellaneous:
         self,
         user_personal_data: dict,
         user_intake_df_temp: pd.DataFrame,
-        user_intake_df_temp_name: str
+        user_intake_df_temp_name: str,
+        layout_position=st,
     ) -> pd.DataFrame:
         user_recommended_intake_df = pd.DataFrame()
 
@@ -143,12 +171,12 @@ class MainAppMiscellaneous:
             )
             user_recommended_intake_df_to_show = user_recommended_intake_df.rename(columns=USER_INTAKE_COLUMNS_DICT)
             columns_to_show = USER_INTAKE_COLUMNS_DICT.values()
-            st.write("Just one moment, we are doing the science 😎 ...")
+            layout_position.write("Just one moment, we are doing the science 😎 ...")
             time.sleep(1)
             if not user_recommended_intake_df_to_show.empty:
-                st.dataframe(user_recommended_intake_df_to_show[columns_to_show])
+                layout_position.dataframe(user_recommended_intake_df_to_show[columns_to_show])
             else:
-                st.write("Oops! Turned out it's pseudoscience 🫥 We cannot estimate your intake just yet 😅 Please try again later...")
+                layout_position.write("Oops! Turned out it's pseudoscience 🫥 We cannot estimate your intake just yet 😅 Please try again later...")
 
         return user_recommended_intake_df
 
@@ -157,13 +185,14 @@ class MainAppMiscellaneous:
         self,
         dish_description: str,
         user_id: str,
-        is_logged_in: bool
+        is_logged_in: bool,
+        layout_position=st
     ):
         result = {
             "status": 200,
             "login_or_create_account": "No"
         }
-        has_historical_data_saved = st.selectbox(
+        has_historical_data_saved = layout_position.selectbox(
             "Do you want to save this meal info?",
             ("Yes", 'No'),
             index=None,
@@ -178,9 +207,9 @@ class MainAppMiscellaneous:
                 )
                 if storing_historical_data_result.get("status") == 200:
                     storing_historical_data_message = storing_historical_data_result.get("message")
-                    st.write(storing_historical_data_message)
+                    layout_position.write(storing_historical_data_message)
             else:
-                login_or_create_account = st.selectbox(
+                login_or_create_account = layout_position.selectbox(
                     "Looks like you haven't logged in, do you want to log in to save this meal's intake estimation?",
                     ("Yes", 'No'),
                     index=None,
@@ -189,3 +218,42 @@ class MainAppMiscellaneous:
                 result["login_or_create_account"] = login_or_create_account
         return result
 
+    def get_user_historical_data(
+        self,
+        user_id: bool
+    ) -> pd.DataFrame:
+        query_template = self.jinja_environment.from_string(
+            """
+                SELECT * FROM {{ view_id }}
+                WHERE user_id = '{{ user_id }}'
+            """
+        )
+        query = query_template.render(
+            view_id=USER_DAILY_RECOMMENDED_INTAKE_HISTORY_TABLE_ID,
+            user_id=user_id
+        )
+        user_recommended_intake_history_df = self.db.run_query(
+            sql=query,
+            result_format='dataframe'
+        )
+        return user_recommended_intake_history_df
+
+    @handle_exception(has_random_message_printed_out=True)  
+    def show_user_historical_data_result(
+        self,
+        is_logged_in: bool,
+        user_id: bool,
+        layout_position=st
+    ) -> None:
+        if is_logged_in and user_id:
+            user_recommended_intake_history_df = self.get_user_historical_data(user_id=user_id)
+            if not user_recommended_intake_history_df.empty:
+                layout_position.dataframe(user_recommended_intake_history_df)   ### TODO: replace with method to visualize data
+            else:
+                layout_position.write("""
+                    Oops, looks like you haven't tracked your nutrition. 
+                    That's all right. Let's start tracking to see your nutrition intake history 😉
+                """)
+        else:
+            layout_position.write("Looks like you haven't logged in, do you want to log in to see your data?")
+            layout_position.link_button("Log in", "https://streamlit.io/gallery")   ### TODO: replace with actual log in
