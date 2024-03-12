@@ -3,6 +3,8 @@ import jinja2
 import threading
 import pandas as pd
 import streamlit as st
+import datetime
+from datetime import datetime as dt
 from core.openai_api import *
 from core.duckdb_connector import *
 from core.utils import handle_exception
@@ -130,7 +132,7 @@ class MainAppMiscellaneous:
                     user_personal_data = self.get_user_personal_info_manual_input(
                         layout_position=layout_position
                     )
-        
+
         return user_personal_data
 
     @handle_exception(has_random_message_printed_out=True)
@@ -220,17 +222,25 @@ class MainAppMiscellaneous:
 
     def get_user_historical_data(
         self,
-        user_id: bool
+        user_id: bool,
+        selected_date_range: tuple,
+        date_format="%Y-%m-%d"
     ) -> pd.DataFrame:
+        start_date, end_date = selected_date_range
         query_template = self.jinja_environment.from_string(
             """
                 SELECT * FROM {{ view_id }}
-                WHERE user_id = '{{ user_id }}'
+                WHERE
+                    user_id = '{{ user_id }}'
+                    AND record_date BETWEEN STRPTIME('{{ start_date }}', '{{ date_format }}') AND STRPTIME('{{ end_date }}', '{{ date_format }}')
             """
         )
         query = query_template.render(
             view_id=USER_DAILY_RECOMMENDED_INTAKE_HISTORY_TABLE_ID,
-            user_id=user_id
+            user_id=user_id,
+            start_date=start_date,
+            end_date=end_date,
+            date_format=date_format
         )
         user_recommended_intake_history_df = self.db.run_query(
             sql=query,
@@ -238,22 +248,58 @@ class MainAppMiscellaneous:
         )
         return user_recommended_intake_history_df
 
-    @handle_exception(has_random_message_printed_out=True)  
+    @handle_exception(has_random_message_printed_out=True)
     def show_user_historical_data_result(
         self,
         is_logged_in: bool,
         user_id: bool,
+        selected_date_range: tuple,
         layout_position=st
     ) -> None:
         if is_logged_in and user_id:
-            user_recommended_intake_history_df = self.get_user_historical_data(user_id=user_id)
+            user_recommended_intake_history_df = self.get_user_historical_data(
+                user_id=user_id,
+                selected_date_range=selected_date_range
+            )
             if not user_recommended_intake_history_df.empty:
                 layout_position.dataframe(user_recommended_intake_history_df)   ### TODO: replace with method to visualize data
             else:
                 layout_position.write("""
-                    Oops, looks like you haven't tracked your nutrition. 
-                    That's all right. Let's start tracking to see your nutrition intake history 😉
+                    Oops, looks like you haven't tracked your nutrition.
+                    Try a different dates or start tracking now to see your nutrition intake history 😉
                 """)
         else:
             layout_position.write("Looks like you haven't logged in, do you want to log in to see your data?")
             layout_position.link_button("Log in", "https://streamlit.io/gallery")   ### TODO: replace with actual log in
+
+    @handle_exception(has_random_message_printed_out=True)
+    def select_date_range(
+        self,
+        layout_position=st,
+        date_format="%Y-%m-%d"
+    ):
+        tz = pytz.timezone('Australia/Sydney')
+        today = datetime.datetime.now(tz)
+        last_month = today - datetime.timedelta(days=30)
+        start_date = datetime.date(2000, 1, 1)
+        end_date = datetime.date(3000, 1, 1)
+
+        selected_date_range = layout_position.date_input(
+            "Select time range",
+            (last_month, today),
+            start_date,
+            end_date,
+            format="YYYY.MM.DD",
+        )
+        if len(selected_date_range) == 2:
+            selected_date_range_str = (
+                selected_date_range[0].strftime(date_format),
+                selected_date_range[1].strftime(date_format)
+            )
+        else:
+            selected_date_range_str = (
+                last_month.strftime(date_format),
+                today.strftime(date_format)
+            )
+
+        return selected_date_range_str

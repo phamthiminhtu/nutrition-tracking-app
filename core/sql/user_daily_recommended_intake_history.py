@@ -65,7 +65,7 @@ create_user_daily_nutrient_intake_query_template = """
                 gender,
                 age,
                 nutrient,
-                STRFTIME(created_datetime_tzsyd, '%Y-%m-%d') AS record_date,
+                DATE_TRUNC('day', created_datetime_tzsyd) AS record_date,
                 SUM(actual_intake) AS actual_intake
             FROM {{ user_nutrient_intake_history_table_id }}
             GROUP BY
