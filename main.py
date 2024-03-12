@@ -1,5 +1,6 @@
 import os
 import logging
+import threading
 import streamlit as st
 from core.openai_api import *
 from core.duckdb_connector import *
@@ -12,6 +13,8 @@ OPENAI_CLIENT = OpenAI(
 )
 main_app_miscellaneous = MainAppMiscellaneous(openai_client=OPENAI_CLIENT)
 logging.basicConfig(level=logging.INFO)
+st.set_page_config(layout='wide')
+
 
 # @Nyan
 # Login option.
@@ -20,10 +23,43 @@ logging.basicConfig(level=logging.INFO)
 # Authenticator.recover_password()
 # Authenticator.create_new_account()
 
+### TODO: replace this with actual input
+is_logged_in = True
+user_name = "Tu"
+user_id = "abc"
+# user_id = "tu@gmail.com"
+###
+
+main_app_miscellaneous.say_hello(user_name=user_name)
+
+# Main page with 2 tabs
+track_new_meal_tab, user_recommended_intake_history_tab = st.tabs(
+    [":green[Track the food I ate] 🍔", "See my nutrition intake history 📖"]
+)
+
+# Flow 3 - 12. User wants to get their historical data
+logging.info("-----------Running get_user_historical_data()-----------")
+user_recommended_intake_history_df = main_app_miscellaneous.show_user_historical_data_result(
+    is_logged_in=is_logged_in,
+    user_id=user_id,
+    layout_position=user_recommended_intake_history_tab
+)
+logging.info("-----------Finished get_user_input_dish_and_estimate_ingredients.-----------")
+
+
 # 1. Get dish description from user and estimate its ingredients
 logging.info("-----------Running get_user_input_dish_and_estimate_ingredients()-----------")
-dish_description = st.text_input("What have you eaten today? 😋").strip()
-ingredient_df = main_app_miscellaneous.get_user_input_dish_and_estimate_ingredients(dish_description=dish_description)
+dish_description = track_new_meal_tab.text_input("What have you eaten today? 😋").strip()
+ingredient_df = main_app_miscellaneous.get_user_input_dish_and_estimate_ingredients(
+    dish_description=dish_description,
+    layout_position=track_new_meal_tab
+)
+
+# wait until user input
+event = threading.Event()
+while not dish_description:
+    event.wait()
+    event.clear()
 logging.info("-----------Finished get_user_input_dish_and_estimate_ingredients.-----------")
 
 # 2-3. Nutrient actual intake
@@ -43,8 +79,6 @@ logging.info("-----------Finished get_user_input_dish_and_estimate_ingredients.-
 
 
 ### TODO: replace this with actual input
-is_logged_in = False
-user_id = "tu@gmail.com"
 user_intake_df_temp = pd.DataFrame(
     [
         {
@@ -74,9 +108,10 @@ logging.info("----------- Running get_user_personal_data()-----------")
 user_personal_data = main_app_miscellaneous.get_user_personal_data(
     is_logged_in=is_logged_in,
     user_id=user_id,
-    has_user_intake_df_temp_empty=user_intake_df_temp.empty
+    has_user_intake_df_temp_empty=user_intake_df_temp.empty,
+    layout_position=track_new_meal_tab
 )
-logging.info("-----------finished get_user_personal_data-----------")
+logging.info("-----------Finished get_user_personal_data-----------")
 
 # 6. Join with recommended intake
 # Only run when we have user_personal_data
@@ -85,7 +120,8 @@ logging.info("-----------Running combine_and_show_users_recommended_intake()----
 user_recommended_intake_df = main_app_miscellaneous.combine_and_show_users_recommended_intake(
     user_personal_data=user_personal_data,
     user_intake_df_temp=user_intake_df_temp,
-    user_intake_df_temp_name="user_intake_df_temp"
+    user_intake_df_temp_name="user_intake_df_temp",
+    layout_position=track_new_meal_tab
 )
 logging.info("-----------Finished combine_and_show_users_recommended_intake-----------")
 
@@ -105,13 +141,11 @@ if not user_recommended_intake_df.empty:
     result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_their_data(
         dish_description=dish_description,
         user_id=user_id,
-        is_logged_in=is_logged_in
+        is_logged_in=is_logged_in,
+        layout_position=track_new_meal_tab
     )
     login_or_create_account = result.get("login_or_create_account")
 logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_data-----------")
-
-
-# Flow 3 - user wants to get their historical data
 
 
 # 5. Recommend dish.

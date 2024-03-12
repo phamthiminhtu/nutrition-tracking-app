@@ -54,13 +54,27 @@ anonymous_user_daily_nutrient_intake_query_template = """
 """
 
 create_user_daily_nutrient_intake_query_template = """
-    CREATE OR REPLACE VIEW ilab.main.user_daily_nutrient_intake AS
+    CREATE OR REPLACE VIEW ilab.main.user_daily_recommended_intake_history AS
     WITH
-        user_nutrient_intake AS
-            (SELECT * FROM {{ user_nutrient_intake_history_table_id }})
-
-        ,recommended_daily_nutrient_intake_source AS
+        recommended_daily_nutrient_intake_source AS
             (SELECT * FROM {{ recommended_daily_nutrient_intake_table_id }})
 
+        ,user_nutrient_intake AS 
+            (SELECT
+                user_id,
+                gender,
+                age,
+                nutrient,
+                STRFTIME(created_datetime_tzsyd, '%Y-%m-%d') AS record_date,
+                SUM(actual_intake) AS actual_intake
+            FROM {{ user_nutrient_intake_history_table_id }}
+            GROUP BY
+                user_id,
+                gender,
+                age,
+                nutrient,
+                record_date
+            )
+            
         {{ combine_user_actual_vs_recommend_intake_logic }}
 """
