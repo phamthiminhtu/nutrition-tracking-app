@@ -4,15 +4,15 @@ combine_user_actual_vs_recommend_intake_logic = """
             (SELECT
                 gender,
                 age_start,
-                age_end_inclusive AS age_end,
-                nutrient_lower AS nutrient,
+                age_end AS age_end,
+                nutrient AS nutrient,
                 AVG(daily_requirement_intake) AS daily_recommended_intake,
-                MAX(unit) AS unit
+                MAX(measurement) AS measurement
             FROM recommended_daily_nutrient_intake_source
             GROUP BY
                 gender,
                 age_start,
-                age_end_inclusive,
+                age_end,
                 nutrient)
 
     SELECT
@@ -20,7 +20,7 @@ combine_user_actual_vs_recommend_intake_logic = """
         r.daily_recommended_intake,
         r.daily_recommended_intake - u.actual_intake AS intake_diff,
         CEIL((r.daily_recommended_intake - u.actual_intake)*100 / daily_recommended_intake) AS intake_diff_percent,
-        r.unit
+        r.measurement
     FROM user_nutrient_intake AS u
     -- only get nutrients that exist in recommended_daily_nutrient_intake table
     INNER JOIN recommended_daily_nutrient_intake AS r

@@ -1,5 +1,0 @@
-gender,age_start,age_end_inclusive,nutrient_lower,daily_requirement_intake,unit
-female,10,30,protein,14000000,gram
-female,10,30,fibre,14000000,microgram
-female,10,30,vitamin a,300,microgram
-female,10,30,thiamin,500,gram
