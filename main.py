@@ -5,7 +5,10 @@ import streamlit as st
 from core.openai_api import *
 from core.duckdb_connector import *
 from core.main_app_miscellaneous import *
+from core.monali import read_data
+from core.monali import *
 
+file_path = "/Users/monalipatil/Monali/MDSI-Semester1/iLab Capstone Project/Assignment2/ilab/data/csv/nutrients_data.csv"
 
 OPENAI_API_KEY = "OPENAI_API_KEY"
 OPENAI_CLIENT = OpenAI(
@@ -152,9 +155,20 @@ logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_da
 
 
 # 5. Recommend dish.
-# @Anika
-# A python class in a separate file (Anika.py - Please rename it), containing different methods:
-    # E.g. DishRecommender = DishRecommender()
-    # DishRecommender.get_user_preference()
-    # DishRecommender.recommend_recipe()
-# Ask user's preference (diet/ what do you have left in your fridge?)
+df_nutrient_data = read_data(file_path)
+
+dishrecommend = DishRecommender(openai_client=OPENAI_CLIENT)
+
+logging.info("-----------Running calculate_intake_difference-----------")
+nutrient_info = dishrecommend.calculate_intake_difference(df_nutrient_data)
+logging.info("-----------Finished calculate_intake_difference-----------")
+
+logging.info("-----------Running get_user_input-----------")        
+cuisine, allergies, ingredients = dishrecommend.get_user_input()
+logging.info("-----------Finished get_user_input-----------")
+
+logging.info("-----------Running get_dish_recommendation-----------")
+if st.button("Recommend Dish"):
+    recommended_dish = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
+    st.write(recommended_dish)
+logging.info("-----------Finished get_dish_recommendation-----------")
