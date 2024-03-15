@@ -7,27 +7,36 @@ from core.utils import handle_exception
 class OpenAIAssistant:
     def __init__(self, openai_client) -> None:
         self.openai_client = openai_client
-    
-    @handle_exception
-    def run_prompt(self, prompt) -> dict:
+
+    def run_prompt(
+        self,
+        prompt,
+        system_prompt="You are a helpful assistant",
+        response_format="text"
+    ) -> dict:
         '''
             - To get this running, you should have your OPENAI_API_KEY stored in your environment variables.
-                Details at: 
+                Details at:
                     - https://platform.openai.com/docs/quickstart?context=python#:~:text=write%20any%20code.-,MacOS,-Windows
                     - https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key
             - Tutorial: https://platform.openai.com/docs/quickstart?context=python
-            - Input: prompt.
-            - Output: JSON-like string.
+            - Input:
+                - prompt.
+                - system_promt
+            - Output: dictionary includes:
+                - status: 200
+                - value: OpenAI's response.
         '''
         seed = 1234 # to get deterministic estimation
+        print("#### RUNNING OPENAI API")
         completion = self.openai_client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant designed to output JSON with format ingredient: weight (interger type)."},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}
             ],
             seed=seed,
-            response_format={ "type": "json_object"}
+            response_format={ "type": response_format}
         )
         estimation = completion.choices[0].message.content
         result = {
@@ -65,7 +74,11 @@ class OpenAIAssistant:
         if df is None:
             df = pd.DataFrame()
         if dish_description:
-            result = self.run_prompt(prompt=ingredient_estimation_prompt)
+            result = self.run_prompt(
+                prompt=ingredient_estimation_prompt,
+                system_prompt="You are a helpful assistant designed to output JSON with format ingredient: weight (interger type).",
+                response_format="json_object"
+            )
             if result.get("status") == 200:
                 df = self.extract_estimation_to_dataframe(estimation=result.get("value"))
                 if not df.empty:
