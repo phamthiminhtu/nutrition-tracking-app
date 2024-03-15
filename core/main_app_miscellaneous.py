@@ -10,9 +10,9 @@ from core.duckdb_connector import *
 from core.utils import handle_exception
 from core.sql.user_daily_recommended_intake_history import anonymous_user_daily_nutrient_intake_query_template, combine_user_actual_vs_recommend_intake_logic
 
-
 RECOMMENDED_DAILY_NUTRIENT_INTAKE_TABLE_ID = "ilab.main.daily_nutrients_recommendation"
 USER_DAILY_RECOMMENDED_INTAKE_HISTORY_TABLE_ID = "ilab.main.user_daily_recommended_intake_history"
+
 USER_INTAKE_COLUMNS_DICT = {
     "gender": "Gender",
     "age": "Age",
