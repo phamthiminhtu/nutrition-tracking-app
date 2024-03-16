@@ -13,7 +13,7 @@ logger.setLevel(logging.INFO)
 formatter = logging.Formatter("%(asctime)s:%(levelname)s:%(name)s:%(funcName)s:%(message)s")
 
 # Setting up file handler to save logs in a log file
-file_handler = logging.FileHandler("data/michael_logs.log")
+file_handler = logging.FileHandler("data/logs.log")
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
@@ -190,15 +190,19 @@ class NutrientMaster:
         # Lowers case gender
         gender = gender.lower()
 
-        # Loads recommended intake table
-        recommended_intake = conn.execute(
-        """
-        SELECT *
-        FROM 'data/csv/daily_nutrients_recommendation.csv'
-        WHERE Age = ? AND Gender = ?
-        """
-        , (age_group, gender)
-        ).df()
+        try:
+            # Loads recommended intake table
+            recommended_intake = conn.execute(
+            """
+            SELECT *
+            FROM 'data/csv/daily_nutrients_recommendation_use_this?.csv'
+            WHERE Age = ? AND Gender = ?
+            """
+            , (age_group, gender)
+            ).df()
+        
+        except Exception as e:
+            logger.exception(f"Exception name: {type(e).__name__}")
 
         # Merges daily nutrient recommendation and nutrient intake
         final_df = pd.merge(recommended_intake, transposed_df, on='Nutrient', how='left')
@@ -207,7 +211,7 @@ class NutrientMaster:
         final_df[['Total/day', date_input]] = final_df[['Total/day', date_input]].astype(float)
 
         # Drops irrelevant columns
-        final_df.drop(columns=["Gender", "Age"], inplace=True)
+        # final_df.drop(columns=["Gender", "Age"], inplace=True)
 
         logger.info("Finished comparing daily nutrient recommendation against user intake")
         return final_df
