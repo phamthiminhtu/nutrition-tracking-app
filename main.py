@@ -5,6 +5,7 @@ import streamlit as st
 from core.openai_api import *
 from core.duckdb_connector import *
 from core.main_app_miscellaneous import *
+from core.calculate_nutrient_intake import NutrientMaster
 
 
 OPENAI_API_KEY = "OPENAI_API_KEY"
@@ -66,13 +67,29 @@ while not dish_description:
 logging.info("-----------Finished get_user_input_dish_and_estimate_ingredients.-----------")
 
 # 2-3. Nutrient actual intake
-# @Michael @Johnny
-    # Ask users' information:
-        # age, gender, date
-    # I think your methods should be in the same class in the same python file (Michael_Johnny.py file - please rename it).
-    # E.g. NutrientMaster = NutrientMaster()
-    # NutrientMaster.calculate_recommended_intake_from_database()
-    # NutrientMaster.calculate_recommended_intake_using_openapi()
+# User input age
+user_age = int(track_new_meal_tab.slider("How old are you?", 1, 120, 25))
+# st.session_state["user_age"] = user_age
+
+# User input gender
+user_gender = track_new_meal_tab.selectbox(
+                "What's your gender?", 
+                ("Male", "Female"),
+                index=None,
+                placeholder="Select gender")
+# st.session_state["user_gender"] = user_gender
+
+# User input date
+date_input = track_new_meal_tab.date_input(
+                "When was your meal consumed or plan to be consumed?", 
+                datetime.date.today(), 
+                format="DD/MM/YYYY")
+# st.session_state["date_input"] = date_input
+
+if track_new_meal_tab.button("Go"):
+    Nutrient = NutrientMaster()
+    df = Nutrient.compare_daily_recommendation_against_user_intake(ingredient_df, user_age, user_gender, date_input)
+    st.table(df.style.format({"Total/day": "{:.1f}", date_input: "{:.1f}"}))
 
 
 # 3. Check user's log in status
