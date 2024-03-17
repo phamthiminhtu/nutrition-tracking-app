@@ -3,6 +3,7 @@ import logging
 import pandas as pd
 from fuzzywuzzy import fuzz, process
 from core.utils import handle_exception
+import streamlit as st
 
 # Setting up duckdb
 conn = duckdb.connect()
@@ -138,20 +139,6 @@ class NutrientMaster:
         else:
             logger.info("Finished summing total nutrients in the meal")
             return merged_df
-
-
-    def _transpose_and_reformat_dataframe(self, df=None) -> pd.DataFrame:
-
-        # Transpose and reformat dataframe
-        if df is not None:
-            transposed_df = df.iloc[-1:].T.reset_index()
-            transposed_df.columns = transposed_df.iloc[0]
-            transposed_df = transposed_df[1:]
-
-            # Rename column
-            transposed_df = transposed_df.rename(columns={'date_input': 'Nutrient'})
-        
-        return transposed_df
         
 
     def _define_age_group(self, user_age) -> str:
@@ -174,9 +161,23 @@ class NutrientMaster:
             age_group = "71+"
             
         return age_group
+    
+
+    def _transpose_and_reformat_dataframe(self, df=None) -> pd.DataFrame:
+
+        # Transpose and reformat dataframe
+        if df is not None:
+            transposed_df = df.iloc[-1:].T.reset_index()
+            transposed_df.columns = transposed_df.iloc[0]
+            transposed_df = transposed_df[1:]
+
+            # Rename column
+            transposed_df = transposed_df.rename(columns={'date_input': 'Nutrient'})
+        
+        return transposed_df
 
     @handle_exception(funny_message="Your meal is exceptionally distinctive, and we may need to reconsider how to calculate its nutrient contents. Please visit us again later.")
-    def compare_daily_recommendation_against_user_intake(self, ingredients_from_user, age, gender, date_input) -> pd.DataFrame:
+    def total_nutrition_based_on_food_intake(self, ingredients_from_user, date_input) -> pd.DataFrame:
 
         # Extracts total nutrients in the meal
         df = self.sum_total_nutrients_in_the_meal(ingredients_from_user, date_input)
@@ -184,34 +185,12 @@ class NutrientMaster:
         # Extracts tranposed dataframe        
         transposed_df = self._transpose_and_reformat_dataframe(df)
 
-        # Defines age group based on user input
-        age_group = self._define_age_group(age)
-
-        # Lowers case gender
-        gender = gender.lower()
-
-        try:
-            # Loads recommended intake table
-            recommended_intake = conn.execute(
-            """
-            SELECT *
-            FROM 'data/csv/daily_nutrients_recommendation_use_this?.csv'
-            WHERE Age = ? AND Gender = ?
-            """
-            , (age_group, gender)
-            ).df()
-        
-        except Exception as e:
-            logger.exception(f"Exception name: {type(e).__name__}")
-
-        # Merges daily nutrient recommendation and nutrient intake
-        final_df = pd.merge(recommended_intake, transposed_df, on='Nutrient', how='left')
-
         # Converts nutrient values into float
-        final_df[['Total/day', date_input]] = final_df[['Total/day', date_input]].astype(float)
+        transposed_df[date_input] = transposed_df[date_input].astype(float).round(1)
 
-        # Drops irrelevant columns
-        # final_df.drop(columns=["Gender", "Age"], inplace=True)
+        # Showing total nutrients on streamlit
+        st.table(transposed_df.style.format({date_input: "{:.1f}"}))
 
-        logger.info("Finished comparing daily nutrient recommendation against user intake")
-        return final_df
+        logger.info("Finished calculating total nutrients based on food intake")
+
+        return transposed_df
