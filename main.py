@@ -88,8 +88,7 @@ date_input = track_new_meal_tab.date_input(
 
 if track_new_meal_tab.button("Go"):
     Nutrient = NutrientMaster()
-    df = Nutrient.compare_daily_recommendation_against_user_intake(ingredient_df, user_age, user_gender, date_input)
-    st.table(df.style.format({"Total/day": "{:.1f}", date_input: "{:.1f}"}))
+    total_nutrients_based_on_food_intake = Nutrient.total_nutrition_based_on_food_intake(ingredients_from_user=ingredient_df[["Ingredient", "Estimated weight (g)"]], date_input=date_input)
 
 
 # 3. Check user's log in status
