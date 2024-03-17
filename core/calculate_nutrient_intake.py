@@ -31,7 +31,7 @@ class NutrientMaster:
 
         try:
             # Calculate ingredient match score using fuzzy matching
-            result = process.extractOne(ingredient_from_user, self.ingredients_in_database['database_ingredient'], scorer=fuzz.token_set_ratio)
+            result = process.extractOne(ingredient_from_user, self.ingredients_in_database['database_ingredient'], scorer=fuzz.token_sort_ratio)
         
         except Exception as e:
             logger.exception(f"Exception name: {type(e).__name__}")
@@ -94,7 +94,7 @@ class NutrientMaster:
 
         try:
             # Extract ingredients with high match score
-            high_score_ingredients, _ = self.group_ingredients_based_on_match_score(min_match_score=60, ingredients_from_user=ingredients_from_user)
+            high_score_ingredients, _ = self.group_ingredients_based_on_match_score(min_match_score=55, ingredients_from_user=ingredients_from_user)
 
             # Merge ingredients with nutrient values from database
             ingredients_and_nutrients_df = pd.merge(high_score_ingredients, self.ingredients_in_database, on="database_ingredient", how="left")
