@@ -2,3 +2,4 @@
 *.ipynb
 ilab_autumn_2024_michael/
 logs.log
+.DS_Store
