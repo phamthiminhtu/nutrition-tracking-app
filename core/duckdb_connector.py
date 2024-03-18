@@ -11,6 +11,7 @@ from core.sql.user_nutrient_intake_history import insert_new_record_user_nutrien
 
 USER_NUTRIENT_INTAKE_HISTORY_TABLE_ID = "ilab.main.user_nutrient_intake_history"
 USER_DAILY_RECOMMENDED_INTAKE_HISTORY_TABLE_ID = "ilab.main.user_daily_recommended_intake_history"
+USER_PROFILES_TABLE_ID = "ilab.main.users"
 
 class DuckdbConnector:
 
@@ -155,7 +156,7 @@ class DuckdbConnector:
     def get_user_personal_data_from_database(
             self,
             user_id,
-            table_id=USER_NUTRIENT_INTAKE_HISTORY_TABLE_ID  #TODO: replace with user's personal data table
+            table_id=USER_PROFILES_TABLE_ID  #TODO: replace with user's personal data table
         ) -> dict:
         user_personal_data = {}
         query_template = self.jinja_environment.from_string(
