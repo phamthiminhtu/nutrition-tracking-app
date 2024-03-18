@@ -33,26 +33,26 @@ class NutrientMaster:
         try:
             # Calculate ingredient match score using fuzzy matching
             result = process.extractOne(ingredient_from_user, self.ingredients_in_database['database_ingredient'], scorer=fuzz.token_sort_ratio)
-        
+
         except Exception as e:
             logger.exception(f"Exception name: {type(e).__name__}")
 
         else:
             logger.info(f"Finished calculating match score for: {ingredient_from_user}")
             return result[0], result[1]
-    
-   
+
+
     def calculate_match_score_for_all_ingredients(self, ingredients_from_user) -> pd.DataFrame:
 
         try:
             # Calculate match score for each ingredient
             for index, ingredient in ingredients_from_user.iterrows():
                 ingredients_from_user.at[index, 'database_ingredient'], ingredients_from_user.at[index, 'match_score'] = self._calculate_single_ingredient_match_score(ingredient["Ingredient"])
-        
+
         except Exception as e:
             logger.exception(f"Exception name: {type(e).__name__}")
 
-        else:    
+        else:
             logger.info("Finished calculating match score for all ingredients")
             return ingredients_from_user
 
@@ -67,11 +67,11 @@ class NutrientMaster:
             ingredient_with_high_match_score = match_result[match_result["match_score"] > min_match_score]
 
             # Extract ingredients with low match score
-            ingredient_with_low_match_score = match_result[match_result["match_score"] <= min_match_score] 
-        
+            ingredient_with_low_match_score = match_result[match_result["match_score"] <= min_match_score]
+
         except Exception as e:
             logger.exception(f"Exception name: {type(e).__name__}")
-        
+
         else:
             logger.info("Finished sorting ingredients based on match score")
             return ingredient_with_high_match_score, ingredient_with_low_match_score
@@ -108,7 +108,7 @@ class NutrientMaster:
 
             # Drop irrelevant columns
             ingredients_and_total_nutrients_df.drop(columns=["Ingredient", "Estimated weight (g)"], inplace=True)
-        
+
         except Exception as e:
             logger.exception(f"Exception name: {type(e).__name__}")
 
@@ -119,7 +119,7 @@ class NutrientMaster:
 
     def sum_total_nutrients_in_the_meal(self, ingredients_from_user, date_input) -> pd.DataFrame:
 
-        try:  
+        try:
             # Extract ingredients and total nutrients for each ingredient
             total_nutrients_in_each_ingredient_df = self.extract_ingredients_with_high_match_score_and_their_nutrients(ingredients_from_user)
 
@@ -139,10 +139,10 @@ class NutrientMaster:
         else:
             logger.info("Finished summing total nutrients in the meal")
             return merged_df
-        
+
 
     def _define_age_group(self, user_age) -> str:
-        
+
         if user_age <= 3:
             age_group = "1-3"
         elif user_age <= 8:
@@ -159,9 +159,9 @@ class NutrientMaster:
             age_group = "51-70"
         else:
             age_group = "71+"
-            
+
         return age_group
-    
+
 
     def _transpose_and_reformat_dataframe(self, df=None) -> pd.DataFrame:
 
@@ -173,23 +173,23 @@ class NutrientMaster:
 
             # Rename column
             transposed_df = transposed_df.rename(columns={'date_input': 'Nutrient'})
-        
+
         return transposed_df
 
     @handle_exception(funny_message="Your meal is exceptionally distinctive, and we may need to reconsider how to calculate its nutrient contents. Please visit us again later.")
-    def total_nutrition_based_on_food_intake(self, ingredients_from_user, date_input) -> pd.DataFrame:
+    def total_nutrition_based_on_food_intake(self, ingredients_from_user, date_input, layout_position=st) -> pd.DataFrame:
 
         # Extracts total nutrients in the meal
         df = self.sum_total_nutrients_in_the_meal(ingredients_from_user, date_input)
-        
-        # Extracts tranposed dataframe        
+
+        # Extracts tranposed dataframe
         transposed_df = self._transpose_and_reformat_dataframe(df)
 
         # Converts nutrient values into float
         transposed_df[date_input] = transposed_df[date_input].astype(float).round(1)
 
         # Showing total nutrients on streamlit
-        st.table(transposed_df.style.format({date_input: "{:.1f}"}))
+        layout_position.table(transposed_df.style.format({date_input: "{:.1f}"}))
 
         logger.info("Finished calculating total nutrients based on food intake")
 
