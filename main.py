@@ -2,18 +2,17 @@ import os
 import logging
 import threading
 import pickle
-import streamlit as st
-import streamlit_authenticator as stauth #pip install streamlit-authenticator==0.1.5 
+
 from pathlib import Path
 from core.openai_api import *
 from core.duckdb_connector import *
 from core.main_app_miscellaneous import *
 
 
-"""OPENAI_API_KEY = "OPENAI_API_KEY"
+OPENAI_API_KEY = "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"
 OPENAI_CLIENT = OpenAI(
   api_key=os.environ.get(OPENAI_API_KEY),
-)"""
+)
 main_app_miscellaneous = MainAppMiscellaneous(openai_client=OPENAI_CLIENT)
 logging.basicConfig(level=logging.INFO)
 st.set_page_config(layout='wide')
