@@ -7,7 +7,15 @@ create_user_profiles_query = """
         password STRING
     );
 """
+get_users_query = """
+    SELECT * FROM {{table_id}}
+"""
 
+update_users_query = """
+    UPDATE users
+SET username = 'Alfred', City= 'Gotham'
+WHERE user_id = 'alfy';
+"""
 register_new_user_query = """
     INSERT INTO {{ table_id }} BY NAME
     (WITH
