@@ -28,8 +28,9 @@ st.set_page_config(layout='wide')
 # Authenticator.create_new_account()
 
 ### TODO: replace this with actual input
-is_logged_in = True
-user_name = "Tu"
+is_logged_in = False
+# user_name = "Tu"
+user_name = None
 # user_id = "abc"
 user_id = "tu@gmail.com"
 ###
@@ -70,29 +71,11 @@ while not dish_description:
 logging.info("-----------Finished get_user_input_dish_and_estimate_ingredients.-----------")
 
 # 2-3. Nutrient actual intake
-# User input age
-user_age = int(track_new_meal_tab.slider("How old are you?", 1, 120, 25))
-# st.session_state["user_age"] = user_age
-
-# User input gender
-user_gender = track_new_meal_tab.selectbox(
-                "What's your gender?", 
-                ("Male", "Female"),
-                index=None,
-                placeholder="Select gender")
-# st.session_state["user_gender"] = user_gender
-
-# User input date
-date_input = track_new_meal_tab.date_input(
-                "When was your meal consumed or plan to be consumed?", 
-                datetime.date.today(), 
-                format="DD/MM/YYYY")
-# st.session_state["date_input"] = date_input
-
 if track_new_meal_tab.button("Go"):
     Nutrient = NutrientMaster()
-    total_nutrients_based_on_food_intake = Nutrient.total_nutrition_based_on_food_intake(ingredients_from_user=ingredient_df[["Ingredient", "Estimated weight (g)"]], date_input=date_input)
-
+    total_nutrients_based_on_food_intake = Nutrient.total_nutrients_based_on_food_intake(
+                                                    ingredients_from_user=ingredient_df,
+                                                    layout_position=track_new_meal_tab)
 
 # 3. Check user's log in status
 # @Nyan
