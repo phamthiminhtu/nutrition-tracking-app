@@ -9,7 +9,7 @@ from core.duckdb_connector import *
 from core.main_app_miscellaneous import *
 
 
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = "OPENAI_API_KEY"
 OPENAI_CLIENT = OpenAI(
   api_key=os.environ.get(OPENAI_API_KEY),
 )
