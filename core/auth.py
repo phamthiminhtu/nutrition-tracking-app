@@ -5,14 +5,14 @@ import streamlit_authenticator as stauth
 import duckdb
 import pickle
 from pathlib import Path
+import pandas as pd
+import logging
 
-import yaml
-from yaml.loader import SafeLoader
 from core.duckdb_connector import *
 from core.sql.user_authentication import *
 
 from core.utils import handle_exception
-
+logging.basicConfig(level=logging.INFO)
 class Authenticator:
     def __init__(self) -> None:
         self.conn = DuckdbConnector()
@@ -50,20 +50,47 @@ class Authenticator:
             print("Not inserted")
         else:
             print("Inserted")
-    def log_in() -> bool:
+    def fetch_users(self)->dict:
+        query_template = self.jinja_environment.from_string(
+            get_users_query
+        )
+        query = query_template.render(
+            table_id=USER_PROFILES_TABLE_ID,
+        )
+        self.all_users = self.conn.run_query(
+            sql=query,
+        )
+        return self.all_users
+    logging.info("----------- Running get_user_personal_data()-----------")
+    def log_in(self) -> bool:
         "return yes, no and none for auth status"
+        user_df = pd.DataFrame([
+                {
+                    "user_id": "tu@gmail.com",
+                    "gender": "female",
+                    "age": 20,
+                    "username": "tu",
+                    "password": "Protein"
+                },
+                {
+                    "user_id": "nyan@gmail.com",
+                    "gender": "male",
+                    "age": 26,
+                    "username": "beef burger",
+                    "password": "Vitamin A"
+                }]
+        )
+        self.create_users_table()
+        self.insert_user("user_df",user_df[0])
+        users = self.fetch_users()
+        usernames = [user['username'] for user in users]
+        passwords = [user['password'] for user in users]
+        user_ids = [user['user_id'] for user in users]
+        authenticator = stauth.Authenticate(user_ids, usernames,passwords,'nutrients_dashboard','abcd')
         name, authentication_status, username = authenticator.login('Login', 'main')
+        return True;
 
-names = ['nyan','micheal', 'tu']
-usernames = ['nhtun', 'myaputra','tpham']
-#passwords = ['abc','def','ghi']
-passwords = ['XXX','XXX','XXX']
-
-hashed_passwords = stauth.Hasher(passwords).generate()
-
-file_path = Path(__file__).parent / "hashed_pw.pkl"
-with file_path.open("wb") as file:
-    pickle.dump(hashed_passwords,file)
+auth = Authenticator.log_in()
 
 """ 
 name, authentication_status, username = authenticator.login('Login', 'main')
