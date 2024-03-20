@@ -7,6 +7,7 @@ import datetime
 from datetime import datetime as dt
 from core.openai_api import *
 from core.duckdb_connector import *
+from core.auth import *
 from core.utils import handle_exception
 from core.sql.user_daily_recommended_intake_history import anonymous_user_daily_nutrient_intake_query_template, combine_user_actual_vs_recommend_intake_logic
 
@@ -29,6 +30,8 @@ class MainAppMiscellaneous:
         self.jinja_environment = jinja2.Environment()
         self.db = DuckdbConnector()
         self.openai_api = OpenAIAssistant(openai_client=openai_client)
+        self.auth = Authenticator()
+        self.login = auth.log_in()
 
     @handle_exception(has_random_message_printed_out=True)
     def say_hello(
