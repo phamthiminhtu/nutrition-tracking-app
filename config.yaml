@@ -1,17 +1,17 @@
 credentials:
   usernames:
-    jsmith:
-      email: jsmith@gmail.com
-      name: John Smith
-      password: abc # To be replaced with hashed password
-    rbriggs:
-      email: rbriggs@gmail.com
-      name: Rebecca Briggs
-      password: def # To be replaced with hashed password
+    Tu:
+      email: tu@gmail.com
+      name: Thi Minh Tu
+      password: Protein # To be replaced with hashed password
+    Tyler:
+      email: nyan@gmail.com
+      name: Nyan Htun
+      password: Vitamin A # To be replaced with hashed password
 cookie:
-  expiry_days: 30
-  key: random_signature_key # Must be string
-  name: random_cookie_name
+  expiry_days: 10
+  key: abcdefqwe # Must be string
+  name: choc_cookie
 preauthorized:
   emails:
   - melsby@gmail.com

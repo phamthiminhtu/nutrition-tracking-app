@@ -7,7 +7,7 @@ import threading
 import streamlit as st
 from core.utils import handle_exception
 from core.sql.user_nutrient_intake_history import insert_new_record_user_nutrient_intake_history_query_template
-
+from core.sql.user_authentication import *
 
 USER_NUTRIENT_INTAKE_HISTORY_TABLE_ID = "ilab.main.user_nutrient_intake_history"
 USER_DAILY_RECOMMENDED_INTAKE_HISTORY_TABLE_ID = "ilab.main.user_daily_recommended_intake_history"
@@ -183,3 +183,47 @@ class DuckdbConnector:
                 "age": result[0][2]
             }
         return user_personal_data
+    @handle_exception(has_random_message_printed_out=True)
+    def fetch_users(self)->dict:
+        query_template = self.jinja_environment.from_string(
+            fetch_users_query
+        )
+        query = query_template.render(
+            table_id=USER_PROFILES_TABLE_ID,
+        )
+        result = self.run_query(
+            sql=query
+        )
+        if result: 
+            users_data = {
+                'user_id': result[0][0],
+                'username': result[0][1],
+                'password': result[0][2]
+            }
+        return result
+    def create_users_table(self)->bool:
+        self.users_table_database = self.run_query(sql=create_user_profiles_query)
+        if self.users_table_database!=None:
+            print('users table created')
+            return True
+        else:
+            return False
+    
+    def insert_user(self,user_info:dict)->None:
+        query_template = self.jinja_environment.from_string(
+            register_new_user_query
+        )
+        query = query_template.render(
+            table_id=USER_PROFILES_TABLE_ID,
+            #print('{0} {1} cost ${2}'.format(6, 'bananas', 1.74)
+            user_info= """'{0}' , '{1}',  {2}, '{3}', '{4}'""".format(user_info.get("user_id"),user_info.get("gender"),user_info.get("age"),user_info.get("username"),user_info.get("password"))
+        )
+        print(query)
+        self.user_insert_stat = self.run_query(
+            sql=query,
+        )
+        if not self.user_insert_stat:
+            print("Not inserted")
+        else:
+            print("Inserted")
+        
