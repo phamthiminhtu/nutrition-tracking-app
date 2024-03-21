@@ -9,94 +9,48 @@ import pandas as pd
 import logging
 
 from core.duckdb_connector import *
-from core.sql.user_authentication import *
+#from duckdb_connector import *
 
 from core.utils import handle_exception
+#from utils import handle_exception
 logging.basicConfig(level=logging.INFO)
+import yaml
+from yaml.loader import SafeLoader
+
+with open('config.yaml') as file:
+    config = yaml.load(file, Loader=SafeLoader)
+
 class Authenticator:
     def __init__(self) -> None:
         self.conn = DuckdbConnector()
-
-    @handle_exception(has_random_message_printed_out=True)
-    def create_users_table(self)->bool:
-        self.users_table_database = self.conn.run_query(sql=create_user_profiles_query)
-        if self.users_table_database!=None:
-            print('users table created')
-            return True
-        else:
-            return False
-    def insert_user(self,
-                    user_info_df:str,
-                    user_info:dict)->None:
-        query_template = self.jinja_environment.from_string(
-            register_new_user_query
-        )
-        query = query_template.render(
-            table_id=USER_PROFILES_TABLE_ID,
-            temp_user_df = user_info_df
-        )
-        parameters = {
-            "user_id": user_info.get("user_id"),
-            "gender": user_info.get("gender"),
-            "age": user_info.get("age"),
-            "username": user_info.get("username"),
-            "password":user_info.get("password")
-        }
-        self.user_insert_stat = self.conn.run_query(
-            sql=query,
-            parameters=parameters
-        )
-        if not self.user_insert_stat:
-            print("Not inserted")
-        else:
-            print("Inserted")
-    def fetch_users(self)->dict:
-        query_template = self.jinja_environment.from_string(
-            get_users_query
-        )
-        query = query_template.render(
-            table_id=USER_PROFILES_TABLE_ID,
-        )
-        self.all_users = self.conn.run_query(
-            sql=query,
-        )
-        return self.all_users
+        
     logging.info("----------- Running get_user_personal_data()-----------")
     def log_in(self) -> bool:
         "return yes, no and none for auth status"
-        user_df = pd.DataFrame([
-                {
-                    "user_id": "tu@gmail.com",
-                    "gender": "female",
-                    "age": 20,
-                    "username": "tu",
-                    "password": "Protein"
-                },
-                {
-                    "user_id": "nyan@gmail.com",
-                    "gender": "male",
-                    "age": 26,
-                    "username": "beef burger",
-                    "password": "Vitamin A"
-                }]
-        )
-        self.create_users_table()
-        self.insert_user("user_df",user_df[0])
-        users = self.fetch_users()
-        usernames = [user['username'] for user in users]
-        passwords = [user['password'] for user in users]
-        user_ids = [user['user_id'] for user in users]
-        authenticator = stauth.Authenticate(user_ids, usernames,passwords,'nutrients_dashboard','abcd')
-        name, authentication_status, username = authenticator.login('Login', 'main')
+        #self.conn.create_users_table()
+        users = self.conn.fetch_users()
+        self.authenticator = stauth.Authenticate(config['credentials'],cookie_name='some',key='sesame')
+        usernames = [user[1] for user in users]
+        passwords = [user[2] for user in users]
+        user_ids = [user[0] for user in users]
+        name, authentication_status, username = self.authenticator.login( 'main')
         return True;
+    @handle_exception(has_random_message_printed_out=True)
+    def register_user(self):
+        try:
+            user_id, username, name_of_registered_user = self.authenticator.register_user(preauthorization=False,fields={'Form name':'Register user', 'User ID':'user_id', 'Username':'username','Age':'age','Gender':'gender', 'Password':'password', 'Repeat password':'Repeat password', 'Register':'Register'})
+            #self.conn.insert_user({'user_id':user_id, 'gender':gender})
+            if user_id:
+                st.success('User registered successfully')
+        except Exception as e:
+            st.error(e)
+#
+#auth = Authenticator()
+#auth.log_in()
+#auth.register_user()
 
-auth = Authenticator.log_in()
 
-""" 
-name, authentication_status, username = authenticator.login('Login', 'main')
-
-
-if st.session_state["authentication_status"]:
+"""if st.session_state["authentication_status"]:
     authenticator.logout('Logout', 'main')
     st.write(f'Welcome *{st.session_state["name"]}*')
     st.title('Some content')
