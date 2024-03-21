@@ -3,4 +3,4 @@ streamlit==1.31.1
 duckdb==0.10.0
 pytz
 Jinja2
-streamlit-authenticator==0.1.5 
+streamlit-authenticator==0.3.1 
