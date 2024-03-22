@@ -29,8 +29,8 @@ st.set_page_config(layout='wide')
 
 ### TODO: replace this with actual input
 is_logged_in = False
-# user_name = "Tu"
 user_name = None
+# user_name = None
 # user_id = "abc"
 user_id = "tu@gmail.com"
 ###
@@ -108,6 +108,7 @@ total_nutrients_based_on_food_intake = Nutrient.total_nutrition_based_on_food_in
 user_intake_df_temp = total_nutrients_based_on_food_intake.copy()
 user_intake_df_temp["dish_description"] = dish_description
 user_intake_df_temp["actual_intake"] = user_intake_df_temp[date_input]
+user_intake_df_temp["user_id"] = user_id
 ###
 
 # 4 + 5. Get user's age + gender
@@ -132,9 +133,7 @@ user_recommended_intake_result = main_app_miscellaneous.combine_and_show_users_r
     user_intake_df_temp_name="user_intake_df_temp",
     layout_position=track_new_meal_tab
 )
-#### TODO: remove this
-user_recommended_intake_df = pd.DataFrame()
-####
+
 user_recommended_intake_df = user_recommended_intake_result.get("value")
 logging.info("-----------Finished combine_and_show_users_recommended_intake-----------")
 
