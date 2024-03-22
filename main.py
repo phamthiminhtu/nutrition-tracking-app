@@ -72,11 +72,11 @@ logging.info("-----------Finished get_user_input_dish_and_estimate_ingredients.-
 
 # 2-3. Nutrient actual intake
 if track_new_meal_tab.button("Go"):
-    Nutrient = NutrientMaster()
+    Nutrient = NutrientMaster(openai_client=OPENAI_CLIENT)
     total_nutrients_based_on_food_intake = Nutrient.total_nutrients_based_on_food_intake(
                                                     ingredients_from_user=ingredient_df,
                                                     layout_position=track_new_meal_tab)
-
+    
 # 3. Check user's log in status
 # @Nyan
 # TODO: create the a table storing user's personal data: age, gender etc.
