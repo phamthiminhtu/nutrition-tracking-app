@@ -2,14 +2,10 @@ import os
 import logging
 import threading
 import streamlit as st
-from core.openai_api import *
-from core.duckdb_connector import *
 from core.main_app_miscellaneous import *
 from core.calculate_nutrient_intake import NutrientMaster
 from core.monali import read_data   ### TODO: rename
 from core.monali import *
-
-file_path = "data/csv/nutrients_data.csv"
 
 OPENAI_API_KEY = "OPENAI_API_KEY"
 OPENAI_CLIENT = OpenAI(
@@ -139,11 +135,6 @@ logging.info("-----------Finished combine_and_show_users_recommended_intake-----
 
 # 6. @Michael
 # Visualize data
-
-
-# 7. Store data into duckdb
-# @Tu
-
 
 
 logging.info("-----------Running get_user_confirmation_and_try_to_save_their_data()-----------")
