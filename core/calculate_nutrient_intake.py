@@ -38,7 +38,6 @@ class NutrientMaster:
         logger.info("Finished calculating match score for all ingredients")
         return ingredients_from_user
 
-
     def _group_ingredients_based_on_match_score(self, min_match_score, ingredients_from_user) -> pd.DataFrame:
 
         # Calculate ingredient match score
@@ -144,7 +143,6 @@ class NutrientMaster:
 
         logger.info("Finished summing total nutrients in low match score ingredients")
         return df
-    
 
     def _transpose_and_reformat_dataframe(self, df=None) -> pd.DataFrame:
 
