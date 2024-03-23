@@ -16,34 +16,62 @@ from core.utils import handle_exception
 logging.basicConfig(level=logging.INFO)
 import yaml
 from yaml.loader import SafeLoader
-
 with open('config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
-
 class Authenticator:
     def __init__(self) -> None:
         self.conn = DuckdbConnector()
-        
-    logging.info("----------- Running get_user_personal_data()-----------")
-    def log_in(self) -> bool:
+
+    logging.info("----------- Running log_in()-----------")
+    @handle_exception(has_random_message_printed_out=True)
+    def log_in(self):
         "return yes, no and none for auth status"
         #self.conn.create_users_table()
         users = self.conn.fetch_users()
-        self.authenticator = stauth.Authenticate(config['credentials'],cookie_name='some',key='sesame')
-        usernames = [user[1] for user in users]
-        passwords = [user[2] for user in users]
-        user_ids = [user[0] for user in users]
-        name, authentication_status, username = self.authenticator.login( 'main')
-        return True;
+        #print("og config________",config['credentials'])
+        #print(users)
+        config['credentials']['usernames']={}
+        #{'usernames': {'tu': {'email': 'tu@gmail.com', 'logged_in': False, 'name': 'Thi Minh Tu', 'password': 'Protein'}, 'tyler': {'email': 'nyan@gmail.com', 'logged_in': False, 'name': 'Nyan Htun', 'password': 'Vitamin A'}}}
+        for username, (username, user_id, password) in enumerate(users):
+            config['credentials']['usernames'][username] = {'email': user_id,'logged_in': False, 'name': username, 'password':password}
+        #print("------------My-------------",config['credentials'])
+        self.authenticator = stauth.Authenticate(config['credentials'],'cookie','abcdefqwe',0,{'emails': ['@uts.edu.au']})
+        self.name, self.authentication_status, self.username = self.authenticator.login()
+        return self.name, self.authentication_status, self.username
+    def log_out(self):
+        if st.session_state["authentication_status"]:
+            self.authenticator.logout()
+            st.write(f'Welcome *{st.session_state["name"]}*')
+            st.write('Some content')
+        elif st.session_state["authentication_status"] is False:
+            st.error('Username/password is incorrect')
+        elif st.session_state["authentication_status"] is None:
+            st.warning('Please enter your username and password')
     @handle_exception(has_random_message_printed_out=True)
-    def register_user(self):
-        try:
-            user_id, username, name_of_registered_user = self.authenticator.register_user(preauthorization=False,fields={'Form name':'Register user', 'User ID':'user_id', 'Username':'username','Age':'age','Gender':'gender', 'Password':'password', 'Repeat password':'Repeat password', 'Register':'Register'})
-            #self.conn.insert_user({'user_id':user_id, 'gender':gender})
-            if user_id:
-                st.success('User registered successfully')
-        except Exception as e:
-            st.error(e)
+    def register_user_form(self):
+        with st.form("sign_up_form"):
+            st.write("Register new user")
+            user_id = st.text_input('User Id / Email')
+            username = st.text_input('Username')
+            slider_age = st.slider("Age slider")
+            gender_option = st.selectbox('How would you describe your gender?',
+                            ('Male', 'Female', 'Other'))
+            password = st.text_input('Password',type='password')
+            re_password = st.text_input('Repeat password',type='password')
+            # Every form must have a submit button.
+            submitted = st.form_submit_button("Submit")
+            if submitted:
+                if password==re_password:
+                    st.write("age", slider_age, "userID", user_id, 'username',username,'password',password)
+                    new_user_df = {"user_id": user_id,
+                                "gender": gender_option,
+                                "age": slider_age,
+                                "username": username,
+                                "password": password
+                                }   
+                    self.conn.insert_user(new_user_df)
+            st.write("Outside the form",self.conn.fetch_users)
+
 #
 #auth = Authenticator()
 #auth.log_in()
