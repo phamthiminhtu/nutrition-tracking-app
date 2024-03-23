@@ -1,0 +1,305 @@
+gender,age_start,age_end,nutrient,daily_requirement_intake,measurement
+male,1,3,Energy,5500.0,kJ
+male,1,3,Protein,14.0,g
+male,1,3,Total water,1400.0,L
+male,1,3,Thiamin (B1),0.5,mg
+male,1,3,Riboflavin (B2),0.5,mg
+male,1,3,Niacin,6.0,mg
+male,1,3,Pyridoxine (B6),0.5,mg
+male,1,3,Cobalamin (B12),0.9,μg
+male,1,3,Vitamin A,300.0,μg
+male,1,3,Vitamin C,35.0,mg
+male,1,3,Vitamin D,5.0,μg
+male,1,3,Vitamin E,5.0,mg
+male,1,3,Calcium,500.0,mg
+male,1,3,Phosphorus,460.0,mg
+male,1,3,Zinc,3.0,mg
+male,1,3,Iron,9.0,mg
+male,1,3,Magnesium,80.0,mg
+male,1,3,Sodium,300.0,mg
+male,1,3,Potassium,2000.0,mg
+female,1,3,Energy,5500.0,kJ
+female,1,3,Protein,14.0,g
+female,1,3,Total water,1400.0,L
+female,1,3,Thiamin (B1),0.5,mg
+female,1,3,Riboflavin (B2),0.5,mg
+female,1,3,Niacin,6.0,mg
+female,1,3,Pyridoxine (B6),0.5,mg
+female,1,3,Cobalamin (B12),0.9,μg
+female,1,3,Vitamin A,300.0,μg
+female,1,3,Vitamin C,35.0,mg
+female,1,3,Vitamin D,5.0,μg
+female,1,3,Vitamin E,5.0,mg
+female,1,3,Calcium,500.0,mg
+female,1,3,Phosphorus,460.0,mg
+female,1,3,Zinc,3.0,mg
+female,1,3,Iron,9.0,mg
+female,1,3,Magnesium,80.0,mg
+female,1,3,Sodium,300.0,mg
+female,1,3,Potassium,2000.0,mg
+male,4,8,Energy,6400.0,kJ
+male,4,8,Protein,20.0,g
+male,4,8,Total water,1600.0,L
+male,4,8,Thiamin (B1),0.6,mg
+male,4,8,Riboflavin (B2),0.6,mg
+male,4,8,Niacin,8.0,mg
+male,4,8,Pyridoxine (B6),0.6,mg
+male,4,8,Cobalamin (B12),1.2,μg
+male,4,8,Vitamin A,400.0,μg
+male,4,8,Vitamin C,35.0,mg
+male,4,8,Vitamin D,5.0,μg
+male,4,8,Vitamin E,6.0,mg
+male,4,8,Calcium,700.0,mg
+male,4,8,Phosphorus,500.0,mg
+male,4,8,Zinc,4.0,mg
+male,4,8,Iron,10.0,mg
+male,4,8,Magnesium,130.0,mg
+male,4,8,Sodium,450.0,mg
+male,4,8,Potassium,2300.0,mg
+female,4,8,Energy,6400.0,kJ
+female,4,8,Protein,20.0,g
+female,4,8,Total water,1600.0,L
+female,4,8,Thiamin (B1),0.6,mg
+female,4,8,Riboflavin (B2),0.6,mg
+female,4,8,Niacin,8.0,mg
+female,4,8,Pyridoxine (B6),0.6,mg
+female,4,8,Cobalamin (B12),1.2,μg
+female,4,8,Vitamin A,400.0,μg
+female,4,8,Vitamin C,35.0,mg
+female,4,8,Vitamin D,5.0,μg
+female,4,8,Vitamin E,6.0,mg
+female,4,8,Calcium,700.0,mg
+female,4,8,Phosphorus,500.0,mg
+female,4,8,Zinc,4.0,mg
+female,4,8,Iron,10.0,mg
+female,4,8,Magnesium,130.0,mg
+female,4,8,Sodium,450.0,mg
+female,4,8,Potassium,2300.0,mg
+male,9,13,Energy,8900.0,kJ
+male,9,13,Protein,40.0,g
+male,9,13,Total water,2200.0,L
+male,9,13,Thiamin (B1),0.9,mg
+male,9,13,Riboflavin (B2),0.9,mg
+male,9,13,Niacin,12.0,mg
+male,9,13,Pyridoxine (B6),1.0,mg
+male,9,13,Cobalamin (B12),1.8,μg
+male,9,13,Vitamin A,600.0,μg
+male,9,13,Vitamin C,40.0,mg
+male,9,13,Vitamin D,5.0,μg
+male,9,13,Vitamin E,9.0,mg
+male,9,13,Calcium,1150.0,mg
+male,9,13,Phosphorus,1250.0,mg
+male,9,13,Zinc,6.0,mg
+male,9,13,Iron,8.0,mg
+male,9,13,Magnesium,240.0,mg
+male,9,13,Sodium,600.0,mg
+male,9,13,Potassium,3000.0,mg
+male,14,18,Energy,12000.0,kJ
+male,14,18,Protein,65.0,g
+male,14,18,Total water,2700.0,L
+male,14,18,Thiamin (B1),1.2,mg
+male,14,18,Riboflavin (B2),1.3,mg
+male,14,18,Niacin,16.0,mg
+male,14,18,Pyridoxine (B6),1.3,mg
+male,14,18,Cobalamin (B12),2.4,μg
+male,14,18,Vitamin A,900.0,μg
+male,14,18,Vitamin C,40.0,mg
+male,14,18,Vitamin D,5.0,μg
+male,14,18,Vitamin E,10.0,mg
+male,14,18,Calcium,1300.0,mg
+male,14,18,Phosphorus,1250.0,mg
+male,14,18,Zinc,13.0,mg
+male,14,18,Iron,11.0,mg
+male,14,18,Magnesium,410.0,mg
+male,14,18,Sodium,690.0,mg
+male,14,18,Potassium,3600.0,mg
+female,9,13,Energy,8100.0,kJ
+female,9,13,Protein,35.0,g
+female,9,13,Total water,1900.0,L
+female,9,13,Thiamin (B1),0.9,mg
+female,9,13,Riboflavin (B2),0.9,mg
+female,9,13,Niacin,12.0,mg
+female,9,13,Pyridoxine (B6),1.0,mg
+female,9,13,Cobalamin (B12),1.8,μg
+female,9,13,Vitamin A,600.0,μg
+female,9,13,Vitamin C,40.0,mg
+female,9,13,Vitamin D,5.0,μg
+female,9,13,Vitamin E,8.0,mg
+female,9,13,Calcium,1150.0,mg
+female,9,13,Phosphorus,1250.0,mg
+female,9,13,Zinc,6.0,mg
+female,9,13,Iron,8.0,mg
+female,9,13,Magnesium,240.0,mg
+female,9,13,Sodium,600.0,mg
+female,9,13,Potassium,2500.0,mg
+female,14,18,Energy,9500.0,kJ
+female,14,18,Protein,45.0,g
+female,14,18,Total water,2200.0,L
+female,14,18,Thiamin (B1),1.1,mg
+female,14,18,Riboflavin (B2),1.1,mg
+female,14,18,Niacin,14.0,mg
+female,14,18,Pyridoxine (B6),1.2,mg
+female,14,18,Cobalamin (B12),2.4,μg
+female,14,18,Vitamin A,700.0,μg
+female,14,18,Vitamin C,40.0,mg
+female,14,18,Vitamin D,5.0,μg
+female,14,18,Vitamin E,8.0,mg
+female,14,18,Calcium,1300.0,mg
+female,14,18,Phosphorus,1250.0,mg
+female,14,18,Zinc,7.0,mg
+female,14,18,Iron,15.0,mg
+female,14,18,Magnesium,360.0,mg
+female,14,18,Sodium,690.0,mg
+female,14,18,Potassium,2600.0,mg
+male,19,30,Energy,11800.0,kJ
+male,19,30,Protein,64.0,g
+male,19,30,Total water,3400.0,L
+male,19,30,Thiamin (B1),1.2,mg
+male,19,30,Riboflavin (B2),1.3,mg
+male,19,30,Niacin,16.0,mg
+male,19,30,Pyridoxine (B6),1.3,mg
+male,19,30,Cobalamin (B12),2.4,μg
+male,19,30,Vitamin A,900.0,μg
+male,19,30,Vitamin C,45.0,mg
+male,19,30,Vitamin D,5.0,μg
+male,19,30,Vitamin E,10.0,mg
+male,19,30,Calcium,1000.0,mg
+male,19,30,Phosphorus,1000.0,mg
+male,19,30,Zinc,14.0,mg
+male,19,30,Iron,8.0,mg
+male,19,30,Magnesium,400.0,mg
+male,19,30,Sodium,690.0,mg
+male,19,30,Potassium,3800.0,mg
+male,31,50,Energy,11300.0,kJ
+male,31,50,Protein,64.0,g
+male,31,50,Total water,3400.0,L
+male,31,50,Thiamin (B1),1.2,mg
+male,31,50,Riboflavin (B2),1.3,mg
+male,31,50,Niacin,16.0,mg
+male,31,50,Pyridoxine (B6),1.3,mg
+male,31,50,Cobalamin (B12),2.4,μg
+male,31,50,Vitamin A,900.0,μg
+male,31,50,Vitamin C,45.0,mg
+male,31,50,Vitamin D,5.0,μg
+male,31,50,Vitamin E,10.0,mg
+male,31,50,Calcium,1000.0,mg
+male,31,50,Phosphorus,1000.0,mg
+male,31,50,Zinc,14.0,mg
+male,31,50,Iron,8.0,mg
+male,31,50,Magnesium,420.0,mg
+male,31,50,Sodium,690.0,mg
+male,31,50,Potassium,3800.0,mg
+male,51,70,Energy,10400.0,kJ
+male,51,70,Protein,64.0,g
+male,51,70,Total water,3400.0,L
+male,51,70,Thiamin (B1),1.2,mg
+male,51,70,Riboflavin (B2),1.3,mg
+male,51,70,Niacin,16.0,mg
+male,51,70,Pyridoxine (B6),1.7,mg
+male,51,70,Cobalamin (B12),2.4,μg
+male,51,70,Vitamin A,900.0,μg
+male,51,70,Vitamin C,45.0,mg
+male,51,70,Vitamin D,10.0,μg
+male,51,70,Vitamin E,10.0,mg
+male,51,70,Calcium,1000.0,mg
+male,51,70,Phosphorus,1000.0,mg
+male,51,70,Zinc,14.0,mg
+male,51,70,Iron,8.0,mg
+male,51,70,Magnesium,420.0,mg
+male,51,70,Sodium,690.0,mg
+male,51,70,Potassium,3800.0,mg
+male,71,1000,Energy,9500.0,kJ
+male,71,1000,Protein,81.0,g
+male,71,1000,Total water,3400.0,L
+male,71,1000,Thiamin (B1),1.2,mg
+male,71,1000,Riboflavin (B2),1.6,mg
+male,71,1000,Niacin,16.0,mg
+male,71,1000,Pyridoxine (B6),1.7,mg
+male,71,1000,Cobalamin (B12),2.4,μg
+male,71,1000,Vitamin A,900.0,μg
+male,71,1000,Vitamin C,45.0,mg
+male,71,1000,Vitamin D,15.0,μg
+male,71,1000,Vitamin E,10.0,mg
+male,71,1000,Calcium,1300.0,mg
+male,71,1000,Phosphorus,1000.0,mg
+male,71,1000,Zinc,14.0,mg
+male,71,1000,Iron,8.0,mg
+male,71,1000,Magnesium,420.0,mg
+male,71,1000,Sodium,690.0,mg
+male,71,1000,Potassium,3800.0,mg
+female,19,30,Energy,9600.0,kJ
+female,19,30,Protein,46.0,g
+female,19,30,Total water,2800.0,L
+female,19,30,Thiamin (B1),1.1,mg
+female,19,30,Riboflavin (B2),1.1,mg
+female,19,30,Niacin,14.0,mg
+female,19,30,Pyridoxine (B6),1.3,mg
+female,19,30,Cobalamin (B12),2.4,μg
+female,19,30,Vitamin A,700.0,μg
+female,19,30,Vitamin C,45.0,mg
+female,19,30,Vitamin D,5.0,μg
+female,19,30,Vitamin E,7.0,mg
+female,19,30,Calcium,1000.0,mg
+female,19,30,Phosphorus,1000.0,mg
+female,19,30,Zinc,8.0,mg
+female,19,30,Iron,18.0,mg
+female,19,30,Magnesium,310.0,mg
+female,19,30,Sodium,690.0,mg
+female,19,30,Potassium,2800.0,mg
+female,31,50,Energy,9100.0,kJ
+female,31,50,Protein,46.0,g
+female,31,50,Total water,2800.0,L
+female,31,50,Thiamin (B1),1.1,mg
+female,31,50,Riboflavin (B2),1.1,mg
+female,31,50,Niacin,14.0,mg
+female,31,50,Pyridoxine (B6),1.3,mg
+female,31,50,Cobalamin (B12),2.4,μg
+female,31,50,Vitamin A,700.0,μg
+female,31,50,Vitamin C,45.0,mg
+female,31,50,Vitamin D,5.0,μg
+female,31,50,Vitamin E,7.0,mg
+female,31,50,Calcium,1000.0,mg
+female,31,50,Phosphorus,1000.0,mg
+female,31,50,Zinc,8.0,mg
+female,31,50,Iron,18.0,mg
+female,31,50,Magnesium,320.0,mg
+female,31,50,Sodium,690.0,mg
+female,31,50,Potassium,2800.0,mg
+female,51,70,Energy,8700.0,kJ
+female,51,70,Protein,46.0,g
+female,51,70,Total water,2800.0,L
+female,51,70,Thiamin (B1),1.1,mg
+female,51,70,Riboflavin (B2),1.1,mg
+female,51,70,Niacin,14.0,mg
+female,51,70,Pyridoxine (B6),1.5,mg
+female,51,70,Cobalamin (B12),2.4,μg
+female,51,70,Vitamin A,700.0,μg
+female,51,70,Vitamin C,45.0,mg
+female,51,70,Vitamin D,10.0,μg
+female,51,70,Vitamin E,7.0,mg
+female,51,70,Calcium,1300.0,mg
+female,51,70,Phosphorus,1000.0,mg
+female,51,70,Zinc,8.0,mg
+female,51,70,Iron,8.0,mg
+female,51,70,Magnesium,320.0,mg
+female,51,70,Sodium,690.0,mg
+female,51,70,Potassium,2800.0,mg
+female,71,1000,Energy,8300.0,kJ
+female,71,1000,Protein,57.0,g
+female,71,1000,Total water,2800.0,L
+female,71,1000,Thiamin (B1),1.1,mg
+female,71,1000,Riboflavin (B2),1.3,mg
+female,71,1000,Niacin,14.0,mg
+female,71,1000,Pyridoxine (B6),1.5,mg
+female,71,1000,Cobalamin (B12),2.4,μg
+female,71,1000,Vitamin A,700.0,μg
+female,71,1000,Vitamin C,45.0,mg
+female,71,1000,Vitamin D,15.0,μg
+female,71,1000,Vitamin E,7.0,mg
+female,71,1000,Calcium,1300.0,mg
+female,71,1000,Phosphorus,1000.0,mg
+female,71,1000,Zinc,8.0,mg
+female,71,1000,Iron,8.0,mg
+female,71,1000,Magnesium,320.0,mg
+female,71,1000,Sodium,690.0,mg
+female,71,1000,Potassium,2800.0,mg
