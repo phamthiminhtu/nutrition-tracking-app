@@ -81,10 +81,7 @@ class OpenAIAssistant:
             )
             if result.get("status") == 200:
                 df = self.extract_estimation_to_dataframe(estimation=result.get("value"))
-                if not df.empty:
-                    layout_position.write(f'Here is our estimated weight of each ingredient for one serving of 🍕 {dish_description} 🍳:')
-                    layout_position.dataframe(df)
-                else:
+                if df.empty:
                     message = "Sorry, we've tried our best but cannot estimate the ingredients of your dish. Can you try to describe it differently?"
                     layout_position.write(message)
             else:

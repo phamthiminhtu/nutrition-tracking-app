@@ -64,6 +64,7 @@ class MainAppMiscellaneous:
                 layout_position=layout_position
             )
             ingredient_df["dish_description"] = dish_description
+            
         return ingredient_df
 
     @handle_exception(has_random_message_printed_out=True)
@@ -87,20 +88,23 @@ class MainAppMiscellaneous:
         self,
         layout_position=st
     ) -> dict:
-
-        user_gender = layout_position.selectbox(
+        form = layout_position.form("personal_data_form")
+        user_gender = form.selectbox(
             "Please select your gender",
             ("male", 'female'),
             index=None,
             placeholder="Select your gender..."
         )
-        user_age_input = layout_position.number_input("How old are you?", value=None, placeholder="Type a number...")
-
-        # wait until user input
+        user_age_input = form.number_input(
+            "How old are you?",
+            value=None,
+            placeholder="Type a number..."
+        )
+        submitted = form.form_submit_button("Submit")
+        # wait until user inputs
         event = threading.Event()
-        while user_age_input is None or user_gender is None:
+        while not submitted:
             event.wait()
-            event.clear()
 
         user_personal_data = {
             "status": 200,
@@ -131,7 +135,11 @@ class MainAppMiscellaneous:
                     user_personal_data = self.get_user_personal_info_manual_input(
                         layout_position=layout_position
                     )
-
+        meal_record_date = layout_position.date_input(
+            "When was your meal consumed or plan to be consumed?",
+            datetime.datetime.now(pytz.timezone('Australia/Sydney'))
+        )
+        user_personal_data['meal_record_date'] = meal_record_date
         return user_personal_data
 
     @handle_exception(has_random_message_printed_out=True)
@@ -166,6 +174,7 @@ class MainAppMiscellaneous:
         if user_personal_data.get("status") == 200 and not user_intake_df_temp.empty:
             user_intake_df_temp["gender"] = user_personal_data.get("gender")
             user_intake_df_temp["age"] = user_personal_data.get("age")
+            user_intake_df_temp["meal_record_date"] = user_personal_data.get("meal_record_date")
 
             user_recommended_intake_df = self.get_user_recommended_intake(
                 user_intake_df_temp_name=user_intake_df_temp_name
@@ -178,7 +187,7 @@ class MainAppMiscellaneous:
             if not user_recommended_intake_df_to_show.empty:
                 layout_position.dataframe(user_recommended_intake_df_to_show[columns_to_show])
             else:
-                layout_position.write("Oops! Turned out it's pseudoscience 🫥 We cannot estimate your intake just yet 😅 Please try again later...")
+                layout_position.write("Oops! Turns out it's pseudoscience 🫥 We cannot estimate your intake just yet 😅 Please try again later...")
 
         result = {
             "status": 200,
@@ -271,7 +280,7 @@ class MainAppMiscellaneous:
             else:
                 layout_position.write("""
                     Oops, looks like you haven't tracked your nutrition.
-                    Try a different dates or start tracking now to see your nutrition intake history 😉
+                    Try different dates or start tracking now to see your nutrition intake history 😉
                 """)
         else:
             layout_position.write("Looks like you haven't logged in, do you want to log in to see your data?")
