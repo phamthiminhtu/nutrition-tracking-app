@@ -102,6 +102,8 @@ while 'total_nutrients_based_on_food_intake' not in st.session_state:
     event.wait()
 ### TODO: replace this with actual input
 user_intake_df_temp = st.session_state['total_nutrients_based_on_food_intake']
+user_intake_df_temp["user_id"] = st.session_state['user_id']
+
 # user_intake_df_temp["dish_description"] = dish_description
 # user_intake_df_temp["user_id"] = user_id
 ###
@@ -140,12 +142,6 @@ logging.info("-----------Finished combine_and_show_users_recommended_intake-----
 
 logging.info("-----------Running get_user_confirmation_and_try_to_save_their_data()-----------")
 if st.session_state['user_recommended_intake_result'].get("status") == 200 and 'save_meal_result' not in st.session_state:
-
-    ### TODO: replace this with actual input
-    # is_logged_in = True
-    user_intake_df_temp["user_id"] = st.session_state['user_id']
-    ###
-
     save_meal_result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_their_data(
         dish_description=st.session_state['dish_description'],
         user_id=st.session_state['user_id'],
