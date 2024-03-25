@@ -1,13 +1,12 @@
 import time
 import jinja2
-import threading
 import pandas as pd
 import streamlit as st
 import datetime
 from datetime import datetime as dt
 from core.openai_api import *
 from core.duckdb_connector import *
-from core.utils import handle_exception
+from core.utils import handle_exception, wait_while_condition_is_valid
 from core.sql.user_daily_recommended_intake_history import anonymous_user_daily_nutrient_intake_query_template, combine_user_actual_vs_recommend_intake_logic
 
 RECOMMENDED_DAILY_NUTRIENT_INTAKE_TABLE_ID = "ilab.main.daily_nutrients_recommendation"
@@ -102,9 +101,7 @@ class MainAppMiscellaneous:
         )
         submitted = form.form_submit_button("Submit")
         # wait until user inputs
-        event = threading.Event()
-        while not submitted:
-            event.wait()
+        wait_while_condition_is_valid((not submitted))
 
         user_personal_data = {
             "status": 200,
@@ -214,9 +211,7 @@ class MainAppMiscellaneous:
             placeholder="Select your answer..."
         )
         # wait until user inputs
-        event = threading.Event()
-        while has_historical_data_saved is None:
-            event.wait()
+        wait_while_condition_is_valid((has_historical_data_saved is None))
         if has_historical_data_saved == "Yes":
             if is_logged_in:
                 storing_historical_data_result = self.db.save_user_data(
