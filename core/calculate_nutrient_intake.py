@@ -175,9 +175,7 @@ class NutrientMaster:
         # Convert nutrient values into float
         combined_df["Actual Intake"] = combined_df["Actual Intake"].astype(float).round(1)
 
-        # Show total nutrients on streamlit
         logger.info("Finished calculating total nutrients based on food intake")
-        layout_position.table(combined_df.style.format({"Actual Intake": "{:.1f}"}))
 
         # Make a copy of the dataframe for internal usage
         combined_df_copy = combined_df.copy()
@@ -188,5 +186,4 @@ class NutrientMaster:
 
         # Rename Actual Intake column
         combined_df_copy.rename(columns={"Actual Intake": "actual_intake"}, inplace=True)
-
         return combined_df_copy
