@@ -5,8 +5,9 @@ create_user_nutrient_intake_history_query = """
         age FLOAT,
         dish_description STRING,
         meal_id STRING,
+        meal_fingerprint STRING,
         meal_record_date TIMESTAMP,
-        create_timestamp TIMESTAMP,
+        created_datetime_tzsyd TIMESTAMP,
         nutrient STRING,
         actual_intake FLOAT
     );

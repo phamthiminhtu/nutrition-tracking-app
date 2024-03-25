@@ -64,7 +64,7 @@ class MainAppMiscellaneous:
                 layout_position=layout_position
             )
             ingredient_df["dish_description"] = dish_description
-            
+
         return ingredient_df
 
     @handle_exception(has_random_message_printed_out=True)
@@ -182,8 +182,7 @@ class MainAppMiscellaneous:
             user_recommended_intake_df_to_show = user_recommended_intake_df.copy()
             user_recommended_intake_df_to_show = user_recommended_intake_df_to_show.rename(columns=USER_INTAKE_COLUMNS_DICT)
             columns_to_show = USER_INTAKE_COLUMNS_DICT.values()
-            layout_position.write("Just one moment, we are doing the science 😎 ...")
-            time.sleep(1)
+
             if not user_recommended_intake_df_to_show.empty:
                 layout_position.dataframe(user_recommended_intake_df_to_show[columns_to_show])
             else:
@@ -214,6 +213,10 @@ class MainAppMiscellaneous:
             index=None,
             placeholder="Select your answer..."
         )
+        # wait until user inputs
+        event = threading.Event()
+        while has_historical_data_saved is None:
+            event.wait()
         if has_historical_data_saved == "Yes":
             if is_logged_in:
                 storing_historical_data_result = self.db.save_user_data(
@@ -221,9 +224,7 @@ class MainAppMiscellaneous:
                     user_id=user_id,
                     user_intake_df_temp_name="user_intake_df_temp"
                 )
-                if storing_historical_data_result.get("status") == 200:
-                    storing_historical_data_message = storing_historical_data_result.get("message")
-                    layout_position.write(storing_historical_data_message)
+                result['storing_historical_data_result'] = storing_historical_data_result
             else:
                 login_or_create_account = layout_position.selectbox(
                     "Looks like you haven't logged in, do you want to log in to save this meal's intake estimation?",
