@@ -5,7 +5,7 @@ import hashlib
 import datetime
 import threading
 import streamlit as st
-from core.utils import handle_exception
+from core.utils import handle_exception, wait_while_condition_is_valid
 from core.sql.user_nutrient_intake_history import insert_new_record_user_nutrient_intake_history_query_template
 
 
@@ -88,10 +88,7 @@ class DuckdbConnector:
         )
 
         # wait for user's confirmation
-        event = threading.Event()
-        while user_confirmation is None:
-            event.wait()
-            event.clear()
+        wait_while_condition_is_valid((user_confirmation is None))
 
         if user_confirmation == 'Yes':
             has_meal_id_stored = True

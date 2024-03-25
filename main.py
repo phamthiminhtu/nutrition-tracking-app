@@ -6,6 +6,7 @@ from core.main_app_miscellaneous import *
 from core.calculate_nutrient_intake import NutrientMaster
 from core.monali import read_data   ### TODO: rename
 from core.monali import *
+from core.utils import wait_while_condition_is_valid
 
 OPENAI_API_KEY = "OPENAI_API_KEY"
 OPENAI_CLIENT = OpenAI(
@@ -57,9 +58,8 @@ if 'dish_description' not in st.session_state and dish_description!= '':
     logging.info("-----------Running get_user_input_dish_and_estimate_ingredients()-----------")
     st.session_state['dish_description'] = dish_description
 
-event = threading.Event()
-while 'dish_description' not in st.session_state:
-    event.wait()
+# wait for users' input
+wait_while_condition_is_valid(('dish_description' not in st.session_state))
 
 if 'ingredient_df' not in st.session_state:
     ingredient_df = main_app_miscellaneous.get_user_input_dish_and_estimate_ingredients(
@@ -68,9 +68,7 @@ if 'ingredient_df' not in st.session_state:
     )
     st.session_state['ingredient_df'] = ingredient_df
 
-while 'ingredient_df' not in st.session_state:
-    event.wait()
-
+wait_while_condition_is_valid(('ingredient_df' not in st.session_state))
 
 if 'ingredient_df' in st.session_state and 'confirm_ingredient_weights_button' not in st.session_state:
     track_new_meal_tab.write("Press continue to get your nutrition estimation...")
@@ -79,13 +77,9 @@ if 'ingredient_df' in st.session_state and 'confirm_ingredient_weights_button' n
     if confirm_ingredient_weights_button:
         st.session_state['confirm_ingredient_weights_button'] = confirm_ingredient_weights_button
 
-event = threading.Event()
-while not st.session_state.get('confirm_ingredient_weights_button', False):
-    event.wait()
+wait_while_condition_is_valid((not st.session_state.get('confirm_ingredient_weights_button', False)))
 
 # # 2-3. Nutrient actual intake
-# # wait until user inputs
-
 if 'total_nutrients_based_on_food_intake' not in st.session_state:
     Nutrient = NutrientMaster(openai_client=OPENAI_CLIENT)
     total_nutrients_based_on_food_intake = Nutrient.total_nutrients_based_on_food_intake(
@@ -98,8 +92,8 @@ if 'total_nutrients_based_on_food_intake' not in st.session_state:
 # TODO: create the a table storing user's personal data: age, gender etc.
 # Update this data if there are any changes.
 
-while 'total_nutrients_based_on_food_intake' not in st.session_state:
-    event.wait()
+wait_while_condition_is_valid(('total_nutrients_based_on_food_intake' not in st.session_state))
+
 ### TODO: replace this with actual input
 user_intake_df_temp = st.session_state['total_nutrients_based_on_food_intake']
 user_intake_df_temp["user_id"] = st.session_state['user_id']
@@ -164,7 +158,7 @@ logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_da
 ### now actual_intake might just be one meal's actual intake
 df_nutrient_data = user_recommended_intake_df.copy()
 
-#### TODO: remove this
+#### TODO: CHANGE THIS - These 2 columns are not applicable anymore
 df_nutrient_data['daily_requirement_microgram'] = df_nutrient_data["daily_recommended_intake"]
 df_nutrient_data["daily_actual_microgram"] = df_nutrient_data["actual_intake"]
 ####
