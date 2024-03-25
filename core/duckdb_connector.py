@@ -114,6 +114,7 @@ class DuckdbConnector:
         parameters = {
             "meal_id": meal_id_info.get("meal_id"),
             "meal_fingerprint": meal_id_info.get("meal_fingerprint"),
+            "meal_record_date": meal_id_info.get("meal_record_date"),
             "created_datetime_tzsyd": meal_id_info.get("created_datetime_tzsyd"),
         }
         self.run_query(

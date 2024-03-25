@@ -24,14 +24,15 @@ st.set_page_config(layout='wide')
 # Authenticator.create_new_account()
 
 ### TODO: replace this with actual input
-is_logged_in = False
-user_name = None
+st.session_state['is_logged_in'] = False
+st.session_state['user_name'] = None
 # user_name = None
 # user_id = "abc"
-user_id = "tu@gmail.com"
+st.session_state['user_id'] = "tu@gmail.com"
 ###
 
-main_app_miscellaneous.say_hello(user_name=user_name)
+
+main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
 
 # Main page with 2 tabs
 track_new_meal_tab, user_recommended_intake_history_tab = st.tabs(
@@ -43,94 +44,120 @@ logging.info("-----------Running get_user_historical_data()-----------")
 selected_date_range = main_app_miscellaneous.select_date_range(layout_position=user_recommended_intake_history_tab)
 
 user_recommended_intake_history_df = main_app_miscellaneous.show_user_historical_data_result(
-    is_logged_in=is_logged_in,
-    user_id=user_id,
+    is_logged_in=st.session_state['is_logged_in'],
+    user_id=st.session_state['user_id'],
     layout_position=user_recommended_intake_history_tab,
     selected_date_range=selected_date_range
 )
-logging.info("-----------Finished get_user_input_dish_and_estimate_ingredients.-----------")
-
+logging.info("-----------Finished get_user_historical_data.-----------")
 
 # 1. Get dish description from user and estimate its ingredients
-logging.info("-----------Running get_user_input_dish_and_estimate_ingredients()-----------")
 dish_description = track_new_meal_tab.text_input("What have you eaten today? 😋").strip()
-ingredient_df = main_app_miscellaneous.get_user_input_dish_and_estimate_ingredients(
-    dish_description=dish_description,
-    layout_position=track_new_meal_tab
-)
+if 'dish_description' not in st.session_state and dish_description!= '':
+    logging.info("-----------Running get_user_input_dish_and_estimate_ingredients()-----------")
+    st.session_state['dish_description'] = dish_description
+    print("######", st.session_state.get('dish_description') )
 
-# wait until user input
 event = threading.Event()
-while not dish_description:
+while 'dish_description' not in st.session_state:
     event.wait()
-    event.clear()
-logging.info("-----------Finished get_user_input_dish_and_estimate_ingredients.-----------")
 
-# 2-3. Nutrient actual intake
-if track_new_meal_tab.button("Go"):
+if 'ingredient_df' not in st.session_state:
+    ingredient_df = main_app_miscellaneous.get_user_input_dish_and_estimate_ingredients(
+        dish_description=st.session_state['dish_description'],
+        layout_position=track_new_meal_tab
+    )
+    st.session_state['ingredient_df'] = ingredient_df
+
+while 'ingredient_df' not in st.session_state:
+    event.wait()
+
+track_new_meal_tab.write(f'Here is our estimated weight of each ingredient for one serving of 🍕 {st.session_state["dish_description"]} 🍳:')
+track_new_meal_tab.write(st.session_state['ingredient_df'])
+
+if 'ingredient_df' in st.session_state:
+    track_new_meal_tab.write("Press continue to get your nutrition estimation...")
+    logging.info("-----------Finished get_user_input_dish_and_estimate_ingredients.-----------")
+
+    event = threading.Event()
+    while not track_new_meal_tab.button(label="Continue", key="confirm_ingredient_weights"):
+        event.wait()
+
+# # 2-3. Nutrient actual intake
+# # wait until user inputs
+
+if 'total_nutrients_based_on_food_intake' not in st.session_state:
     Nutrient = NutrientMaster(openai_client=OPENAI_CLIENT)
     total_nutrients_based_on_food_intake = Nutrient.total_nutrients_based_on_food_intake(
-                                                    ingredients_from_user=ingredient_df,
-                                                    layout_position=track_new_meal_tab)
-    
+                                            ingredients_from_user=st.session_state['ingredient_df'],
+                                            layout_position=track_new_meal_tab
+                                        )
+    st.session_state['total_nutrients_based_on_food_intake'] = total_nutrients_based_on_food_intake
 # 3. Check user's log in status
 # @Nyan
 # TODO: create the a table storing user's personal data: age, gender etc.
 # Update this data if there are any changes.
 
-
+while 'total_nutrients_based_on_food_intake' not in st.session_state:
+    event.wait()
 ### TODO: replace this with actual input
-user_intake_df_temp = total_nutrients_based_on_food_intake.copy()
-user_intake_df_temp["dish_description"] = dish_description
-user_intake_df_temp["actual_intake"] = user_intake_df_temp[date_input]
-user_intake_df_temp["user_id"] = user_id
+user_intake_df_temp = st.session_state['total_nutrients_based_on_food_intake']
+# user_intake_df_temp["dish_description"] = dish_description
+# user_intake_df_temp["user_id"] = user_id
 ###
 
-# 4 + 5. Get user's age + gender
-# @Tu
-logging.info("----------- Running get_user_personal_data()-----------")
-user_personal_data = main_app_miscellaneous.get_user_personal_data(
-    is_logged_in=is_logged_in,
-    user_id=user_id,
-    has_user_intake_df_temp_empty=user_intake_df_temp.empty,
-    layout_position=track_new_meal_tab
-)
-logging.info("-----------Finished get_user_personal_data-----------")
+# # 4 + 5. Get user's age + gender
+# # @Tu
+if 'user_personal_data' not in st.session_state:
+    logging.info("----------- Running get_user_personal_data()-----------")
+
+    user_personal_data = main_app_miscellaneous.get_user_personal_data(
+        is_logged_in=st.session_state['is_logged_in'],
+        user_id=st.session_state['user_id'],
+        has_user_intake_df_temp_empty=[
+            user_intake_df_temp.empty if isinstance(user_intake_df_temp, pd.DataFrame) else True
+        ][0],   ## handle case total_nutrients_based_on_food_intake is not a DataFrame but a dict
+        layout_position=track_new_meal_tab
+    )
+    st.session_state['user_personal_data'] = user_personal_data
+    logging.info("-----------Finished get_user_personal_data-----------")
 
 
 # 6. Join with recommended intake
 # Only run when we have user_personal_data
 # @Tu
 logging.info("-----------Running combine_and_show_users_recommended_intake()-----------")
-user_recommended_intake_result = main_app_miscellaneous.combine_and_show_users_recommended_intake(
-    user_personal_data=user_personal_data,
-    user_intake_df_temp=user_intake_df_temp,
-    user_intake_df_temp_name="user_intake_df_temp",
-    layout_position=track_new_meal_tab
-)
+if 'user_recommended_intake_result' not in st.session_state:
+    user_recommended_intake_result = main_app_miscellaneous.combine_and_show_users_recommended_intake(
+        user_personal_data=st.session_state['user_personal_data'],
+        user_intake_df_temp=user_intake_df_temp,
+        user_intake_df_temp_name="user_intake_df_temp",
+        layout_position=track_new_meal_tab
+    )
+    st.session_state['user_recommended_intake_result'] = user_recommended_intake_result
 
-user_recommended_intake_df = user_recommended_intake_result.get("value")
+user_recommended_intake_df = st.session_state['user_recommended_intake_result'].get("value")
 logging.info("-----------Finished combine_and_show_users_recommended_intake-----------")
 
 # 6. @Michael
 # Visualize data
 
-
+st.write(st.session_state['user_recommended_intake_result'])
 logging.info("-----------Running get_user_confirmation_and_try_to_save_their_data()-----------")
-if user_recommended_intake_result.get("status") == 200:
+if st.session_state['user_recommended_intake_result'].get("status") == 200:
 
     ### TODO: replace this with actual input
     # is_logged_in = True
-    user_recommended_intake_df["user_id"] = user_id
+    user_recommended_intake_df["user_id"] = st.session_state['user_id']
     ###
 
     result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_their_data(
-        dish_description=dish_description,
-        user_id=user_id,
-        is_logged_in=is_logged_in,
+        dish_description=st.session_state['dish_description'],
+        user_id=st.session_state['user_id'],
+        is_logged_in=st.session_state['is_logged_in'],
         layout_position=track_new_meal_tab
     )
-    login_or_create_account = result.get("login_or_create_account")
+    user_recommended_intake_df["result"] = result.get("login_or_create_account")
 logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_data-----------")
 
 
