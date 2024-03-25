@@ -29,7 +29,7 @@ st.session_state['is_logged_in'] = True
 st.session_state['user_name'] = "Tu"
 # user_name = None
 # user_id = "abc"
-st.session_state['user_id'] = "tu_2@gmail.com"
+st.session_state['user_id'] = "tu_3@gmail.com"
 ###
 
 
@@ -41,15 +41,15 @@ track_new_meal_tab, user_recommended_intake_history_tab = st.tabs(
 )
 
 # Flow 3 - 12. User wants to get their historical data
-logging.info("-----------Running get_user_historical_data()-----------")
 selected_date_range = main_app_miscellaneous.select_date_range(layout_position=user_recommended_intake_history_tab)
-
+logging.info("-----------Running get_user_historical_data()-----------")
 user_recommended_intake_history_df = main_app_miscellaneous.show_user_historical_data_result(
     is_logged_in=st.session_state['is_logged_in'],
     user_id=st.session_state['user_id'],
     layout_position=user_recommended_intake_history_tab,
     selected_date_range=selected_date_range
 )
+st.session_state['user_recommended_intake_history_df'] = user_recommended_intake_history_df
 logging.info("-----------Finished get_user_historical_data.-----------")
 
 # 1. Get dish description from user and estimate its ingredients
@@ -67,15 +67,18 @@ if 'ingredient_df' not in st.session_state:
         layout_position=track_new_meal_tab
     )
     st.session_state['ingredient_df'] = ingredient_df
+    logging.info("-----------Finished get_user_input_dish_and_estimate_ingredients.-----------")
 
 wait_while_condition_is_valid(('ingredient_df' not in st.session_state))
+main_app_miscellaneous.display_ingredient_df(
+    ingredient_df=st.session_state.get('ingredient_df'),
+    layout_position=track_new_meal_tab
+)
 
 if 'ingredient_df' in st.session_state and 'confirm_ingredient_weights_button' not in st.session_state:
     track_new_meal_tab.write("Press continue to get your nutrition estimation...")
-    logging.info("-----------Finished get_user_input_dish_and_estimate_ingredients.-----------")
-    confirm_ingredient_weights_button = track_new_meal_tab.button(label="Continue", key="confirm_ingredient_weights")
-    if confirm_ingredient_weights_button:
-        st.session_state['confirm_ingredient_weights_button'] = confirm_ingredient_weights_button
+    if track_new_meal_tab.button(label="Continue", key="confirm_ingredient_weights"):
+        st.session_state['confirm_ingredient_weights_button'] = True
 
 wait_while_condition_is_valid((not st.session_state.get('confirm_ingredient_weights_button', False)))
 
@@ -87,6 +90,12 @@ if 'total_nutrients_based_on_food_intake' not in st.session_state:
                                             layout_position=track_new_meal_tab
                                         )
     st.session_state['total_nutrients_based_on_food_intake'] = total_nutrients_based_on_food_intake
+
+main_app_miscellaneous.display_user_intake_df(
+    user_intake_df=st.session_state['total_nutrients_based_on_food_intake'],
+    layout_position=track_new_meal_tab
+)
+
 # 3. Check user's log in status
 # @Nyan
 # TODO: create the a table storing user's personal data: age, gender etc.
@@ -97,13 +106,9 @@ wait_while_condition_is_valid(('total_nutrients_based_on_food_intake' not in st.
 ### TODO: replace this with actual input
 user_intake_df_temp = st.session_state['total_nutrients_based_on_food_intake']
 user_intake_df_temp["user_id"] = st.session_state['user_id']
-
-# user_intake_df_temp["dish_description"] = dish_description
-# user_intake_df_temp["user_id"] = user_id
 ###
 
 # # 4 + 5. Get user's age + gender
-# # @Tu
 if 'user_personal_data' not in st.session_state:
     logging.info("----------- Running get_user_personal_data()-----------")
     user_personal_data = main_app_miscellaneous.get_user_personal_data(
@@ -115,43 +120,38 @@ if 'user_personal_data' not in st.session_state:
     st.session_state['user_personal_data'] = user_personal_data
     logging.info("-----------Finished get_user_personal_data-----------")
 
+# keep updating meal_record_date in case users change the date along the way
+user_intake_df_temp['meal_record_date'] = main_app_miscellaneous.get_meal_record_date(
+    layout_position=track_new_meal_tab
+)
 # 6. Join with recommended intake
 # Only run when we have user_personal_data
 # @Tu
-logging.info("-----------Running combine_and_show_users_recommended_intake()-----------")
-if 'user_recommended_intake_result' not in st.session_state:
-    user_recommended_intake_result = main_app_miscellaneous.combine_and_show_users_recommended_intake(
-        user_personal_data=st.session_state['user_personal_data'],
-        user_intake_df_temp=user_intake_df_temp,
-        user_intake_df_temp_name="user_intake_df_temp",
-        layout_position=track_new_meal_tab
-    )
-    st.session_state['user_recommended_intake_result'] = user_recommended_intake_result
 
-user_recommended_intake_df = st.session_state['user_recommended_intake_result'].get("value")
+logging.info("-----------Running combine_and_show_users_recommended_intake()-----------")
+user_recommended_intake_result = main_app_miscellaneous.combine_and_show_users_recommended_intake(
+    user_personal_data=st.session_state['user_personal_data'],
+    user_intake_df_temp=user_intake_df_temp,
+    user_intake_df_temp_name="user_intake_df_temp",
+    layout_position=track_new_meal_tab
+)
+user_recommended_intake_df = user_recommended_intake_result.get("value")
 logging.info("-----------Finished combine_and_show_users_recommended_intake-----------")
 
 # # 6. @Michael
 # # Visualize data
-
 logging.info("-----------Running get_user_confirmation_and_try_to_save_their_data()-----------")
-if st.session_state['user_recommended_intake_result'].get("status") == 200 and 'save_meal_result' not in st.session_state:
-    save_meal_result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_their_data(
-        dish_description=st.session_state['dish_description'],
-        user_id=st.session_state['user_id'],
-        is_logged_in=st.session_state['is_logged_in'],
-        layout_position=track_new_meal_tab
-    )
-    user_recommended_intake_df["result"] = save_meal_result.get("login_or_create_account")
-    st.session_state['save_meal_result'] = save_meal_result
-
-save_meal_result_persisted = st.session_state.get('save_meal_result')
-if save_meal_result_persisted.get("status") == 200:
-    storing_historical_data_result = save_meal_result_persisted.get("storing_historical_data_result")
-    if storing_historical_data_result:
-        storing_historical_data_message = storing_historical_data_result.get("message")
-        track_new_meal_tab.write(storing_historical_data_message)
+save_meal_result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_their_data(
+    dish_description=st.session_state['dish_description'],
+    user_id=st.session_state['user_id'],
+    is_logged_in=st.session_state['is_logged_in'],
+    layout_position=track_new_meal_tab
+)
+user_recommended_intake_df["result"] = save_meal_result.get("login_or_create_account")
 logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_data-----------")
+
+
+##### TEMPORARILY COMMENT OUT until columns are fixed and streamlit form is added
 
 # 5. Recommend dish.
 ### TODO: aggregate user_recommended_intake_df to make sure the actual_intake column is the daily actual intake
@@ -162,21 +162,20 @@ df_nutrient_data = user_recommended_intake_df.copy()
 df_nutrient_data['daily_requirement_microgram'] = df_nutrient_data["daily_recommended_intake"]
 df_nutrient_data["daily_actual_microgram"] = df_nutrient_data["actual_intake"]
 ####
+# if not df_nutrient_data.empty:
 
-if not df_nutrient_data.empty:
+#     dishrecommend = DishRecommender(openai_client=OPENAI_CLIENT)
 
-    dishrecommend = DishRecommender(openai_client=OPENAI_CLIENT)
+#     logging.info("-----------Running calculate_intake_difference-----------")
+#     nutrient_info = dishrecommend.calculate_intake_difference(df_nutrient_data)
+#     logging.info("-----------Finished calculate_intake_difference-----------")
 
-    logging.info("-----------Running calculate_intake_difference-----------")
-    nutrient_info = dishrecommend.calculate_intake_difference(df_nutrient_data)
-    logging.info("-----------Finished calculate_intake_difference-----------")
+#     logging.info("-----------Running get_user_input-----------")
+#     cuisine, allergies, ingredients = dishrecommend.get_user_input()
+#     logging.info("-----------Finished get_user_input-----------")
 
-    logging.info("-----------Running get_user_input-----------")
-    cuisine, allergies, ingredients = dishrecommend.get_user_input()
-    logging.info("-----------Finished get_user_input-----------")
-
-    logging.info("-----------Running get_dish_recommendation-----------")
-    if st.button("Recommend Dish"):
-        recommended_dish = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
-        st.write(recommended_dish)
-    logging.info("-----------Finished get_dish_recommendation-----------")
+#     logging.info("-----------Running get_dish_recommendation-----------")
+#     if st.button("Recommend Dish"):
+#         recommended_dish = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
+#         st.write(recommended_dish)
+#     logging.info("-----------Finished get_dish_recommendation-----------")

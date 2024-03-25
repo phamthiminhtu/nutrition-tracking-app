@@ -132,11 +132,6 @@ class MainAppMiscellaneous:
                     user_personal_data = self.get_user_personal_info_manual_input(
                         layout_position=layout_position
                     )
-        meal_record_date = layout_position.date_input(
-            "When was your meal consumed or plan to be consumed?",
-            datetime.datetime.now(pytz.timezone('Australia/Sydney'))
-        )
-        user_personal_data['meal_record_date'] = meal_record_date
         return user_personal_data
 
     @handle_exception(has_random_message_printed_out=True)
@@ -171,7 +166,6 @@ class MainAppMiscellaneous:
         if user_personal_data.get("status") == 200 and not user_intake_df_temp.empty:
             user_intake_df_temp["gender"] = user_personal_data.get("gender")
             user_intake_df_temp["age"] = user_personal_data.get("age")
-            user_intake_df_temp["meal_record_date"] = user_personal_data.get("meal_record_date")
 
             user_recommended_intake_df = self.get_user_recommended_intake(
                 user_intake_df_temp_name=user_intake_df_temp_name
@@ -217,9 +211,12 @@ class MainAppMiscellaneous:
                 storing_historical_data_result = self.db.save_user_data(
                     dish_description=dish_description,
                     user_id=user_id,
-                    user_intake_df_temp_name="user_intake_df_temp"
+                    user_intake_df_temp_name="user_intake_df_temp",
+                    layout_position=layout_position
                 )
-                result['storing_historical_data_result'] = storing_historical_data_result
+                if storing_historical_data_result.get("status") == 200:
+                    storing_historical_data_message = storing_historical_data_result.get("message")
+                    layout_position.write(storing_historical_data_message)
             else:
                 login_or_create_account = layout_position.selectbox(
                     "Looks like you haven't logged in, do you want to log in to save this meal's intake estimation?",
@@ -313,3 +310,26 @@ class MainAppMiscellaneous:
             )
 
         return selected_date_range_str
+    
+    @handle_exception(has_random_message_printed_out=True)
+    def get_meal_record_date(self, layout_position=st):
+        meal_record_date = layout_position.date_input(
+            "When was your meal consumed or plan to be consumed?",
+            datetime.datetime.now(pytz.timezone('Australia/Sydney'))
+        )
+        return meal_record_date
+
+    @handle_exception(has_random_message_printed_out=True)
+    def display_ingredient_df(self, ingredient_df, layout_position=st):
+        if not ingredient_df.empty:
+            columns_to_display = ["Ingredient", "Estimated weight (g)"]
+            layout_position.write(f'Here is our estimated weight of each ingredient for one serving of 🍕 {st.session_state["dish_description"]} 🍳:')
+            layout_position.write(ingredient_df[columns_to_display])
+
+    @handle_exception(has_random_message_printed_out=True)
+    def display_user_intake_df(self, user_intake_df, layout_position=st):
+        if isinstance(user_intake_df, pd.DataFrame):
+            user_intake_df = user_intake_df.rename(columns={
+                "actual_intake": "Actual Intake",
+            })
+            layout_position.dataframe(user_intake_df[["Nutrient", "Actual Intake"]].style.format({"Actual Intake": "{:.1f}"}))
