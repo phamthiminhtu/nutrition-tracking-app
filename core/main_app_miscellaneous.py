@@ -1,13 +1,12 @@
 import time
 import jinja2
-import threading
 import pandas as pd
 import streamlit as st
 import datetime
 from datetime import datetime as dt
 from core.openai_api import *
 from core.duckdb_connector import *
-from core.utils import handle_exception
+from core.utils import handle_exception, wait_while_condition_is_valid
 from core.sql.user_daily_recommended_intake_history import anonymous_user_daily_nutrient_intake_query_template, combine_user_actual_vs_recommend_intake_logic
 
 RECOMMENDED_DAILY_NUTRIENT_INTAKE_TABLE_ID = "ilab.main.daily_nutrients_recommendation"
@@ -21,7 +20,7 @@ USER_INTAKE_COLUMNS_DICT = {
     "actual_intake": "Actual intake",
     "daily_recommended_intake": "Daily recommended intake",
     "measurement": "Measurement",
-    "intake_diff_percent": "Intake difference (%)"
+    "actual_over_recommended_intake_percent": "Actual intake / Recommended intake (%)"
 }
 
 class MainAppMiscellaneous:
@@ -55,6 +54,7 @@ class MainAppMiscellaneous:
                 guess the ingredients of that dish
                 and estimate the weight of each ingredient in gram for one serve,
                 just 1 estimate for each ingredient and return the output in a python dictionary.
+                The estimate should be as detailed as possible.
                 If input is not food, return an empty dictionary.
                 Input ```{dish_description}```
             """
@@ -64,6 +64,7 @@ class MainAppMiscellaneous:
                 layout_position=layout_position
             )
             ingredient_df["dish_description"] = dish_description
+
         return ingredient_df
 
     @handle_exception(has_random_message_printed_out=True)
@@ -87,20 +88,21 @@ class MainAppMiscellaneous:
         self,
         layout_position=st
     ) -> dict:
-
-        user_gender = layout_position.selectbox(
+        form = layout_position.form("personal_data_form")
+        user_gender = form.selectbox(
             "Please select your gender",
             ("male", 'female'),
             index=None,
             placeholder="Select your gender..."
         )
-        user_age_input = layout_position.number_input("How old are you?", value=None, placeholder="Type a number...")
-
-        # wait until user input
-        event = threading.Event()
-        while user_age_input is None or user_gender is None:
-            event.wait()
-            event.clear()
+        user_age_input = form.number_input(
+            "How old are you?",
+            value=None,
+            placeholder="Type a number..."
+        )
+        submitted = form.form_submit_button("Submit")
+        # wait until user inputs
+        wait_while_condition_is_valid((not submitted))
 
         user_personal_data = {
             "status": 200,
@@ -131,7 +133,6 @@ class MainAppMiscellaneous:
                     user_personal_data = self.get_user_personal_info_manual_input(
                         layout_position=layout_position
                     )
-
         return user_personal_data
 
     @handle_exception(has_random_message_printed_out=True)
@@ -173,12 +174,11 @@ class MainAppMiscellaneous:
             user_recommended_intake_df_to_show = user_recommended_intake_df.copy()
             user_recommended_intake_df_to_show = user_recommended_intake_df_to_show.rename(columns=USER_INTAKE_COLUMNS_DICT)
             columns_to_show = USER_INTAKE_COLUMNS_DICT.values()
-            layout_position.write("Just one moment, we are doing the science 😎 ...")
-            time.sleep(1)
+
             if not user_recommended_intake_df_to_show.empty:
                 layout_position.dataframe(user_recommended_intake_df_to_show[columns_to_show])
             else:
-                layout_position.write("Oops! Turned out it's pseudoscience 🫥 We cannot estimate your intake just yet 😅 Please try again later...")
+                layout_position.write("Oops! Turns out it's pseudoscience 🫥 We cannot estimate your intake just yet 😅 Please try again later...")
 
         result = {
             "status": 200,
@@ -193,8 +193,12 @@ class MainAppMiscellaneous:
         dish_description: str,
         user_id: str,
         is_logged_in: bool,
+        has_user_intake_df_temp_empty: bool,
         layout_position=st
     ):
+        if has_user_intake_df_temp_empty:
+            result = {"status": 4000}
+            return result
         result = {
             "status": 200,
             "login_or_create_account": "No"
@@ -205,12 +209,15 @@ class MainAppMiscellaneous:
             index=None,
             placeholder="Select your answer..."
         )
+        # wait until user inputs
+        wait_while_condition_is_valid((has_historical_data_saved is None))
         if has_historical_data_saved == "Yes":
             if is_logged_in:
                 storing_historical_data_result = self.db.save_user_data(
                     dish_description=dish_description,
                     user_id=user_id,
-                    user_intake_df_temp_name="user_intake_df_temp"
+                    user_intake_df_temp_name="user_intake_df_temp",
+                    layout_position=layout_position
                 )
                 if storing_historical_data_result.get("status") == 200:
                     storing_historical_data_message = storing_historical_data_result.get("message")
@@ -261,21 +268,27 @@ class MainAppMiscellaneous:
         selected_date_range: tuple,
         layout_position=st
     ) -> None:
+        result = {
+            "status": 200
+        }
         if is_logged_in and user_id:
             user_recommended_intake_history_df = self.get_user_historical_data(
                 user_id=user_id,
                 selected_date_range=selected_date_range
             )
+            result["value"] = user_recommended_intake_history_df
             if not user_recommended_intake_history_df.empty:
                 layout_position.dataframe(user_recommended_intake_history_df)   ### TODO: replace with method to visualize data
             else:
                 layout_position.write("""
                     Oops, looks like you haven't tracked your nutrition.
-                    Try a different dates or start tracking now to see your nutrition intake history 😉
+                    Try different dates or start tracking now to see your nutrition intake history 😉
                 """)
         else:
             layout_position.write("Looks like you haven't logged in, do you want to log in to see your data?")
             layout_position.link_button("Log in", "https://streamlit.io/gallery")   ### TODO: replace with actual log in
+
+        return result
 
     @handle_exception(has_random_message_printed_out=True)
     def select_date_range(
@@ -308,3 +321,32 @@ class MainAppMiscellaneous:
             )
 
         return selected_date_range_str
+
+    @handle_exception(has_random_message_printed_out=True)
+    def get_meal_record_date(
+        self,
+        has_user_intake_df_temp_empty:bool,
+        layout_position=st
+    ) -> datetime.datetime:
+        if has_user_intake_df_temp_empty:
+            return None
+        meal_record_date = layout_position.date_input(
+            "When was your meal consumed or plan to be consumed?",
+            datetime.datetime.now(pytz.timezone('Australia/Sydney'))
+        )
+        return meal_record_date
+
+    @handle_exception(has_random_message_printed_out=True)
+    def display_ingredient_df(self, ingredient_df, layout_position=st):
+        if not ingredient_df.empty:
+            columns_to_display = ["Ingredient", "Estimated weight (g)"]
+            layout_position.write(f'Here is our estimated weight of each ingredient for one serving of 🍕 {st.session_state["dish_description"]} 🍳:')
+            layout_position.write(ingredient_df[columns_to_display])
+
+    @handle_exception(has_random_message_printed_out=True)
+    def display_user_intake_df(self, user_intake_df, layout_position=st):
+        if isinstance(user_intake_df, pd.DataFrame):
+            user_intake_df = user_intake_df.rename(columns={
+                "actual_intake": "Actual Intake",
+            })
+            layout_position.dataframe(user_intake_df[["Nutrient", "Actual Intake"]].style.format({"Actual Intake": "{:.1f}"}))

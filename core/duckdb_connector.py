@@ -5,7 +5,7 @@ import hashlib
 import datetime
 import threading
 import streamlit as st
-from core.utils import handle_exception
+from core.utils import handle_exception, wait_while_condition_is_valid
 from core.sql.user_nutrient_intake_history import insert_new_record_user_nutrient_intake_history_query_template
 
 
@@ -79,8 +79,8 @@ class DuckdbConnector:
         meal_info["is_existing_meal_id"] = is_existing_meal_id
         return meal_info
 
-    def get_user_confirmation_for_duplicated_meal_id(self) -> bool:
-        user_confirmation = st.selectbox(
+    def get_user_confirmation_for_duplicated_meal_id(self, layout_position=st) -> bool:
+        user_confirmation = layout_position.selectbox(
             "The same meal has been recorded within 60 seconds, do you still want to proceed?",
             ("Yes", 'No'),
             index=None,
@@ -88,15 +88,11 @@ class DuckdbConnector:
         )
 
         # wait for user's confirmation
-        event = threading.Event()
-        while user_confirmation is None:
-            event.wait()
-            event.clear()
-
+        wait_while_condition_is_valid((user_confirmation is None))
+        has_meal_id_stored = False
         if user_confirmation == 'Yes':
             has_meal_id_stored = True
-        if user_confirmation == 'No':
-            has_meal_id_stored = False
+
         return has_meal_id_stored
 
     def save_user_nutrient_intake(
@@ -125,7 +121,8 @@ class DuckdbConnector:
         self,
         dish_description: str,
         user_id: str,
-        user_intake_df_temp_name: str
+        user_intake_df_temp_name: str,
+        layout_position=st
     ) -> dict:
 
         # check whether meal_id already exists
@@ -137,7 +134,7 @@ class DuckdbConnector:
         is_existing_meal_id = meal_id_info.get("is_existing_meal_id")
 
         if is_existing_meal_id:
-            has_meal_id_stored = self.get_user_confirmation_for_duplicated_meal_id()
+            has_meal_id_stored = self.get_user_confirmation_for_duplicated_meal_id(layout_position=layout_position)
             if not has_meal_id_stored:
                 result["message"] = "Successfully discarded this meal!"
                 return result
