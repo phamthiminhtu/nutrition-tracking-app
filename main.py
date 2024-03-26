@@ -150,7 +150,6 @@ logging.info("-----------Finished combine_and_show_users_recommended_intake-----
 
 # # 6. @Michael
 # # Visualize data
-st.write(st.session_state)
 logging.info("-----------Running get_user_confirmation_and_try_to_save_their_data()-----------")
 save_meal_result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_their_data(
     dish_description=st.session_state['dish_description'],
