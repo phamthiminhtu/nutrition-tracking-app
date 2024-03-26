@@ -49,12 +49,13 @@ track_new_meal_tab, user_recommended_intake_history_tab = st.tabs(
 # Flow 3 - 12. User wants to get their historical data
 selected_date_range = main_app_miscellaneous.select_date_range(layout_position=user_recommended_intake_history_tab)
 logging.info("-----------Running get_user_historical_data()-----------")
-user_recommended_intake_history_df = main_app_miscellaneous.show_user_historical_data_result(
+user_recommended_intake_history_result = main_app_miscellaneous.show_user_historical_data_result(
     is_logged_in=st.session_state['is_logged_in'],
     user_id=st.session_state['user_id'],
     layout_position=user_recommended_intake_history_tab,
     selected_date_range=selected_date_range
 )
+user_recommended_intake_history_df = user_recommended_intake_history_result.get("value")
 st.session_state['user_recommended_intake_history_df'] = user_recommended_intake_history_df
 logging.info("-----------Finished get_user_historical_data.-----------")
 
