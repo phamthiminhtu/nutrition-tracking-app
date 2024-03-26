@@ -83,7 +83,7 @@ main_app_miscellaneous.display_ingredient_df(
     layout_position=track_new_meal_tab
 )
 
-if (st.session_state.get('ingredient_df') is not None):
+if st.session_state.get('ingredient_df') is not None:
     track_new_meal_tab.write("Press continue to get your nutrition estimation...")
     if track_new_meal_tab.button(label="Continue", key="confirm_ingredient_weights"):
         st.session_state['confirm_ingredient_weights_button'] = True
@@ -162,7 +162,6 @@ logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_da
 
 
 ##### TEMPORARILY COMMENT OUT until columns are fixed and streamlit form is added
-
 
 
 # 5. Recommend dish.

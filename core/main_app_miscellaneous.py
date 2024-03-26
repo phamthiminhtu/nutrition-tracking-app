@@ -54,6 +54,7 @@ class MainAppMiscellaneous:
                 guess the ingredients of that dish
                 and estimate the weight of each ingredient in gram for one serve,
                 just 1 estimate for each ingredient and return the output in a python dictionary.
+                The estimate should be as detailed as possible.
                 If input is not food, return an empty dictionary.
                 Input ```{dish_description}```
             """
@@ -310,7 +311,7 @@ class MainAppMiscellaneous:
             )
 
         return selected_date_range_str
-    
+
     @handle_exception(has_random_message_printed_out=True)
     def get_meal_record_date(self, layout_position=st):
         meal_record_date = layout_position.date_input(
