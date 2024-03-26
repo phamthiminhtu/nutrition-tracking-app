@@ -30,6 +30,12 @@ st.session_state['user_name'] = "Tu"
 # user_name = None
 # user_id = "abc"
 st.session_state['user_id'] = "tu_3@gmail.com"
+def reset_session_state():
+    st.session_state['dish_description'] = None
+    st.session_state['ingredient_df'] = None
+    st.session_state['confirm_ingredient_weights_button'] = False
+    st.session_state['total_nutrients_based_on_food_intake'] = None
+    st.session_state['user_personal_data'] = None
 ###
 
 
@@ -54,14 +60,15 @@ logging.info("-----------Finished get_user_historical_data.-----------")
 
 # 1. Get dish description from user and estimate its ingredients
 dish_description = track_new_meal_tab.text_input("What have you eaten today? 😋").strip()
-if 'dish_description' not in st.session_state and dish_description!= '':
+if dish_description != st.session_state.get('dish_description', '###') and dish_description!= '':
+    reset_session_state()   # rerun the whole app when user inputs a new dish
     logging.info("-----------Running get_user_input_dish_and_estimate_ingredients()-----------")
     st.session_state['dish_description'] = dish_description
 
 # wait for users' input
-wait_while_condition_is_valid(('dish_description' not in st.session_state))
+wait_while_condition_is_valid((st.session_state.get('dish_description') is None))
 
-if 'ingredient_df' not in st.session_state:
+if st.session_state.get('ingredient_df') is None:
     ingredient_df = main_app_miscellaneous.get_user_input_dish_and_estimate_ingredients(
         dish_description=st.session_state['dish_description'],
         layout_position=track_new_meal_tab
@@ -69,13 +76,14 @@ if 'ingredient_df' not in st.session_state:
     st.session_state['ingredient_df'] = ingredient_df
     logging.info("-----------Finished get_user_input_dish_and_estimate_ingredients.-----------")
 
-wait_while_condition_is_valid(('ingredient_df' not in st.session_state))
+wait_while_condition_is_valid((st.session_state.get('ingredient_df') is None))
+
 main_app_miscellaneous.display_ingredient_df(
     ingredient_df=st.session_state.get('ingredient_df'),
     layout_position=track_new_meal_tab
 )
 
-if 'ingredient_df' in st.session_state and 'confirm_ingredient_weights_button' not in st.session_state:
+if (st.session_state.get('ingredient_df') is not None):
     track_new_meal_tab.write("Press continue to get your nutrition estimation...")
     if track_new_meal_tab.button(label="Continue", key="confirm_ingredient_weights"):
         st.session_state['confirm_ingredient_weights_button'] = True
@@ -83,13 +91,15 @@ if 'ingredient_df' in st.session_state and 'confirm_ingredient_weights_button' n
 wait_while_condition_is_valid((not st.session_state.get('confirm_ingredient_weights_button', False)))
 
 # # 2-3. Nutrient actual intake
-if 'total_nutrients_based_on_food_intake' not in st.session_state:
+if st.session_state.get('total_nutrients_based_on_food_intake') is None:
     Nutrient = NutrientMaster(openai_client=OPENAI_CLIENT)
     total_nutrients_based_on_food_intake = Nutrient.total_nutrients_based_on_food_intake(
                                             ingredients_from_user=st.session_state['ingredient_df'],
                                             layout_position=track_new_meal_tab
                                         )
     st.session_state['total_nutrients_based_on_food_intake'] = total_nutrients_based_on_food_intake
+
+wait_while_condition_is_valid((st.session_state.get('total_nutrients_based_on_food_intake') is None))
 
 main_app_miscellaneous.display_user_intake_df(
     user_intake_df=st.session_state['total_nutrients_based_on_food_intake'],
@@ -101,7 +111,7 @@ main_app_miscellaneous.display_user_intake_df(
 # TODO: create the a table storing user's personal data: age, gender etc.
 # Update this data if there are any changes.
 
-wait_while_condition_is_valid(('total_nutrients_based_on_food_intake' not in st.session_state))
+wait_while_condition_is_valid((st.session_state.get('total_nutrients_based_on_food_intake') is None))
 
 ### TODO: replace this with actual input
 user_intake_df_temp = st.session_state['total_nutrients_based_on_food_intake']
@@ -109,7 +119,7 @@ user_intake_df_temp["user_id"] = st.session_state['user_id']
 ###
 
 # # 4 + 5. Get user's age + gender
-if 'user_personal_data' not in st.session_state:
+if st.session_state.get('user_personal_data') is None:
     logging.info("----------- Running get_user_personal_data()-----------")
     user_personal_data = main_app_miscellaneous.get_user_personal_data(
         is_logged_in=st.session_state['is_logged_in'],
@@ -140,6 +150,7 @@ logging.info("-----------Finished combine_and_show_users_recommended_intake-----
 
 # # 6. @Michael
 # # Visualize data
+st.write(st.session_state)
 logging.info("-----------Running get_user_confirmation_and_try_to_save_their_data()-----------")
 save_meal_result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_their_data(
     dish_description=st.session_state['dish_description'],
@@ -153,14 +164,16 @@ logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_da
 
 ##### TEMPORARILY COMMENT OUT until columns are fixed and streamlit form is added
 
+
+
 # 5. Recommend dish.
 ### TODO: aggregate user_recommended_intake_df to make sure the actual_intake column is the daily actual intake
 ### now actual_intake might just be one meal's actual intake
 df_nutrient_data = user_recommended_intake_df.copy()
 
 #### TODO: CHANGE THIS - These 2 columns are not applicable anymore
-df_nutrient_data['daily_requirement_microgram'] = df_nutrient_data["daily_recommended_intake"]
-df_nutrient_data["daily_actual_microgram"] = df_nutrient_data["actual_intake"]
+# df_nutrient_data['daily_requirement_microgram'] = df_nutrient_data["daily_recommended_intake"]
+# df_nutrient_data["daily_actual_microgram"] = df_nutrient_data["actual_intake"]
 ####
 # if not df_nutrient_data.empty:
 
