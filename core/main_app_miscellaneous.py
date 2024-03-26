@@ -11,9 +11,9 @@ from core.auth import *
 from core.utils import handle_exception
 from core.sql.user_daily_recommended_intake_history import anonymous_user_daily_nutrient_intake_query_template, combine_user_actual_vs_recommend_intake_logic
 
-
 RECOMMENDED_DAILY_NUTRIENT_INTAKE_TABLE_ID = "ilab.main.daily_nutrients_recommendation"
 USER_DAILY_RECOMMENDED_INTAKE_HISTORY_TABLE_ID = "ilab.main.user_daily_recommended_intake_history"
+
 USER_INTAKE_COLUMNS_DICT = {
     "gender": "Gender",
     "age": "Age",
@@ -121,7 +121,6 @@ class MainAppMiscellaneous:
         layout_position=st
     ) -> dict:
         user_personal_data = {"status": 0}
-        print(user_personal_data)
         if not has_user_intake_df_temp_empty:
             if is_logged_in:
                 user_personal_data = self.db.get_user_personal_data_from_database(user_id=user_id)
@@ -174,7 +173,8 @@ class MainAppMiscellaneous:
             user_recommended_intake_df = self.get_user_recommended_intake(
                 user_intake_df_temp_name=user_intake_df_temp_name
             )
-            user_recommended_intake_df_to_show = user_recommended_intake_df.rename(columns=USER_INTAKE_COLUMNS_DICT)
+            user_recommended_intake_df_to_show = user_recommended_intake_df.copy()
+            user_recommended_intake_df_to_show = user_recommended_intake_df_to_show.rename(columns=USER_INTAKE_COLUMNS_DICT)
             columns_to_show = USER_INTAKE_COLUMNS_DICT.values()
             layout_position.write("Just one moment, we are doing the science 😎 ...")
             time.sleep(1)
@@ -183,7 +183,12 @@ class MainAppMiscellaneous:
             else:
                 layout_position.write("Oops! Turned out it's pseudoscience 🫥 We cannot estimate your intake just yet 😅 Please try again later...")
 
-        return user_recommended_intake_df
+        result = {
+            "status": 200,
+            "value": user_recommended_intake_df
+        }
+
+        return result
 
     @handle_exception(has_random_message_printed_out=True)
     def get_user_confirmation_and_try_to_save_their_data(
