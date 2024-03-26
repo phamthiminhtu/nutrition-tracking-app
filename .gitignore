@@ -1,9 +1,7 @@
 *.pyc
 *.ipynb
-<<<<<<< HEAD
 venv/
 tyler/
-=======
+path/to/venv/
 logs.log
 **/.DS_Store
->>>>>>> origin/master
