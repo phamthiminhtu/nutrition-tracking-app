@@ -20,7 +20,7 @@ USER_INTAKE_COLUMNS_DICT = {
     "actual_intake": "Actual intake",
     "daily_recommended_intake": "Daily recommended intake",
     "measurement": "Measurement",
-    "intake_diff_percent": "Intake difference (%)"
+    "actual_over_recommended_intake_percent": "Actual intake / Recommended intake (%)"
 }
 
 class MainAppMiscellaneous:
@@ -193,8 +193,12 @@ class MainAppMiscellaneous:
         dish_description: str,
         user_id: str,
         is_logged_in: bool,
+        has_user_intake_df_temp_empty: bool,
         layout_position=st
     ):
+        if has_user_intake_df_temp_empty:
+            result = {"status": 4000}
+            return result
         result = {
             "status": 200,
             "login_or_create_account": "No"
@@ -313,7 +317,13 @@ class MainAppMiscellaneous:
         return selected_date_range_str
 
     @handle_exception(has_random_message_printed_out=True)
-    def get_meal_record_date(self, layout_position=st):
+    def get_meal_record_date(
+        self,
+        has_user_intake_df_temp_empty:bool,
+        layout_position=st
+    ) -> datetime.datetime:
+        if has_user_intake_df_temp_empty:
+            return None
         meal_record_date = layout_position.date_input(
             "When was your meal consumed or plan to be consumed?",
             datetime.datetime.now(pytz.timezone('Australia/Sydney'))
