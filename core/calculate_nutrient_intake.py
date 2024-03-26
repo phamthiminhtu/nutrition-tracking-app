@@ -28,7 +28,7 @@ class NutrientMaster:
         result = process.extractOne(ingredient_from_user, self.ingredients_in_database['database_ingredient'], scorer=fuzz.token_sort_ratio)
         return result[0], result[1]
 
-   
+
     def _calculate_match_score_for_all_ingredients(self, ingredients_from_user) -> pd.DataFrame:
 
         # Calculate match score for each ingredient
@@ -47,8 +47,8 @@ class NutrientMaster:
         ingredient_with_high_match_score = match_result[match_result["match_score"] > min_match_score]
 
         # Extract ingredients with low match score
-        ingredient_with_low_match_score = match_result[match_result["match_score"] <= min_match_score] 
-    
+        ingredient_with_low_match_score = match_result[match_result["match_score"] <= min_match_score]
+
         logger.info("Finished sorting ingredients based on match score")
         return ingredient_with_high_match_score, ingredient_with_low_match_score
 
@@ -78,11 +78,11 @@ class NutrientMaster:
 
         # Drop irrelevant columns
         ingredients_and_total_nutrients_df.drop(columns=["Ingredient", "Estimated weight (g)"], inplace=True)
-    
+
         logger.info("Finished extracting ingredients with high match score and their total nutrients")
         return ingredients_and_total_nutrients_df
-    
-    
+
+
     def sum_total_nutrients_in_high_match_score_ingredients(self, ingredients_from_user) -> pd.DataFrame:
 
         # Extract ingredients and total nutrients for each ingredient
@@ -152,14 +152,14 @@ class NutrientMaster:
             transposed_df.columns = transposed_df.iloc[0]
             transposed_df = transposed_df[1:]
             transposed_df = transposed_df.reset_index(drop=True)
-        
+
         return transposed_df
 
     @handle_exception(funny_message="Your meal is exceptionally distinctive, and we may need to reconsider how to calculate its nutrient contents. Please visit us again later.")
     def total_nutrients_based_on_food_intake(self, ingredients_from_user, layout_position=st) -> pd.DataFrame:
-
+        layout_position.write("Just one moment, we are doing the science 😎 ...")
         # Extract total nutrients in high match score ingredients and tranpose the result
-        df_database = self.sum_total_nutrients_in_high_match_score_ingredients(ingredients_from_user[["Ingredient", "Estimated weight (g)"]])        
+        df_database = self.sum_total_nutrients_in_high_match_score_ingredients(ingredients_from_user[["Ingredient", "Estimated weight (g)"]])
         transposed_df_database = self._transpose_and_reformat_dataframe(df_database)
 
         # Extract total nutrients in low match score ingredients
@@ -175,9 +175,7 @@ class NutrientMaster:
         # Convert nutrient values into float
         combined_df["Actual Intake"] = combined_df["Actual Intake"].astype(float).round(1)
 
-        # Show total nutrients on streamlit
         logger.info("Finished calculating total nutrients based on food intake")
-        layout_position.table(combined_df.style.format({"Actual Intake": "{:.1f}"}))
 
         # Make a copy of the dataframe for internal usage
         combined_df_copy = combined_df.copy()
@@ -188,6 +186,4 @@ class NutrientMaster:
 
         # Rename Actual Intake column
         combined_df_copy.rename(columns={"Actual Intake": "actual_intake"}, inplace=True)
-        
         return combined_df_copy
-    
