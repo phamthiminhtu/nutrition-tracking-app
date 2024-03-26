@@ -1,4 +1,5 @@
 import random
+import threading
 import streamlit as st
 from functools import wraps
 
@@ -71,3 +72,9 @@ def handle_exception(
         return decorator_print_funny_message
     else:
         return decorator_print_funny_message(_func)
+    
+def wait_while_condition_is_valid(condition: bool):
+    # wait until user inputs
+    event = threading.Event()
+    while condition:
+        event.wait()

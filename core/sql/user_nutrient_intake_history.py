@@ -3,9 +3,11 @@ create_user_nutrient_intake_history_query = """
         user_id STRING,
         gender STRING,
         age FLOAT,
-        dish_description AS STRING,
+        dish_description STRING,
         meal_id STRING,
-        create_timestamp TIMESTAMP,
+        meal_fingerprint STRING,
+        meal_record_date TIMESTAMP,
+        created_datetime_tzsyd TIMESTAMP,
         nutrient STRING,
         actual_intake FLOAT
     );
@@ -22,6 +24,7 @@ insert_new_record_user_nutrient_intake_history_query_template = """
                 dish_description AS dish_description,
                 $meal_id AS meal_id,
                 $meal_fingerprint AS meal_fingerprint,
+                meal_record_date AS meal_record_date,
                 $created_datetime_tzsyd AS created_datetime_tzsyd,
                 nutrient AS nutrient,
                 actual_intake AS actual_intake
@@ -36,6 +39,7 @@ insert_new_record_user_nutrient_intake_history_query_template = """
                 CAST(dish_description AS STRING) AS dish_description,
                 CAST(meal_id AS STRING) AS meal_id,
                 CAST(meal_fingerprint AS STRING) AS meal_fingerprint,
+                meal_record_date AS meal_record_date,
                 STRPTIME(created_datetime_tzsyd, '%Y-%m-%d %H:%M:%S') AS created_datetime_tzsyd,
                 CAST(nutrient AS STRING) AS nutrient,
                 CAST(actual_intake AS FLOAT) AS actual_intake
