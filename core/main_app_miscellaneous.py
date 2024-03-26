@@ -268,11 +268,15 @@ class MainAppMiscellaneous:
         selected_date_range: tuple,
         layout_position=st
     ) -> None:
+        result = {
+            "status": 200
+        }
         if is_logged_in and user_id:
             user_recommended_intake_history_df = self.get_user_historical_data(
                 user_id=user_id,
                 selected_date_range=selected_date_range
             )
+            result["value"] = user_recommended_intake_history_df
             if not user_recommended_intake_history_df.empty:
                 layout_position.dataframe(user_recommended_intake_history_df)   ### TODO: replace with method to visualize data
             else:
@@ -283,6 +287,8 @@ class MainAppMiscellaneous:
         else:
             layout_position.write("Looks like you haven't logged in, do you want to log in to see your data?")
             layout_position.link_button("Log in", "https://streamlit.io/gallery")   ### TODO: replace with actual log in
+
+        return result
 
     @handle_exception(has_random_message_printed_out=True)
     def select_date_range(
