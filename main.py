@@ -119,21 +119,19 @@ user_intake_df_temp["user_id"] = st.session_state['user_id']
 ###
 
 # # 4 + 5. Get user's age + gender
+has_user_intake_df_temp_empty = user_intake_df_temp.empty if isinstance(user_intake_df_temp, pd.DataFrame) else True
 if st.session_state.get('user_personal_data') is None:
     logging.info("----------- Running get_user_personal_data()-----------")
     user_personal_data = main_app_miscellaneous.get_user_personal_data(
         is_logged_in=st.session_state['is_logged_in'],
         user_id=st.session_state['user_id'],
-        has_user_intake_df_temp_empty=user_intake_df_temp.empty if isinstance(user_intake_df_temp, pd.DataFrame) else True,   ## handle case total_nutrients_based_on_food_intake is not a DataFrame but a dict
+        has_user_intake_df_temp_empty=has_user_intake_df_temp_empty,   ## handle case total_nutrients_based_on_food_intake is not a DataFrame but a dict
         layout_position=track_new_meal_tab
     )
     st.session_state['user_personal_data'] = user_personal_data
     logging.info("-----------Finished get_user_personal_data-----------")
 
-# keep updating meal_record_date in case users change the date along the way
-user_intake_df_temp['meal_record_date'] = main_app_miscellaneous.get_meal_record_date(
-    layout_position=track_new_meal_tab
-)
+
 # 6. Join with recommended intake
 # Only run when we have user_personal_data
 # @Tu
@@ -150,15 +148,25 @@ logging.info("-----------Finished combine_and_show_users_recommended_intake-----
 
 # # 6. @Michael
 # # Visualize data
+
+
+user_intake_df_temp['meal_record_date'] = main_app_miscellaneous.get_meal_record_date(
+    layout_position=track_new_meal_tab,
+    has_user_intake_df_temp_empty=has_user_intake_df_temp_empty
+)
+
 logging.info("-----------Running get_user_confirmation_and_try_to_save_their_data()-----------")
 save_meal_result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_their_data(
     dish_description=st.session_state['dish_description'],
     user_id=st.session_state['user_id'],
     is_logged_in=st.session_state['is_logged_in'],
-    layout_position=track_new_meal_tab
+    layout_position=track_new_meal_tab,
+    has_user_intake_df_temp_empty=has_user_intake_df_temp_empty
 )
 user_recommended_intake_df["result"] = save_meal_result.get("login_or_create_account")
 logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_data-----------")
+
+#### TODO: aggregate user_recommended_intake_df by day/ week
 
 
 ##### TEMPORARILY COMMENT OUT until columns are fixed and streamlit form is added

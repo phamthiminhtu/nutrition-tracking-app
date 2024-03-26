@@ -19,7 +19,7 @@ combine_user_actual_vs_recommend_intake_logic = """
         u.*,
         r.daily_recommended_intake,
         r.daily_recommended_intake - u.actual_intake AS intake_diff,
-        CEIL((r.daily_recommended_intake - u.actual_intake)*100 / daily_recommended_intake) AS intake_diff_percent,
+        CEIL(u.actual_intake*100 / daily_recommended_intake) AS actual_over_recommended_intake_percent,
         r.measurement
     FROM user_nutrient_intake AS u
     -- only get nutrients that exist in recommended_daily_nutrient_intake table
