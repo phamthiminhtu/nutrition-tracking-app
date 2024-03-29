@@ -38,6 +38,7 @@ def reset_session_state():
     st.session_state['confirm_ingredient_weights_button'] = False
     st.session_state['total_nutrients_based_on_food_intake'] = None
     st.session_state['user_personal_data'] = None
+    st.session_state['user_recommended_intake_df'] = None
 
 
 
@@ -168,11 +169,16 @@ save_meal_result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_
 logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_data-----------")
 
 # Aggregate user_recommended_intake_df by day
-today = datetime.datetime.now(pytz.timezone('Australia/Sydney')).strftime("%Y-%m-%d")
-user_recommended_intake_df = main_app_miscellaneous.get_user_historical_data(
-    user_id=st.session_state["user_id"],
-    selected_date_range=(today, today)
-)
+if st.session_state.get('user_recommended_intake_df') is None:
+    today = datetime.datetime.now(pytz.timezone('Australia/Sydney')).strftime("%Y-%m-%d")
+    user_recommended_intake_from_database_df = main_app_miscellaneous.get_user_historical_data(
+        user_id=st.session_state["user_id"],
+        selected_date_range=(today, today)
+    )
+    st.session_state['user_recommended_intake_df'] = user_recommended_intake_from_database_df
+
+user_recommended_intake_df = st.session_state['user_recommended_intake_df']
+
 
 ##### TEMPORARILY COMMENT OUT until columns are fixed and streamlit form is added
 
