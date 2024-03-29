@@ -351,3 +351,17 @@ class MainAppMiscellaneous:
                 "actual_intake": "Actual Intake",
             })
             layout_position.dataframe(user_intake_df[["Nutrient", "Actual Intake"]].style.format({"Actual Intake": "{:.1f}"}))
+
+    @handle_exception(has_random_message_printed_out=True)
+    def compare_and_return_the_smaller_date(
+        self,
+        date_input_1: datetime.datetime.date,
+        date_input_2=None
+    ) -> str:
+        today = datetime.datetime.now(pytz.timezone('Australia/Sydney')).date()
+        if date_input_1 is None:
+            date_input_1 = today
+        if date_input_2 is None:
+            date_input_2 = today
+        date_to_filter = date_input_1 if date_input_1 < date_input_2 else date_input_2
+        return date_to_filter

@@ -153,10 +153,11 @@ logging.info("-----------Finished combine_and_show_users_recommended_intake-----
 # # Visualize data
 
 
-user_intake_df_temp['meal_record_date'] = main_app_miscellaneous.get_meal_record_date(
+meal_record_date = main_app_miscellaneous.get_meal_record_date(
     layout_position=track_new_meal_tab,
     has_user_intake_df_temp_empty=has_user_intake_df_temp_empty
 )
+user_intake_df_temp['meal_record_date'] = meal_record_date
 
 logging.info("-----------Running get_user_confirmation_and_try_to_save_their_data()-----------")
 save_meal_result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_their_data(
@@ -170,15 +171,17 @@ logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_da
 
 # Aggregate user_recommended_intake_df by day
 if st.session_state.get('user_recommended_intake_df') is None:
-    today = datetime.datetime.now(pytz.timezone('Australia/Sydney')).strftime("%Y-%m-%d")
+    date_to_filter = main_app_miscellaneous.compare_and_return_the_smaller_date(
+        date_input_1=meal_record_date
+    )
     user_recommended_intake_from_database_df = main_app_miscellaneous.get_user_historical_data(
         user_id=st.session_state["user_id"],
-        selected_date_range=(today, today)
+        selected_date_range=(date_to_filter, date_to_filter)
     )
     st.session_state['user_recommended_intake_df'] = user_recommended_intake_from_database_df
 
 user_recommended_intake_df = st.session_state['user_recommended_intake_df']
-
+st.write(user_recommended_intake_df)
 
 ##### TEMPORARILY COMMENT OUT until columns are fixed and streamlit form is added
 
