@@ -181,13 +181,12 @@ if st.session_state.get('user_recommended_intake_df') is None:
     st.session_state['user_recommended_intake_df'] = user_recommended_intake_from_database_df
 
 user_recommended_intake_df = st.session_state['user_recommended_intake_df']
-st.write(user_recommended_intake_df)
 
 ##### TEMPORARILY COMMENT OUT until columns are fixed and streamlit form is added
 
 
 # 5. Recommend dish.
-df_nutrient_data = user_recommended_intake_df.copy()
+df_nutrient_data = pd.DataFrame() if user_recommended_intake_df is None else user_recommended_intake_df.copy()
 
 #### TODO: CHANGE THIS - These 2 columns are not applicable anymore
 # df_nutrient_data['daily_requirement_microgram'] = df_nutrient_data["daily_recommended_intake"]
