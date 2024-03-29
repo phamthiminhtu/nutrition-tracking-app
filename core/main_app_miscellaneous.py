@@ -10,7 +10,7 @@ from core.utils import handle_exception, wait_while_condition_is_valid
 from core.sql.user_daily_recommended_intake_history import anonymous_user_daily_nutrient_intake_query_template, combine_user_actual_vs_recommend_intake_logic
 
 RECOMMENDED_DAILY_NUTRIENT_INTAKE_TABLE_ID = "ilab.main.daily_nutrients_recommendation"
-USER_DAILY_RECOMMENDED_INTAKE_HISTORY_TABLE_ID = "ilab.main.user_daily_recommended_intake_history"
+USER_DAILY_RECOMMENDED_INTAKE_HISTORY_VIEW_ID = "ilab.main.user_daily_recommended_intake_history"
 
 USER_INTAKE_COLUMNS_DICT = {
     "gender": "Gender",
@@ -232,6 +232,7 @@ class MainAppMiscellaneous:
                 result["login_or_create_account"] = login_or_create_account
         return result
 
+    @handle_exception(has_random_message_printed_out=True)
     def get_user_historical_data(
         self,
         user_id: bool,
@@ -248,7 +249,7 @@ class MainAppMiscellaneous:
             """
         )
         query = query_template.render(
-            view_id=USER_DAILY_RECOMMENDED_INTAKE_HISTORY_TABLE_ID,
+            view_id=USER_DAILY_RECOMMENDED_INTAKE_HISTORY_VIEW_ID,
             user_id=user_id,
             start_date=start_date,
             end_date=end_date,
