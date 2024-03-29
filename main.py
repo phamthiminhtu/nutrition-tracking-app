@@ -27,16 +27,18 @@ st.set_page_config(layout='wide')
 ### TODO: replace this with actual input
 st.session_state['is_logged_in'] = True
 st.session_state['user_name'] = "Tu"
+st.session_state['user_id'] = "tu_3@gmail.com"
 # user_name = None
 # user_id = "abc"
-st.session_state['user_id'] = "tu_3@gmail.com"
+###
+
 def reset_session_state():
     st.session_state['dish_description'] = None
     st.session_state['ingredient_df'] = None
     st.session_state['confirm_ingredient_weights_button'] = False
     st.session_state['total_nutrients_based_on_food_intake'] = None
     st.session_state['user_personal_data'] = None
-###
+
 
 
 main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
@@ -144,7 +146,6 @@ user_recommended_intake_result = main_app_miscellaneous.combine_and_show_users_r
     user_intake_df_temp_name="user_intake_df_temp",
     layout_position=track_new_meal_tab
 )
-user_recommended_intake_df = user_recommended_intake_result.get("value")
 logging.info("-----------Finished combine_and_show_users_recommended_intake-----------")
 
 # # 6. @Michael
@@ -164,18 +165,19 @@ save_meal_result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_
     layout_position=track_new_meal_tab,
     has_user_intake_df_temp_empty=has_user_intake_df_temp_empty
 )
-user_recommended_intake_df["result"] = save_meal_result.get("login_or_create_account")
 logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_data-----------")
 
-#### TODO: aggregate user_recommended_intake_df by day/ week
-
+# Aggregate user_recommended_intake_df by day
+today = datetime.datetime.now(pytz.timezone('Australia/Sydney')).strftime("%Y-%m-%d")
+user_recommended_intake_df = main_app_miscellaneous.get_user_historical_data(
+    user_id=st.session_state["user_id"],
+    selected_date_range=(today, today)
+)
 
 ##### TEMPORARILY COMMENT OUT until columns are fixed and streamlit form is added
 
 
 # 5. Recommend dish.
-### TODO: aggregate user_recommended_intake_df to make sure the actual_intake column is the daily actual intake
-### now actual_intake might just be one meal's actual intake
 df_nutrient_data = user_recommended_intake_df.copy()
 
 #### TODO: CHANGE THIS - These 2 columns are not applicable anymore
