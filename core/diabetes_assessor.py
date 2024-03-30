@@ -237,7 +237,6 @@ class DiabetesAssessor:
         health_survey_result['bmi'] = bmi
         health_survey_result['has_fruit_in_diet'] = int(has_fruit_and_veggie_intake)
         health_survey_result['has_veggies_in_diet'] = int(has_fruit_and_veggie_intake)
-        st.write("#### health_survey_result", health_survey_result)
         return health_survey_result
 
     def map_user_input_to_feed_to_model(self, health_survey_result:dict):
