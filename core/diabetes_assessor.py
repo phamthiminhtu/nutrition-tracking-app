@@ -250,6 +250,7 @@ class DiabetesAssessor:
         user_id,
         layout_position=st
     ):
+        message = ''
         if is_logged_in:
             health_survey_result = self.get_user_data_for_prediction(
                 is_logged_in=is_logged_in,
