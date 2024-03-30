@@ -4,6 +4,7 @@ import threading
 import streamlit as st
 from core.main_app_miscellaneous import *
 from core.calculate_nutrient_intake import NutrientMaster
+from core.diabetes_assessor import *
 from core.monali import read_data   ### TODO: rename
 from core.monali import *
 from core.utils import wait_while_condition_is_valid
@@ -12,7 +13,9 @@ OPENAI_API_KEY = "OPENAI_API_KEY"
 OPENAI_CLIENT = OpenAI(
   api_key=os.environ.get(OPENAI_API_KEY),
 )
+DIABETES_MODEL_PATH = "core/ml_models/diabetes_random_forest_model.sav"
 main_app_miscellaneous = MainAppMiscellaneous(openai_client=OPENAI_CLIENT)
+diabetes_prophet = DiabetesAssessor(model_path=DIABETES_MODEL_PATH)
 logging.basicConfig(level=logging.INFO)
 st.set_page_config(layout='wide')
 
@@ -42,8 +45,8 @@ def reset_session_state():
 main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
 
 # Main page with 2 tabs
-track_new_meal_tab, user_recommended_intake_history_tab = st.tabs(
-    [":green[Track the food I ate] 🍔", "See my nutrition intake history 📖"]
+track_new_meal_tab, user_recommended_intake_history_tab, assess_diabetes_risk_tab = st.tabs(
+    [":green[Track the food I ate] 🍔", "See my nutrition intake history 📖", "Assess my diabetes risk 👩‍⚕👨‍⚕"]
 )
 
 # Flow 3 - 12. User wants to get their historical data
@@ -58,6 +61,21 @@ user_recommended_intake_history_result = main_app_miscellaneous.show_user_histor
 user_recommended_intake_history_df = user_recommended_intake_history_result.get("value")
 st.session_state['user_recommended_intake_history_df'] = user_recommended_intake_history_df
 logging.info("-----------Finished get_user_historical_data.-----------")
+
+# Diabetes prediction
+logging.info("-----------Running make_diabetes_prediction()-----------")
+assess_diabetes_risk_button = assess_diabetes_risk_tab.button("Start assessing my diabetes risk")
+if st.session_state.get('assess_diabetes_risk_button') is None and assess_diabetes_risk_button:
+    st.session_state['assess_diabetes_risk_button'] = True
+
+if st.session_state.get('assess_diabetes_risk_button'):
+    diabetes_risk_message = diabetes_prophet.make_diabetes_prediction(
+        is_logged_in=st.session_state['is_logged_in'],
+        user_id=st.session_state['user_id'],
+        layout_position=assess_diabetes_risk_tab
+    )
+logging.info("-----------Finished running make_diabetes_prediction-----------")
+
 
 # 1. Get dish description from user and estimate its ingredients
 dish_description = track_new_meal_tab.text_input("What have you eaten today? 😋").strip()
