@@ -54,7 +54,6 @@ track_new_meal_tab, user_recommended_intake_history_tab, assess_diabetes_risk_ta
 dish_description = track_new_meal_tab.text_input("What have you eaten today? 😋").strip()
 if dish_description != st.session_state.get('dish_description', '###') and dish_description!= '':
     reset_session_state()   # rerun the whole app when user inputs a new dish
-    logging.info("-----------Running get_user_input_dish_and_estimate_ingredients()-----------")
     st.session_state['dish_description'] = dish_description
 
 # Flow 3 - 12. User wants to get their historical data
@@ -89,6 +88,7 @@ if st.session_state.get('assess_diabetes_risk_button'):
 wait_while_condition_is_valid((st.session_state.get('dish_description') is None))
 
 if st.session_state.get('ingredient_df') is None:
+    logging.info("-----------Running get_user_input_dish_and_estimate_ingredients()-----------")
     ingredient_df = main_app_miscellaneous.get_user_input_dish_and_estimate_ingredients(
         dish_description=st.session_state['dish_description'],
         layout_position=track_new_meal_tab
