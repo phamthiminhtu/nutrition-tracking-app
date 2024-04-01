@@ -40,7 +40,7 @@ MODEL_INPUT_SCHEMA_MAP = {
     "age": "Age"
 }
 DIABETES_MODEL_OUTPUT_MAP = {
-    "0": "Looks like your diabetes risk is very low! Keep up the healthy diet 💪",
+    "0": "🎉 Looks like your diabetes risk is very low! Keep up the healthy lifestyle 💪",
     "1": "We advise you to consider consulting with a doctor to undergo screening for prediabetes",
     "2": "It seems there's a possibility that you may have diabetes. We kindly suggest considering a visit to your doctor for a health evaluation."
 }
@@ -88,17 +88,18 @@ class DiabetesAssessor:
         )
         return has_fruit_and_veggie_intake_result[0][0]
 
+    @handle_exception(has_random_message_printed_out=True)
     def get_user_fruit_and_veggie_intake(
         self,
         user_id:str,
         layout_position=st
     ):
         has_fruit_and_veggie_intake_string = True
-        layout_position.write("Did you know 🥦 fruits and veggies help predict diabetes level 🥑")
+        layout_position.info("Did you know 🥦 fruits and veggies help predict diabetes level 🥑")
 
         if user_id is None:
             has_fruit_and_veggie_intake_string = layout_position.selectbox(
-                "Last question, have you been consuming fruits and vegetables 1 or more times per day?",
+                "Have you been consuming fruits and vegetables 1 or more times per day?",
                 ("No", 'Yes'),
                 index=None,
                 placeholder="Select your answer..."
@@ -110,32 +111,32 @@ class DiabetesAssessor:
             else:
                 layout_position.write("We checked your nutrion history and looks like you are lacking fruits and veggies in your diet.")
                 has_fruit_and_veggie_intake_string = layout_position.selectbox(
-                    "Do you think so?",
+                    "Do you agree?",
                     ("Yes", 'No, I have been consuming fruits and vegetables 1 or more times per day'),
                     placeholder="Select your answer..."
                 )
-                has_fruit_and_veggie_intake = True if has_fruit_and_veggie_intake_string == "Yes" else False
-            return has_fruit_and_veggie_intake
+        has_fruit_and_veggie_intake = True if has_fruit_and_veggie_intake_string == "Yes" else False
+        return has_fruit_and_veggie_intake
 
     def get_user_input_in_health_survey(
         self,
         gender:str,
         layout_position=st
     ) -> dict:
-        layout_position.write("We need some input from you to be able to assess your diabetes risk.")
+        layout_position.info("You're almost there 😉 Could you share some other basic info about your health? It'll help us assess your risk for diabetes 📝")
         form = layout_position.form("diabetes_prediction_form")
         weight = form.number_input(
-            "What's your weight (kg)?",
+            "🙋‍♀️🙋‍♂️ What's your weight (kg)?",
             value=None,
             placeholder="Type a number..."
         )
         height = form.number_input(
-            "What's your height in meters?",
+            "🙋‍♀️🙋‍♂️ What's your height in meters?",
             value=None,
             placeholder="Type a number..."
         )
         is_smoker = form.selectbox(
-            "Have you smoked at least 100 cigarettes in your entire life?",
+            "🚬 Have you smoked at least 100 cigarettes in your entire life?",
             ("No", 'Yes'),
             help="Note: 5 packs = 100 cigarettes",
             index=None,
@@ -144,48 +145,48 @@ class DiabetesAssessor:
 
         if gender == "female":
             is_heavy_alcohol_consumer = form.selectbox(
-                "Do you have more than 7 alcoholic drinks per week?",
+                "🍺 Do you have more than 7 alcoholic drinks per week?",
                 ("No", 'Yes'),
                 index=None,
                 placeholder="Select your answer..."
             )
         else:
             is_heavy_alcohol_consumer = form.selectbox(
-                "Do you have more than 14 alcoholic drinks per week?",
+                "🍺 Do you have more than 14 alcoholic drinks per week?",
                 ("No", 'Yes'),
                 index=None,
                 placeholder="Select your answer..."
             )
 
         has_physical_activity = form.selectbox(
-            "Do you have any physical activity in the past 30 days?",
+            "🏃‍♀️🏃 Do you have any physical activity in the past 30 days?",
             ("No", 'Yes'),
             index=None,
             placeholder="Select your answer..."
         )
 
         has_stroke = form.selectbox(
-            "Have you (ever told) had a stroke?",
+            "🌪 Have you (ever told) had a stroke?",
             ("No", 'Yes'),
             index=None,
             placeholder="Select your answer..."
         )
         has_heart_disease = form.selectbox(
-            "Do you have coronary heart disease or myocardial infarction?",
+            "🫀 Do you have coronary heart disease or myocardial infarction?",
             ("No", 'Yes'),
             index=None,
             placeholder="Select your answer..."
         )
 
         has_cholesterol_check = form.selectbox(
-            "Have you checked your cholesterol in the past 5 years?",
+            "👩‍⚕👨‍⚕ Have you checked your cholesterol in the past 5 years?",
             ("No", 'Yes'),
             index=None,
             placeholder="Select your answer..."
         )
 
         overall_health = form.selectbox(
-            "Please rate your overall health",
+            "🥇🥈🥉 Please rate your overall health",
             ('Excellent', 'Very good', 'Good', 'Fair', 'Poor'),
             index=None,
             placeholder="Select your answer..."
@@ -206,21 +207,14 @@ class DiabetesAssessor:
             "has_cholesterol_check": self._convert_string_to_int(has_cholesterol_check),
             "overall_health": self._map_string_to_int(string_var=overall_health, predefined_int_dict=OVERALL_HEALTH_MAP)
         }
-
         return result
 
     def get_user_data_for_prediction(
         self,
-        is_logged_in,
-        user_id,
+        user_age_and_gender:dict,
+        has_fruit_and_veggie_intake: bool,
         layout_position=st
     ):
-        user_age_and_gender =  main_app_miscellaneous.get_user_age_and_gender(
-            is_logged_in=is_logged_in,
-            user_id=user_id,
-            layout_position=layout_position
-        )
-
         gender, age = user_age_and_gender.get("gender"), user_age_and_gender.get("age")
 
         health_survey_result = self.get_user_input_in_health_survey(
@@ -229,8 +223,6 @@ class DiabetesAssessor:
         )
 
         bmi = health_survey_result.get('weight')/(health_survey_result.get('height')**2)
-
-        has_fruit_and_veggie_intake = self.get_user_fruit_and_veggie_intake(user_id=user_id, layout_position=layout_position)
 
         health_survey_result['gender'] = 0 if gender == "female" else 1
         health_survey_result['age'] = age
@@ -246,15 +238,16 @@ class DiabetesAssessor:
     @handle_exception(has_random_message_printed_out=True)
     def make_diabetes_prediction(
         self,
-        is_logged_in,
-        user_id,
+        is_logged_in: bool,
+        user_age_and_gender: dict,
+        has_fruit_and_veggie_intake: bool,
         layout_position=st
     ):
         message = ''
         if is_logged_in:
             health_survey_result = self.get_user_data_for_prediction(
-                is_logged_in=is_logged_in,
-                user_id=user_id,
+                user_age_and_gender=user_age_and_gender,
+                has_fruit_and_veggie_intake=has_fruit_and_veggie_intake,
                 layout_position=layout_position
             )
             layout_position.write("Just one moment ⏳ we are trying to assess your diabetes risk...")
@@ -263,7 +256,10 @@ class DiabetesAssessor:
             predictors = list(MODEL_INPUT_SCHEMA_MAP.values())
             prediction = str(int(self.model.predict(df_input[predictors])[0]))
             message = DIABETES_MODEL_OUTPUT_MAP.get(prediction)
-            layout_position.write(message)
+            if prediction == "0":
+                layout_position.success(message)
+            else:
+                layout_position.warning(message)
         else:
             layout_position.write("Looks like you haven't logged in, do you want to log in to assess your diabetes risk?")
         return message
