@@ -28,12 +28,12 @@ st.set_page_config(layout='wide')
 # Authenticator.create_new_account()
 
 ### TODO: replace this with actual input
-st.session_state['is_logged_in'] = False
+st.session_state['is_logged_in'] = True
 st.session_state['user_name'] = "Tu"
 # user_name = None
 # user_id = "abc"
-# st.session_state['user_id'] = "tu_4@gmail.com"
-st.session_state["user_id"] = None
+st.session_state['user_id'] = "tu_4@gmail.com"
+# st.session_state["user_id"] = None
 def reset_session_state():
     st.session_state['dish_description'] = None
     st.session_state['ingredient_df'] = None
