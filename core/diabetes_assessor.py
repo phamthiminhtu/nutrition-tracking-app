@@ -95,7 +95,7 @@ class DiabetesAssessor:
         layout_position=st
     ):
         has_fruit_and_veggie_intake_string = True
-        layout_position.info("Did you know 🥦 fruits and veggies help predict diabetes level 🥑")
+        layout_position.info("Did you know 🥦 fruits and veggies intake helps predict diabetes level 🥑")
 
         if user_id is None:
             has_fruit_and_veggie_intake_string = layout_position.selectbox(
