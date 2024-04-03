@@ -24,10 +24,11 @@ USER_INTAKE_COLUMNS_DICT = {
 }
 
 class MainAppMiscellaneous:
-    def __init__(self, openai_client) -> None:
+    def __init__(self, has_openai_connection_enabled=True, openai_client=None) -> None:
         self.jinja_environment = jinja2.Environment()
         self.db = DuckdbConnector()
-        self.openai_api = OpenAIAssistant(openai_client=openai_client)
+        if has_openai_connection_enabled:
+            self.openai_api = OpenAIAssistant(openai_client=openai_client)
 
     @handle_exception(has_random_message_printed_out=True)
     def say_hello(
@@ -67,23 +68,6 @@ class MainAppMiscellaneous:
 
         return ingredient_df
 
-    @handle_exception(has_random_message_printed_out=True)
-    def check_whether_user_needs_to_input_personal_info_manually(
-        self,
-        layout_position = st
-    ) -> bool:
-        has_user_personal_info_input_manually = True
-        user_input_personal_info_agreement = None
-        layout_position.write("We need your age 📆 and gender ♀♂ to suggest the recommended intake.")
-        user_input_personal_info_agreement = layout_position.selectbox(
-            "But looks like we've just met for the first time, do you want to manually input your info?",
-            ("Yes, let's do it!", 'No'),
-            placeholder="Select your answer..."
-        )
-        if user_input_personal_info_agreement == "No":
-            has_user_personal_info_input_manually = False
-        return has_user_personal_info_input_manually
-
     def get_user_personal_info_manual_input(
         self,
         layout_position=st
@@ -112,6 +96,25 @@ class MainAppMiscellaneous:
         return user_personal_data
 
     @handle_exception(has_random_message_printed_out=True)
+    def get_user_age_and_gender(
+        self,
+        is_logged_in,
+        user_id,
+        layout_position,
+        get_user_age_gender_message
+    ):
+        user_personal_data = {}
+        if is_logged_in:
+            user_personal_data = self.db.get_user_personal_data_from_database(user_id=user_id)
+
+        if user_personal_data.get("status", 400) != 200:
+            layout_position.info(get_user_age_gender_message)
+            layout_position.write("But looks like we've just met for the first time, do you want to manually input your info?")
+            user_personal_data = self.get_user_personal_info_manual_input(
+                layout_position=layout_position
+            )
+        return user_personal_data
+
     def get_user_personal_data(
         self,
         is_logged_in: bool,
@@ -121,18 +124,12 @@ class MainAppMiscellaneous:
     ) -> dict:
         user_personal_data = {"status": 0}
         if not has_user_intake_df_temp_empty:
-            if is_logged_in:
-                user_personal_data = self.db.get_user_personal_data_from_database(user_id=user_id)
-
-            if user_personal_data.get("status", 400) != 200:
-                has_user_personal_info_input_manually = self.check_whether_user_needs_to_input_personal_info_manually(
-                    layout_position=layout_position
-                )
-                # If user has not logged in or we don't have user's data, get them manually input their age + gender
-                if has_user_personal_info_input_manually:
-                    user_personal_data = self.get_user_personal_info_manual_input(
-                        layout_position=layout_position
-                    )
+            user_personal_data = self.get_user_age_and_gender(
+                is_logged_in=is_logged_in,
+                user_id=user_id,
+                get_user_age_gender_message="We need your age 📆 and gender ♀♂ to suggest the recommended intake.",
+                layout_position=layout_position
+            )
         return user_personal_data
 
     @handle_exception(has_random_message_printed_out=True)
