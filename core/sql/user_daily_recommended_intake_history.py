@@ -62,16 +62,14 @@ create_user_daily_nutrient_intake_query_template = """
         ,user_nutrient_intake AS
             (SELECT
                 user_id,
-                gender,
-                age,
+                MAX(gender) AS gender,
+                MAX(age) AS age,
                 nutrient,
                 DATE_TRUNC('day', meal_record_date) AS record_date,
                 SUM(actual_intake) AS actual_intake
             FROM {{ user_nutrient_intake_history_table_id }}
             GROUP BY
                 user_id,
-                gender,
-                age,
                 nutrient,
                 record_date
             )
