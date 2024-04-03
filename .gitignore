@@ -1,4 +1,4 @@
 *.pyc
-*.ipynb
+tu.ipynb
 logs.log
 **/.DS_Store
