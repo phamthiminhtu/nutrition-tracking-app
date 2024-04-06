@@ -136,7 +136,7 @@ if st.session_state.get('ingredient_df') is None:
 
 wait_while_condition_is_valid((st.session_state.get('ingredient_df') is None))
 
-main_app_miscellaneous.display_ingredient_df(
+edited_ingredient_df = main_app_miscellaneous.display_and_let_user_edit_ingredient(
     ingredient_df=st.session_state.get('ingredient_df'),
     layout_position=track_new_meal_tab
 )
@@ -147,6 +147,9 @@ if st.session_state.get('ingredient_df') is not None:
         st.session_state['confirm_ingredient_weights_button'] = True
 
 wait_while_condition_is_valid((not st.session_state.get('confirm_ingredient_weights_button', False)))
+
+# Wait and let user edit their ingredients until user click confirm_ingredient_weights_button
+st.session_state['ingredient_df'] = edited_ingredient_df
 
 # # 2-3. Nutrient actual intake
 if st.session_state.get('total_nutrients_based_on_food_intake') is None:
