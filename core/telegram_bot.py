@@ -28,15 +28,13 @@ class TelegramBot:
             }
 
         user_name_chat_id_map = {}
-
         for result in bot_update_results:
-            for user_name in user_names:
-                chat_info = result.get("message").get("chat")
-                sender_user_name = chat_info.get("username")
-                if sender_user_name == user_name:
-                    chat_id = chat_info.get("id")
-                    user_name_chat_id_map[user_name] = chat_id
-                    break
+            chat_info = result.get("message").get("chat")
+            sender_user_name = chat_info.get("username")
+            if sender_user_name in user_names:
+                chat_id = chat_info.get("id")
+                user_name_chat_id_map[sender_user_name] = chat_id
+                break
 
             if len(user_name_chat_id_map.values()) == len(user_names):
                 break
