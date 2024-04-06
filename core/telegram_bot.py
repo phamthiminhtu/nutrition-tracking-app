@@ -38,6 +38,9 @@ class TelegramBot:
                     user_name_chat_id_map[user_name] = chat_id
                     break
 
+            if len(user_name_chat_id_map.values()) == len(user_names):
+                break
+
         result = {
             "status": 200,
             "value": user_name_chat_id_map
