@@ -290,6 +290,10 @@ if st.session_state.get('recommended_recipe') is None and recommended_recipe != 
 
 
 if not df_nutrient_data.empty and st.session_state.get('recommended_recipe') is not None:
+    track_new_meal_tab.info("""
+        If this is your first time with us,
+        please search for @meal_minder_bot on Telegram and say hi so that we can reach out to you 😉
+    """)
     user_telegram_user_name = track_new_meal_tab.text_input("Let us know your Telegram user name to receive this recipe")
 
     # reset session_state if user inputs another user namse
