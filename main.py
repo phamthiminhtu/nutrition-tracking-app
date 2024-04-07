@@ -51,6 +51,7 @@ with st.sidebar:
         authenticator.log_out()
 
 ### TODO: replace this with actual input
+
         #print(st.session_state.get('email'))
 st.session_state['is_logged_in'] = st.session_state.get("logged_in")
 st.session_state['user_name'] = st.session_state.get("username")
@@ -60,6 +61,11 @@ print(authenticator.get_user_id(st.session_state.get('username')))
 # user_id = "abc"
 st.session_state['user_id'] = "tu_4@gmail.com"
 # st.session_state["user_id"] = None
+
+# st.session_state['is_logged_in'] = True
+# st.session_state['user_name'] = "Ardy"
+# st.session_state['user_id'] = "ardy@uts"
+
 def reset_session_state():
     st.session_state['dish_description'] = None
     st.session_state['ingredient_df'] = None
