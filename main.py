@@ -1,4 +1,5 @@
 import os
+import re
 import logging
 import threading
 import streamlit as st
@@ -6,8 +7,7 @@ from core.main_app_miscellaneous import *
 from core.calculate_nutrient_intake import NutrientMaster
 from core.diabetes_assessor import *
 from core.telegram_bot import *
-from core.monali import read_data   ### TODO: rename
-from core.monali import *
+from core.dish_recommendation import *
 from core.utils import wait_while_condition_is_valid
 
 OPENAI_API_KEY = "OPENAI_API_KEY"
@@ -205,8 +205,6 @@ logging.info("-----------Finished combine_and_show_users_recommended_intake-----
 
 # # 6. @Michael
 # # Visualize data
-
-
 meal_record_date = main_app_miscellaneous.get_meal_record_date(
     layout_position=track_new_meal_tab,
     has_user_intake_df_temp_empty=has_user_intake_df_temp_empty
@@ -242,6 +240,29 @@ user_recommended_intake_df = st.session_state['user_recommended_intake_df']
 
 
 # 5. Recommend dish.
+dishrecommend = DishRecommender(openai_client=OPENAI_CLIENT)
+
+logging.info("Retrieving nutrient intake information.")
+nutrient_info = dishrecommend.retrieve_nutrient_intake_info(user_recommended_intake_result)
+logging.info("Finished collecting the nutrient intake information for the dish recommendation.")
+
+# Asking the user if they want dish recommendation
+dish_recommend_user_input = st.selectbox("Do you want a dish recommendation?", [None, "Yes", "No"])
+
+ # If user selected "Yes", calling the dish recommendation function
+if dish_recommend_user_input == "Yes":
+
+    logging.info("Checking user preferences for cuisine, allergies, if any leftover ingredients.")
+    cuisine, allergies, ingredients = dishrecommend.get_user_input()
+    logging.info("Finished reading user preferences for the dish recommendation..")
+
+    logging.info("Recommending dish to the user based on the given preferences.")
+    if st.button("Recommend Dish"):
+        recommended_dish = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
+        st.write(recommended_dish)
+        st.session_state['recommended_recipe'] = recommended_dish
+    logging.info("Finished dish recommendation based on the user preferences.")
+
 df_nutrient_data = pd.DataFrame() if user_recommended_intake_df is None else user_recommended_intake_df.copy()
 #### TODO: CHANGE THIS - These 2 columns are not applicable anymore
 # df_nutrient_data['daily_requirement_microgram'] = df_nutrient_data["daily_recommended_intake"]
@@ -283,10 +304,8 @@ recommended_recipe = """
 """
 
 
-
 if st.session_state.get('recommended_recipe') is None and recommended_recipe != "":
     st.session_state['recommended_recipe'] = recommended_recipe
-
 
 
 if not df_nutrient_data.empty and st.session_state.get('recommended_recipe') is not None:

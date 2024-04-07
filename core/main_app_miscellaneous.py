@@ -362,3 +362,5 @@ class MainAppMiscellaneous:
             date_input_2 = today
         date_to_filter = date_input_1 if date_input_1 < date_input_2 else date_input_2
         return date_to_filter
+
+    
