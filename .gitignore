@@ -2,6 +2,6 @@
 *.ipynb
 venv/
 tyler/
-path\/to\/venv/
+path\/to\git/venv/
 logs.log
 **/.DS_Store
