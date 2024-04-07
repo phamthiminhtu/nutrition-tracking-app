@@ -8,7 +8,7 @@ from core.openai_api import *
 from core.duckdb_connector import *
 from core.utils import handle_exception, wait_while_condition_is_valid
 from core.sql.user_daily_recommended_intake_history import anonymous_user_daily_nutrient_intake_query_template, combine_user_actual_vs_recommend_intake_logic
-from core.visualization import users_recommended_intake_chart
+from core.visualization import users_recommended_intake_chart, user_historical_hexbin_chart
 
 RECOMMENDED_DAILY_NUTRIENT_INTAKE_TABLE_ID = "ilab.main.daily_nutrients_recommendation"
 USER_DAILY_RECOMMENDED_INTAKE_HISTORY_VIEW_ID = "ilab.main.user_daily_recommended_intake_history"
@@ -279,6 +279,7 @@ class MainAppMiscellaneous:
             result["value"] = user_recommended_intake_history_df
             if not user_recommended_intake_history_df.empty:
                 layout_position.dataframe(user_recommended_intake_history_df)   ### TODO: replace with method to visualize data
+                user_historical_hexbin_chart(user_recommended_intake_history_df, layout_position=layout_position)
             else:
                 layout_position.write("""
                     Oops, looks like you haven't tracked your nutrition.
