@@ -205,6 +205,21 @@ class DuckdbConnector:
             return True
         else:
             return False
+    def get_user_id(self, username):
+        query_template = self.jinja_environment.from_string(
+            fetch_user_id
+        )
+        query = query_template.render(
+            table_id=USER_PROFILES_TABLE_ID
+        )
+        parameters = {
+            'username':username
+        }
+        result = self.run_query(
+            sql=query,
+            parameters=parameters
+        )
+        return result
     @handle_exception(has_random_message_printed_out=True)
     def insert_user(self, user_info:dict)->None:
         query_template = self.jinja_environment.from_string(
