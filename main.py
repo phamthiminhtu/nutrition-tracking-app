@@ -41,7 +41,7 @@ def click_login_button():
     st.session_state.login_button = True
     #if not st.session_state.get('authentication_status'):
     st.session_state["name"], st.session_state["logged_in"], st.session_state["username"] = authenticator.log_in()
-    print('____________',st.session_state.get("name"),'___________',st.session_state.get("logged_in"))
+    #print('____________',st.session_state.get("name"),'___________',st.session_state.get("logged_in"))
 login_button = st.sidebar.button('Login',disabled=st.session_state.get('logged_in'), on_click=click_login_button())
 with st.sidebar:
     with st.expander('Register new user'):
@@ -55,11 +55,11 @@ with st.sidebar:
         #print(st.session_state.get('email'))
 st.session_state['is_logged_in'] = st.session_state.get("logged_in")
 st.session_state['user_name'] = st.session_state.get("username")
-print(authenticator.get_user_id(st.session_state.get('username')))
-#st.session_state['user_id'] = authenticator.get_user_id(st.session_state.get('username'))
+#print(authenticator.get_user_id(st.session_state.get('username')))
+st.session_state['user_id'] = authenticator.get_user_id(st.session_state.get('username'))
 # user_name = None
 # user_id = "abc"
-st.session_state['user_id'] = "tu_4@gmail.com"
+#st.session_state['user_id'] = "tu_4@gmail.com"
 # st.session_state["user_id"] = None
 
 # st.session_state['is_logged_in'] = True
