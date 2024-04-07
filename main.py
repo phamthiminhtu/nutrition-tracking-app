@@ -41,7 +41,7 @@ def click_login_button():
     st.session_state.login_button = True
     #if not st.session_state.get('authentication_status'):
     st.session_state["name"], st.session_state["logged_in"], st.session_state["username"] = authenticator.log_in()
-    print('____________',st.session_state.get("name"),'___________',st.session_state.get("logged_in"))
+    #print('____________',st.session_state.get("name"),'___________',st.session_state.get("logged_in"))
 login_button = st.sidebar.button('Login',disabled=st.session_state.get('logged_in'), on_click=click_login_button())
 with st.sidebar:
     with st.expander('Register new user'):
