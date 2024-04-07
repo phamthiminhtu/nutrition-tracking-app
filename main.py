@@ -8,6 +8,7 @@ from core.diabetes_assessor import *
 from core.telegram_bot import *
 from core.monali import read_data   ### TODO: rename
 from core.monali import *
+from core.auth import *
 from core.utils import wait_while_condition_is_valid
 
 OPENAI_API_KEY = "OPENAI_API_KEY"
@@ -21,21 +22,50 @@ DIABETES_MODEL_PATH = "core/ml_models/diabetes_random_forest_model.sav"
 main_app_miscellaneous = MainAppMiscellaneous(openai_client=OPENAI_CLIENT)
 diabetes_assessor = DiabetesAssessor(model_path=DIABETES_MODEL_PATH)
 telegram_bot = TelegramBot(telegram_bot_token=TELEGRAM_BOT_TOKEN)
+authenticator = Authenticator()
 logging.basicConfig(level=logging.INFO)
 st.set_page_config(layout='wide')
 
-
+st.session_state['logged_in'] = False
+st.session_state['expander'] = False
 # @Nyan
 # Login option.
 # A class in a python file (Nyan.py file - please rename it) e.g. Authenticator = Authenticator(), with methods like:
 # Authenticator.log_in()
 # Authenticator.recover_password()
 # Authenticator.create_new_account()
+if 'login_button' not in st.session_state:
+        st.session_state.login_button = False
+
+def click_login_button():
+    st.session_state.login_button = True
+    #if not st.session_state.get('authentication_status'):
+    st.session_state["name"], st.session_state["logged_in"], st.session_state["username"] = authenticator.log_in()
+    print('____________',st.session_state.get("name"),'___________',st.session_state.get("logged_in"))
+login_button = st.sidebar.button('Login',disabled=st.session_state.get('logged_in'), on_click=click_login_button())
+with st.sidebar:
+    with st.expander('Register new user'):
+        st.session_state.expander = True
+        authenticator.register_user_form()
+    if st.session_state.get('logged_in'):
+        authenticator.log_out()
 
 ### TODO: replace this with actual input
-st.session_state['is_logged_in'] = True
-st.session_state['user_name'] = "Ardy"
-st.session_state['user_id'] = "ardy@uts"
+
+        #print(st.session_state.get('email'))
+st.session_state['is_logged_in'] = st.session_state.get("logged_in")
+st.session_state['user_name'] = st.session_state.get("username")
+print(authenticator.get_user_id(st.session_state.get('username')))
+#st.session_state['user_id'] = authenticator.get_user_id(st.session_state.get('username'))
+# user_name = None
+# user_id = "abc"
+st.session_state['user_id'] = "tu_4@gmail.com"
+# st.session_state["user_id"] = None
+
+# st.session_state['is_logged_in'] = True
+# st.session_state['user_name'] = "Ardy"
+# st.session_state['user_id'] = "ardy@uts"
+
 def reset_session_state():
     st.session_state['dish_description'] = None
     st.session_state['ingredient_df'] = None
