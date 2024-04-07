@@ -88,6 +88,7 @@ class TelegramBot:
         layout_position
     ) -> None:
         user_name_trim = user_name.strip()
+        layout_position.write("Sending you the awesome recipe 🥘 ...")
         chat_id_info = self.get_new_chat_ids_from_user_names(
             user_names=[user_name_trim]
         )
