@@ -18,8 +18,8 @@ fetch_user_id = """
 
 update_users_query = """
     UPDATE users
-SET username = 'Alfred', City= 'Gotham'
-WHERE user_id = 'alfy';
+SET password = CAST($password as STRING)
+WHERE username ilike CAST($username as STRING);
 """
 register_new_user_query = """
     INSERT INTO {{ table_id }} BY NAME
