@@ -5,6 +5,7 @@ import streamlit as st
 from core.main_app_miscellaneous import *
 from core.calculate_nutrient_intake import NutrientMaster
 from core.diabetes_assessor import *
+from core.telegram_bot import *
 from core.monali import read_data   ### TODO: rename
 from core.monali import *
 from core.utils import wait_while_condition_is_valid
@@ -13,9 +14,13 @@ OPENAI_API_KEY = "OPENAI_API_KEY"
 OPENAI_CLIENT = OpenAI(
   api_key=os.environ.get(OPENAI_API_KEY),
 )
+TELEGRAM_BOT_API_KEY_ENV_KEY = "TELEGRAM_BOT_API_KEY"
+TELEGRAM_BOT_TOKEN = os.environ.get(TELEGRAM_BOT_API_KEY_ENV_KEY)
 DIABETES_MODEL_PATH = "core/ml_models/diabetes_random_forest_model.sav"
+
 main_app_miscellaneous = MainAppMiscellaneous(openai_client=OPENAI_CLIENT)
 diabetes_assessor = DiabetesAssessor(model_path=DIABETES_MODEL_PATH)
+telegram_bot = TelegramBot(telegram_bot_token=TELEGRAM_BOT_TOKEN)
 logging.basicConfig(level=logging.INFO)
 st.set_page_config(layout='wide')
 
@@ -29,12 +34,8 @@ st.set_page_config(layout='wide')
 
 ### TODO: replace this with actual input
 st.session_state['is_logged_in'] = True
-st.session_state['user_name'] = "Tu"
-st.session_state['user_id'] = "tu_3@gmail.com"
-# user_name = None
-# user_id = "abc"
-st.session_state['user_id'] = "tu_4@gmail.com"
-# st.session_state["user_id"] = None
+st.session_state['user_name'] = "Ardy"
+st.session_state['user_id'] = "ardy@uts"
 def reset_session_state():
     st.session_state['dish_description'] = None
     st.session_state['ingredient_df'] = None
@@ -46,8 +47,8 @@ def reset_session_state():
     st.session_state['user_age_and_gender'] = None  # for diabetes prediction
     st.session_state['has_fruit_and_veggie_intake'] = True
     st.session_state['save_meal_result'] = None
-    st.session_state['user_recommended_intake_df'] = None
-
+    st.session_state['user_telegram_user_name'] = None
+    st.session_state['recommended_recipe'] = None
 
 
 main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
@@ -131,7 +132,7 @@ if st.session_state.get('ingredient_df') is None:
 
 wait_while_condition_is_valid((st.session_state.get('ingredient_df') is None))
 
-main_app_miscellaneous.display_ingredient_df(
+edited_ingredient_df = main_app_miscellaneous.display_and_let_user_edit_ingredient(
     ingredient_df=st.session_state.get('ingredient_df'),
     layout_position=track_new_meal_tab
 )
@@ -142,6 +143,9 @@ if st.session_state.get('ingredient_df') is not None:
         st.session_state['confirm_ingredient_weights_button'] = True
 
 wait_while_condition_is_valid((not st.session_state.get('confirm_ingredient_weights_button', False)))
+
+# Wait and let user edit their ingredients until user click confirm_ingredient_weights_button
+st.session_state['ingredient_df'] = edited_ingredient_df
 
 # # 2-3. Nutrient actual intake
 if st.session_state.get('total_nutrients_based_on_food_intake') is None:
@@ -238,7 +242,6 @@ user_recommended_intake_df = st.session_state['user_recommended_intake_df']
 
 # 5. Recommend dish.
 df_nutrient_data = pd.DataFrame() if user_recommended_intake_df is None else user_recommended_intake_df.copy()
-
 #### TODO: CHANGE THIS - These 2 columns are not applicable anymore
 # df_nutrient_data['daily_requirement_microgram'] = df_nutrient_data["daily_recommended_intake"]
 # df_nutrient_data["daily_actual_microgram"] = df_nutrient_data["actual_intake"]
@@ -260,3 +263,48 @@ df_nutrient_data = pd.DataFrame() if user_recommended_intake_df is None else use
 #         recommended_dish = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
 #         st.write(recommended_dish)
 #     logging.info("-----------Finished get_dish_recommendation-----------")
+recommended_recipe = """
+    Quick boil – Remove impurities from beef with a 5 minute boil, it’s the path to a beautiful clear soup;
+
+    Scum – be amazed at all the icky stuff that comes out;
+
+    Wash the bones to get all the icky scum off;
+
+    Simmer for 3 hours – bones, beef, water, onion, ginger and spices (cinnamon, cardamom, coriander, star anise);
+
+    Remove brisket  – some is used for Pho topping, see below recipe for ways to use remainder;
+
+    Simmer 40 minutes further with just bones;
+
+    Strain; then
+
+    Ladle into bowls over noodles and pile on Toppings!
+"""
+
+
+
+if st.session_state.get('recommended_recipe') is None and recommended_recipe != "":
+    st.session_state['recommended_recipe'] = recommended_recipe
+
+
+
+if not df_nutrient_data.empty and st.session_state.get('recommended_recipe') is not None:
+    track_new_meal_tab.info("""
+        If this is your first time with us,
+        please search for @meal_minder_bot on Telegram and say hi so that we can reach out to you 😉
+    """)
+    user_telegram_user_name = track_new_meal_tab.text_input("Let us know your Telegram user name to receive this recipe")
+
+    # reset session_state if user inputs another user namse
+    if st.session_state.get('user_telegram_user_name') is not None and user_telegram_user_name != "" and user_telegram_user_name != st.session_state.get('user_telegram_user_name'):
+        st.session_state['user_telegram_user_name'] = None
+
+    if st.session_state.get('user_telegram_user_name') is None and user_telegram_user_name != "":
+        st.session_state['user_telegram_user_name'] = user_telegram_user_name
+
+    if st.session_state.get('user_telegram_user_name') is not None:
+        telegram_bot.send_message_to_user_name(
+            user_name=st.session_state.get('user_telegram_user_name'),
+            message=st.session_state.get('recommended_recipe'),
+            layout_position=track_new_meal_tab
+        )
