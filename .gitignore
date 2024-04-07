@@ -3,5 +3,7 @@
 venv/
 tyler/
 path\/to\git/venv/
+tu.ipynb
+michael_tests.ipynb
 logs.log
 **/.DS_Store
