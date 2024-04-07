@@ -50,6 +50,7 @@ def reset_session_state():
     st.session_state['save_meal_result'] = None
     st.session_state['user_telegram_user_name'] = None
     st.session_state['recommended_recipe'] = None
+    st.session_state["sending_telegram_message_result"] = None
 
 
 main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
@@ -280,9 +281,13 @@ if st.session_state.get('recommended_recipe') is not None:
 
     if st.session_state.get('user_telegram_user_name') is not None:
         print("-----------Running send_message_to_user_name-----------")
-        telegram_bot.send_message_to_user_name(
-            user_name=st.session_state.get('user_telegram_user_name'),
-            message=st.session_state.get('recommended_recipe'),
-            layout_position=track_new_meal_tab
-        )
+        if st.session_state.get("sending_telegram_message_result") is None:
+            sending_message_result = telegram_bot.send_message_to_user_name(
+                user_name=st.session_state.get('user_telegram_user_name'),
+                message=st.session_state.get('recommended_recipe'),
+                layout_position=track_new_meal_tab
+            )
+            if sending_message_result.get("status") == 200:
+                st.session_state["sending_telegram_message_result"] = sending_message_result
+
         print("-----------Finished send_message_to_user_name-----------")
