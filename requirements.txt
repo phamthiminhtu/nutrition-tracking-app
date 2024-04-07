@@ -3,9 +3,7 @@ streamlit==1.31.1
 duckdb==0.10.0
 pytz
 Jinja2
-<<<<<<< HEAD
 streamlit-authenticator==0.3.1 
-=======
 pandas==2.2.1
 fuzzywuzzy==0.18.0
->>>>>>> origin/master
+scikit-learn==1.2.2
