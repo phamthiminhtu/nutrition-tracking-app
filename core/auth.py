@@ -14,10 +14,7 @@ from core.duckdb_connector import *
 from core.utils import handle_exception
 #from utils import handle_exception
 logging.basicConfig(level=logging.INFO)
-import yaml
-from yaml.loader import SafeLoader
-with open('config.yaml') as file:
-    config = yaml.load(file, Loader=SafeLoader)
+config = {}
 class Authenticator:
     def __init__(self) -> None:
         self.conn = DuckdbConnector()
