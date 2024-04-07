@@ -36,16 +36,16 @@ class DishRecommender:
 
 
     logging.info("Function call to read user preferences for dish recommendation.")
-    def get_user_input(self):
+    def get_user_input(self, layout_position):
         """
             Takes input from the user for Cuisine, Ingredients, and if any Allergies.
             Returns the user inputs. 
         """
 
         # Reading the user preferences for cuisine, allergies, if any leftover ingredients
-        cuisine = st.text_input("Enter your preferred cuisine:")
-        allergies = st.text_input("Enter if you have any allergies: ")
-        ingredients = st.text_input("Enter the ingredients/leftover in fridge(separated by commas): ")
+        cuisine = layout_position.text_input("Enter your preferred cuisine:")
+        allergies = layout_position.text_input("Enter if you have any allergies: ")
+        ingredients = layout_position.text_input("Enter the ingredients/leftover in fridge(separated by commas): ")
 
         if not allergies:
             allergies = None
