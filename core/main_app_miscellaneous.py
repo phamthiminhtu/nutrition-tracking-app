@@ -338,11 +338,18 @@ class MainAppMiscellaneous:
         return meal_record_date
 
     @handle_exception(has_random_message_printed_out=True)
-    def display_ingredient_df(self, ingredient_df, layout_position=st):
+    def display_and_let_user_edit_ingredient(self, ingredient_df, layout_position=st):
         if not ingredient_df.empty:
             columns_to_display = ["Ingredient", "Estimated weight (g)"]
             layout_position.write(f'Here is our estimated weight of each ingredient for one serving of 🍕 {st.session_state["dish_description"]} 🍳:')
-            layout_position.write(ingredient_df[columns_to_display])
+            
+            # Show ingredients table and let users edit 
+            edited_df = layout_position.data_editor(ingredient_df[columns_to_display], num_rows="dynamic")
+
+            # Adding dish_description column back to the main dataframe
+            edited_df["dish_description"] = ingredient_df["dish_description"]
+            edited_df["dish_description"] = edited_df["dish_description"].fillna(ingredient_df["dish_description"].iloc[0])
+            return edited_df
 
     @handle_exception(has_random_message_printed_out=True)
     def display_user_intake_df(self, user_intake_df, layout_position=st):
