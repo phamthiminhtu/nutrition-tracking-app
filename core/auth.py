@@ -29,24 +29,27 @@ class Authenticator:
         #self.conn.create_users_table()
         users = self.conn.fetch_users()
         #print("og config________",config['credentials'])
-        #print(users)
+        config['cookie']={'expiry_days': 0, 'key': 'abcdefqwe', 'name': 'choc_cookie'}
         config['credentials']['usernames']={}
         #{'usernames': {'tu': {'email': 'tu@gmail.com', 'logged_in': False, 'name': 'Thi Minh Tu', 'password': 'Protein'}, 'tyler': {'email': 'nyan@gmail.com', 'logged_in': False, 'name': 'Nyan Htun', 'password': 'Vitamin A'}}}
         for username, (username, user_id, password) in enumerate(users):
             config['credentials']['usernames'][username] = {'email': user_id,'logged_in': False, 'name': username, 'password':password}
-        #print("------------My-------------",config['credentials'])
-        self.authenticator = stauth.Authenticate(config['credentials'],'cookie','abcdefqwe',0,{'emails': ['@uts.edu.au']})
-        self.name, self.authentication_status, self.username = self.authenticator.login()
+        self.authenticator = stauth.Authenticate(config['credentials'],config['cookie']['name'],config['cookie']['key'],config['cookie']['expiry_days'])
+        self.name,self.authentication_status, self.username = self.authenticator.login(location='sidebar')
         return self.name, self.authentication_status, self.username
+    @handle_exception(has_random_message_printed_out=True)
     def log_out(self):
-        if st.session_state["authentication_status"]:
+        if st.session_state["logged_in"]:
             self.authenticator.logout()
-            st.write(f'Welcome *{st.session_state["name"]}*')
-            st.write('Some content')
-        elif st.session_state["authentication_status"] is False:
+        elif st.session_state["logged_in"] is False:
             st.error('Username/password is incorrect')
-        elif st.session_state["authentication_status"] is None:
+        elif st.session_state["logged_in"] is None:
             st.warning('Please enter your username and password')
+    @handle_exception(has_random_message_printed_out=True)
+    def get_user_id(self,username):
+        result = self.conn.get_user_id(username)
+        print(result[0][0])
+        return result[0][0]
     @handle_exception(has_random_message_printed_out=True)
     def register_user_form(self):
         with st.form("sign_up_form"):
@@ -70,12 +73,7 @@ class Authenticator:
                                 "password": password
                                 }   
                     self.conn.insert_user(new_user_df)
-            st.write("Outside the form",self.conn.fetch_users)
 
-#
-#auth = Authenticator()
-#auth.log_in()
-#auth.register_user()
 
 
 """if st.session_state["authentication_status"]:

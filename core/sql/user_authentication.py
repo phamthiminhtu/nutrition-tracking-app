@@ -11,6 +11,11 @@ fetch_users_query = """
     SELECT username, user_id, password FROM {{table_id}}
 """
 
+fetch_user_id = """
+    SELECT user_id from {{table_id}}
+    WHERE username iLike CAST($username as STRING)
+"""
+
 update_users_query = """
     UPDATE users
 SET username = 'Alfred', City= 'Gotham'
