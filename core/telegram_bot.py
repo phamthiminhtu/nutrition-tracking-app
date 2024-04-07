@@ -97,3 +97,5 @@ class TelegramBot:
             sending_message_result = self.send_telegram_message(chat_id=chat_id, message=message)
             if sending_message_result:
                 layout_position.write(sending_message_result)
+            else:
+                layout_position.write("We couldn't send the recipe 😞 Double check your Telegram user name or try again later")
