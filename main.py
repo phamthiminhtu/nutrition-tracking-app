@@ -244,19 +244,20 @@ nutrient_info = dishrecommend.retrieve_nutrient_intake_info(user_recommended_int
 logging.info("Finished collecting the nutrient intake information for the dish recommendation.")
 
 # Asking the user if they want dish recommendation
-dish_recommend_user_input = st.selectbox("Do you want a dish recommendation?", [None, "Yes", "No"])
-
+dish_recommend_user_input = track_new_meal_tab.selectbox("Do you want a dish recommendation?", ["Yes", "No"])
+if not st.session_state.get('dish_recommend_user_input') and dish_recommend_user_input:
+    st.session_state['dish_recommend_user_input'] = True
  # If user selected "Yes", calling the dish recommendation function
-if dish_recommend_user_input == "Yes":
+if st.session_state.get('dish_recommend_user_input'):
 
     logging.info("Checking user preferences for cuisine, allergies, if any leftover ingredients.")
-    cuisine, allergies, ingredients = dishrecommend.get_user_input()
+    cuisine, allergies, ingredients = dishrecommend.get_user_input(layout_position=track_new_meal_tab)
     logging.info("Finished reading user preferences for the dish recommendation..")
 
     logging.info("Recommending dish to the user based on the given preferences.")
-    if st.button("Recommend Dish"):
+    if track_new_meal_tab.button("Recommend Dish"):
         recommended_dish = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
-        st.write(recommended_dish)
+        track_new_meal_tab.write(recommended_dish)
         st.session_state['recommended_recipe'] = recommended_dish
     logging.info("Finished dish recommendation based on the user preferences.")
 
