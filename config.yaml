@@ -1,0 +1,19 @@
+credentials:
+  usernames:
+    tu:
+      email: tu@gmail.com
+      logged_in: False
+      name: Thi Minh Tu
+      password: Protein # To be replaced with hashed password
+    tyler:
+      email: nyan@gmail.com
+      logged_in: False
+      name: Nyan Htun
+      password: Vitamin A # To be replaced with hashed password
+cookie:
+  expiry_days: 10
+  key: abcdefqwe # Must be string
+  name: choc_cookie
+preauthorized:
+  emails:
+  - melsby@gmail.com

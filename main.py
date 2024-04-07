@@ -54,11 +54,11 @@ with st.sidebar:
         #print(st.session_state.get('email'))
 st.session_state['is_logged_in'] = st.session_state.get("logged_in")
 st.session_state['user_name'] = st.session_state.get("username")
-print(authenticator.get_user_id(st.session_state.get('username')))
-#st.session_state['user_id'] = authenticator.get_user_id(st.session_state.get('username'))
+#print(authenticator.get_user_id(st.session_state.get('username')))
+st.session_state['user_id'] = authenticator.get_user_id(st.session_state.get('username'))
 # user_name = None
 # user_id = "abc"
-st.session_state['user_id'] = "tu_4@gmail.com"
+#st.session_state['user_id'] = "tu_4@gmail.com"
 # st.session_state["user_id"] = None
 def reset_session_state():
     st.session_state['dish_description'] = None
