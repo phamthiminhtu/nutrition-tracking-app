@@ -14,7 +14,10 @@ from core.duckdb_connector import *
 from core.utils import handle_exception
 #from utils import handle_exception
 logging.basicConfig(level=logging.INFO)
-config = {}
+import yaml
+from yaml.loader import SafeLoader
+with open('config.yaml') as file:
+    config = yaml.load(file, Loader=SafeLoader)
 class Authenticator:
     def __init__(self) -> None:
         self.conn = DuckdbConnector()
@@ -25,6 +28,7 @@ class Authenticator:
         "return yes, no and none for auth status"
         #self.conn.create_users_table()
         users = self.conn.fetch_users()
+        #print(users)
         #print("og config________",config['credentials'])
         config['cookie']={'expiry_days': 0, 'key': 'abcdefqwe', 'name': 'choc_cookie'}
         config['credentials']['usernames']={}
@@ -45,7 +49,7 @@ class Authenticator:
     @handle_exception(has_random_message_printed_out=True)
     def get_user_id(self,username):
         result = self.conn.get_user_id(username)
-        print(result[0][0])
+        #print(result[0][0])
         return result[0][0]
     @handle_exception(has_random_message_printed_out=True)
     def register_user_form(self):
