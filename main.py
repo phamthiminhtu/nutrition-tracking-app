@@ -34,12 +34,8 @@ st.set_page_config(layout='wide')
 
 ### TODO: replace this with actual input
 st.session_state['is_logged_in'] = True
-st.session_state['user_name'] = "Tu"
-st.session_state['user_id'] = "tu_3@gmail.com"
-# user_name = None
-# user_id = "abc"
-st.session_state['user_id'] = "tu_4@gmail.com"
-# st.session_state["user_id"] = None
+st.session_state['user_name'] = "Ardy"
+st.session_state['user_id'] = "ardy@uts"
 def reset_session_state():
     st.session_state['dish_description'] = None
     st.session_state['ingredient_df'] = None
