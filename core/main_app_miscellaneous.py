@@ -8,7 +8,7 @@ from core.openai_api import *
 from core.duckdb_connector import *
 from core.utils import handle_exception, wait_while_condition_is_valid
 from core.sql.user_daily_recommended_intake_history import anonymous_user_daily_nutrient_intake_query_template, combine_user_actual_vs_recommend_intake_logic
-from core.visualization import users_recommended_intake_chart
+from core.visualization import users_recommended_intake_chart, user_historical_hexbin_chart
 
 RECOMMENDED_DAILY_NUTRIENT_INTAKE_TABLE_ID = "ilab.main.daily_nutrients_recommendation"
 USER_DAILY_RECOMMENDED_INTAKE_HISTORY_VIEW_ID = "ilab.main.user_daily_recommended_intake_history"
@@ -174,7 +174,7 @@ class MainAppMiscellaneous:
             columns_to_show = USER_INTAKE_COLUMNS_DICT.values()
 
             if not user_recommended_intake_df_to_show.empty:
-                layout_position.dataframe(user_recommended_intake_df_to_show[columns_to_show]) ## TODO: remove this table once we have a working graph
+                # layout_position.dataframe(user_recommended_intake_df_to_show[columns_to_show]) ## TODO: remove this table once we have a working graph
                 users_recommended_intake_chart(user_recommended_intake_df_to_show, layout_position=layout_position)
             else:
                 layout_position.write("Oops! Turns out it's pseudoscience 🫥 We cannot estimate your intake just yet 😅 Please try again later...")
@@ -278,7 +278,7 @@ class MainAppMiscellaneous:
             )
             result["value"] = user_recommended_intake_history_df
             if not user_recommended_intake_history_df.empty:
-                layout_position.dataframe(user_recommended_intake_history_df)   ### TODO: replace with method to visualize data
+                user_historical_hexbin_chart(user_recommended_intake_history_df, layout_position=layout_position)
             else:
                 layout_position.write("""
                     Oops, looks like you haven't tracked your nutrition.
@@ -356,7 +356,7 @@ class MainAppMiscellaneous:
             user_intake_df = user_intake_df.rename(columns={
                 "actual_intake": "Actual Intake",
             })
-            layout_position.dataframe(user_intake_df[["Nutrient", "Actual Intake"]].style.format({"Actual Intake": "{:.1f}"}))
+            # layout_position.dataframe(user_intake_df[["Nutrient", "Actual Intake"]].style.format({"Actual Intake": "{:.1f}"}))
 
     @handle_exception(has_random_message_printed_out=True)
     def compare_and_return_the_smaller_date(
