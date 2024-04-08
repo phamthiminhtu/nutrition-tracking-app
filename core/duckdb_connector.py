@@ -5,12 +5,13 @@ import hashlib
 import datetime
 import threading
 import streamlit as st
-from core.utils import handle_exception
+from core.utils import handle_exception, wait_while_condition_is_valid
 from core.sql.user_nutrient_intake_history import insert_new_record_user_nutrient_intake_history_query_template
-
+from core.sql.user_authentication import *
 
 USER_NUTRIENT_INTAKE_HISTORY_TABLE_ID = "ilab.main.user_nutrient_intake_history"
 USER_DAILY_RECOMMENDED_INTAKE_HISTORY_TABLE_ID = "ilab.main.user_daily_recommended_intake_history"
+USER_PROFILES_TABLE_ID = "ilab.main.users"
 
 class DuckdbConnector:
 
@@ -79,8 +80,8 @@ class DuckdbConnector:
         meal_info["is_existing_meal_id"] = is_existing_meal_id
         return meal_info
 
-    def get_user_confirmation_for_duplicated_meal_id(self) -> bool:
-        user_confirmation = st.selectbox(
+    def get_user_confirmation_for_duplicated_meal_id(self, layout_position=st) -> bool:
+        user_confirmation = layout_position.selectbox(
             "The same meal has been recorded within 60 seconds, do you still want to proceed?",
             ("Yes", 'No'),
             index=None,
@@ -88,15 +89,11 @@ class DuckdbConnector:
         )
 
         # wait for user's confirmation
-        event = threading.Event()
-        while user_confirmation is None:
-            event.wait()
-            event.clear()
-
+        wait_while_condition_is_valid((user_confirmation is None))
+        has_meal_id_stored = False
         if user_confirmation == 'Yes':
             has_meal_id_stored = True
-        if user_confirmation == 'No':
-            has_meal_id_stored = False
+
         return has_meal_id_stored
 
     def save_user_nutrient_intake(
@@ -125,7 +122,8 @@ class DuckdbConnector:
         self,
         dish_description: str,
         user_id: str,
-        user_intake_df_temp_name: str
+        user_intake_df_temp_name: str,
+        layout_position=st
     ) -> dict:
 
         # check whether meal_id already exists
@@ -137,7 +135,7 @@ class DuckdbConnector:
         is_existing_meal_id = meal_id_info.get("is_existing_meal_id")
 
         if is_existing_meal_id:
-            has_meal_id_stored = self.get_user_confirmation_for_duplicated_meal_id()
+            has_meal_id_stored = self.get_user_confirmation_for_duplicated_meal_id(layout_position=layout_position)
             if not has_meal_id_stored:
                 result["message"] = "Successfully discarded this meal!"
                 return result
@@ -155,7 +153,7 @@ class DuckdbConnector:
     def get_user_personal_data_from_database(
             self,
             user_id,
-            table_id=USER_NUTRIENT_INTAKE_HISTORY_TABLE_ID  #TODO: replace with user's personal data table
+            table_id=USER_PROFILES_TABLE_ID  #TODO: replace with user's personal data table
         ) -> dict:
         user_personal_data = {}
         query_template = self.jinja_environment.from_string(
@@ -182,3 +180,64 @@ class DuckdbConnector:
                 "age": result[0][2]
             }
         return user_personal_data
+    @handle_exception(has_random_message_printed_out=True)
+    def fetch_users(self):
+        query_template = self.jinja_environment.from_string(
+            fetch_users_query
+        )
+        query = query_template.render(
+            table_id=USER_PROFILES_TABLE_ID,
+        )
+        result = self.run_query(
+            sql=query
+        )
+        if result: 
+            users_data = {
+                'user_id': result[1][0],
+                'username': result[1][1],
+                'password': result[1][2]
+            }
+        return result
+    def create_users_table(self)->bool:
+        self.users_table_database = self.run_query(sql=create_user_profiles_query)
+        if self.users_table_database!=None:
+            print('users table created')
+            return True
+        else:
+            return False
+    def get_user_id(self, username):
+        query_template = self.jinja_environment.from_string(
+            fetch_user_id
+        )
+        query = query_template.render(
+            table_id=USER_PROFILES_TABLE_ID
+        )
+        parameters = {
+            'username':username
+        }
+        result = self.run_query(
+            sql=query,
+            parameters=parameters
+        )
+        return result
+    @handle_exception(has_random_message_printed_out=True)
+    def insert_user(self, user_info:dict)->None:
+        query_template = self.jinja_environment.from_string(
+            register_new_user_query
+        )
+        query = query_template.render(
+            table_id=USER_PROFILES_TABLE_ID
+            #user_info= """'{0}' , '{1}',  {2}, '{3}', '{4}'""".format(user_info.get("user_id"),user_info.get("gender"),user_info.get("age"),user_info.get("username"),user_info.get("password"))
+        )
+        parameters = {
+            'user_id': user_info.get('user_id'),
+            'gender':user_info.get("gender"),
+            'age':user_info.get("age"),
+            'username':user_info.get("username"),
+            'password':user_info.get("password")
+        }
+        self.run_query(
+            sql=query,
+            parameters=parameters
+        )
+        
