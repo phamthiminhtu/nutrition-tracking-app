@@ -1,4 +1,5 @@
 [theme]
-base = "dark"
-primaryColor="lightbrown"
-textColor="#ffffff"
+base="light"
+primaryColor="#858f52"
+backgroundColor="#fff0d4"
+textColor="#858f52"

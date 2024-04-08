@@ -27,7 +27,7 @@ class OpenAIAssistant:
                 - status: 200
                 - value: OpenAI's response.
         '''
-        seed = 1234 # to get deterministic estimation
+        seed = 1234 # (beta version) to get deterministic estimation, but determinism is not guaranteed. https://platform.openai.com/docs/api-reference/chat/create#chat-create-seed
         print("#### RUNNING OPENAI API")
         completion = self.openai_client.chat.completions.create(
             model="gpt-3.5-turbo",
@@ -81,10 +81,7 @@ class OpenAIAssistant:
             )
             if result.get("status") == 200:
                 df = self.extract_estimation_to_dataframe(estimation=result.get("value"))
-                if not df.empty:
-                    layout_position.write(f'Here is our estimated weight of each ingredient for one serving of 🍕 {dish_description} 🍳:')
-                    layout_position.dataframe(df)
-                else:
+                if df.empty:
                     message = "Sorry, we've tried our best but cannot estimate the ingredients of your dish. Can you try to describe it differently?"
                     layout_position.write(message)
             else:
