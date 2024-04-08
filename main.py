@@ -52,7 +52,7 @@ with st.sidebar:
 
 ### TODO: replace this with actual input
 
-        #print(st.session_state.get('email'))
+#print(st.session_state.get('email'))
 st.session_state['is_logged_in'] = st.session_state.get("logged_in")
 st.session_state['user_name'] = st.session_state.get("username")
 #print(authenticator.get_user_id(st.session_state.get('username')))

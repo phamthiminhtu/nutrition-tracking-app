@@ -35,13 +35,14 @@ class Authenticator:
         #{'usernames': {'tu': {'email': 'tu@gmail.com', 'logged_in': False, 'name': 'Thi Minh Tu', 'password': 'Protein'}, 'tyler': {'email': 'nyan@gmail.com', 'logged_in': False, 'name': 'Nyan Htun', 'password': 'Vitamin A'}}}
         for username, (username, user_id, password) in enumerate(users):
             config['credentials']['usernames'][username] = {'email': user_id,'logged_in': False, 'name': username, 'password':password}
+        #print(config)
         self.authenticator = stauth.Authenticate(config['credentials'],config['cookie']['name'],config['cookie']['key'],config['cookie']['expiry_days'])
         self.name,self.authentication_status, self.username = self.authenticator.login(location='sidebar')
         return self.name, self.authentication_status, self.username
     @handle_exception(has_random_message_printed_out=True)
     def log_out(self):
         if st.session_state["logged_in"]:
-            self.authenticator.logout()
+            self.authenticator.logout(location='sidebar')
         elif st.session_state["logged_in"] is False:
             st.error('Username/password is incorrect')
         elif st.session_state["logged_in"] is None:
@@ -74,14 +75,3 @@ class Authenticator:
                                 "password": password
                                 }   
                     self.conn.insert_user(new_user_df)
-
-
-
-"""if st.session_state["authentication_status"]:
-    authenticator.logout('Logout', 'main')
-    st.write(f'Welcome *{st.session_state["name"]}*')
-    st.title('Some content')
-elif st.session_state["authentication_status"] == False:
-    st.error('Username/password is incorrect')
-elif st.session_state["authentication_status"] == None:
-    st.warning('Please enter your username and password') """
