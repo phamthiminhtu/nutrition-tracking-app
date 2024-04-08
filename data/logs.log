@@ -1,0 +1,10 @@
+2024-04-08 21:43:08,673:INFO:core.calculate_nutrient_intake:_calculate_match_score_for_all_ingredients:Finished calculating match score for all ingredients
+2024-04-08 21:43:08,675:INFO:core.calculate_nutrient_intake:_group_ingredients_based_on_match_score:Finished sorting ingredients based on match score
+2024-04-08 21:43:08,689:INFO:core.calculate_nutrient_intake:_calculate_total_nutrients_per_ingredient_based_on_ingredient_weight:Finished calculating total nutrients per ingredient based on weight
+2024-04-08 21:43:08,689:INFO:core.calculate_nutrient_intake:extract_ingredients_with_high_match_score_and_their_nutrients:Finished extracting ingredients with high match score and their total nutrients
+2024-04-08 21:43:08,691:INFO:core.calculate_nutrient_intake:sum_total_nutrients_in_high_match_score_ingredients:Finished summing total nutrients in high match score ingredients
+2024-04-08 21:43:10,001:INFO:core.calculate_nutrient_intake:_calculate_match_score_for_all_ingredients:Finished calculating match score for all ingredients
+2024-04-08 21:43:10,002:INFO:core.calculate_nutrient_intake:_group_ingredients_based_on_match_score:Finished sorting ingredients based on match score
+2024-04-08 21:43:13,319:INFO:core.calculate_nutrient_intake:calculate_total_nutrients_for_low_match_ingredients_using_openai:Finished summing total nutrients in low match score ingredients
+2024-04-08 21:43:13,322:INFO:core.calculate_nutrient_intake:total_nutrients_based_on_food_intake:Successfully ran low match ingredients through OpenAI
+2024-04-08 21:43:13,322:INFO:core.calculate_nutrient_intake:total_nutrients_based_on_food_intake:Finished calculating total nutrients based on food intake
