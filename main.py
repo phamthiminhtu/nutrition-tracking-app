@@ -12,12 +12,10 @@ from core.auth import *
 from core.utils import wait_while_condition_is_valid
 
 OPENAI_API_KEY = "OPENAI_API_KEY"
-#OPENAI_CLIENT = OpenAI(
-#  api_key=os.environ.get(OPENAI_API_KEY),
-#)
 OPENAI_CLIENT = OpenAI(
-  api_key='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',
+  api_key=os.environ.get(OPENAI_API_KEY),
 )
+
 TELEGRAM_BOT_API_KEY_ENV_KEY = "TELEGRAM_BOT_API_KEY"
 TELEGRAM_BOT_TOKEN = os.environ.get(TELEGRAM_BOT_API_KEY_ENV_KEY)
 DIABETES_MODEL_PATH = "core/ml_models/diabetes_random_forest_model.sav"
@@ -49,20 +47,20 @@ st.set_page_config(layout='wide')
     #print('____________',st.session_state.get("name"),'___________',st.session_state.get("logged_in"))
 #login_button = st.sidebar.button('Login',disabled=st.session_state.get('logged_in'), on_click=click_login_button())
 
-if st.session_state.get('logged_in') is None:
-    with st.sidebar:
+with st.sidebar:
+    if st.session_state.get('logged_in') is None:
         name, logged_in, username = authenticator.log_in()
-        if logged_in:
-            st.session_state["name"], st.session_state["logged_in"], st.session_state["username"] = name,logged_in,username
-        print ('________',logged_in,'______',username)
-        with st.expander('Register new user'):
-            st.session_state.expander = True
-            authenticator.register_user_form()
-        if st.session_state.get('logged_in'):
-            logout_button = st.sidebar.button('Log out')
-            if logout_button:
-                st.session_state['logged_in'] = False
-            #authenticator.log_out()
+    if logged_in:
+        st.session_state["name"], st.session_state["logged_in"], st.session_state["username"] = name,logged_in,username
+    print ('________',logged_in,'______',username)
+    with st.expander('Register new user'):
+        st.session_state.expander = True
+        authenticator.register_user_form()
+    if st.session_state.get('logged_in'):
+        logout_button = st.sidebar.button('Log out')
+        if logout_button:
+            st.session_state['logged_in'] = False
+        #authenticator.log_out()
 
 #wait_while_condition_is_valid((st.session_state.get('logged_in') is None))
 
