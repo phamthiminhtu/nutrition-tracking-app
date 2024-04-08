@@ -240,4 +240,5 @@ class DuckdbConnector:
             sql=query,
             parameters=parameters
         )
+        print(query)
         

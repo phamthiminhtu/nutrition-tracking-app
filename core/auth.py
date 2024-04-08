@@ -34,6 +34,7 @@ class Authenticator:
         config['cookie']={'expiry_days': 0, 'key': 'abcdefqwe', 'name': 'choc_cookie'}
         config['credentials']['usernames']={}
         #{'usernames': {'tu': {'email': 'tu@gmail.com', 'logged_in': False, 'name': 'Thi Minh Tu', 'password': 'Protein'}, 'tyler': {'email': 'nyan@gmail.com', 'logged_in': False, 'name': 'Nyan Htun', 'password': 'Vitamin A'}}}
+        logging.info("-----------users",users)
         if users:
             for username, (username, user_id, password) in enumerate(users):
                 config['credentials']['usernames'][username] = {'email': user_id,'logged_in': False, 'name': username, 'password':password}
