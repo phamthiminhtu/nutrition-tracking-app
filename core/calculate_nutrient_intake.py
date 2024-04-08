@@ -28,7 +28,7 @@ class NutrientMaster:
         result = process.extractOne(ingredient_from_user, self.ingredients_in_database['database_ingredient'], scorer=fuzz.token_sort_ratio)
         return result[0], result[1]
 
-   
+
     def _calculate_match_score_for_all_ingredients(self, ingredients_from_user) -> pd.DataFrame:
 
         # Calculate match score for each ingredient
@@ -47,8 +47,8 @@ class NutrientMaster:
         ingredient_with_high_match_score = match_result[match_result["match_score"] > min_match_score]
 
         # Extract ingredients with low match score
-        ingredient_with_low_match_score = match_result[match_result["match_score"] <= min_match_score] 
-    
+        ingredient_with_low_match_score = match_result[match_result["match_score"] <= min_match_score]
+
         logger.info("Finished sorting ingredients based on match score")
         return ingredient_with_high_match_score, ingredient_with_low_match_score
 
@@ -62,10 +62,10 @@ class NutrientMaster:
         return ingredients_and_nutrients_df
 
 
-    def extract_ingredients_with_high_match_score_and_their_nutrients(self, ingredients_from_user) -> pd.DataFrame:
+    def extract_ingredients_with_high_match_score_and_their_nutrients(self, ingredients_from_user, min_match_score) -> pd.DataFrame:
 
         # Extract ingredients with high match score
-        high_score_ingredients, _ = self._group_ingredients_based_on_match_score(min_match_score=55, ingredients_from_user=ingredients_from_user)
+        high_score_ingredients, _ = self._group_ingredients_based_on_match_score(min_match_score, ingredients_from_user=ingredients_from_user)
 
         # Merge ingredients with nutrient values from database
         ingredients_and_nutrients_df = pd.merge(high_score_ingredients, self.ingredients_in_database, on="database_ingredient", how="left")
@@ -78,15 +78,15 @@ class NutrientMaster:
 
         # Drop irrelevant columns
         ingredients_and_total_nutrients_df.drop(columns=["Ingredient", "Estimated weight (g)"], inplace=True)
-    
+
         logger.info("Finished extracting ingredients with high match score and their total nutrients")
         return ingredients_and_total_nutrients_df
-    
-    
-    def sum_total_nutrients_in_high_match_score_ingredients(self, ingredients_from_user) -> pd.DataFrame:
+
+
+    def sum_total_nutrients_in_high_match_score_ingredients(self, ingredients_from_user, min_match_score) -> pd.DataFrame:
 
         # Extract ingredients and total nutrients for each ingredient
-        total_nutrients_in_each_ingredient_df = self.extract_ingredients_with_high_match_score_and_their_nutrients(ingredients_from_user)
+        total_nutrients_in_each_ingredient_df = self.extract_ingredients_with_high_match_score_and_their_nutrients(ingredients_from_user, min_match_score)
 
         # Sum all nutrients for the meal
         total_nutrients_in_the_meal= total_nutrients_in_each_ingredient_df.sum()
@@ -113,7 +113,7 @@ class NutrientMaster:
         low_score_ingredients = low_score_ingredients.to_json(orient='records')
 
         # Create an openai prompt containing low score ingredients
-        prompt = f"Provide a table output for approximate average values for, estimated weight(g), Energy (kJ), Protein (g), Total water (L), Thiamin (B1) (mg), Riboflavin (B2) (mg), Niacin (mg), Pyridoxine (B6) (mg), Cobalamin (B12) (μg), Vitamin A (μg), Vitamin C (mg), Vitamin D (μg), Vitamin E (mg), Calcium (mg), Phosphorus (mg), Zinc (mg), Iron (mg), Magnesium (mg), Sodium (mg) and Potassium (mg), for the following ingredients and considering their weights, input from the following: {low_score_ingredients} the response should only provide the amount and as a json output."
+        prompt = f"Provide a table output for approximate average values for Energy (kJ), Protein (g), Total water (L), Thiamin (B1) (mg), Riboflavin (B2) (mg), Niacin (mg), Pyridoxine (B6) (mg), Cobalamin (B12) (μg), Vitamin A (μg), Vitamin C (mg), Vitamin D (μg), Vitamin E (mg), Calcium (mg), Phosphorus (mg), Zinc (mg), Iron (mg), Magnesium (mg), Sodium (mg) and Potassium (mg), for the following ingredients and considering their weights, input from the following: {low_score_ingredients} the response should only provide the amount and as a json output."
 
         return prompt
 
@@ -152,42 +152,46 @@ class NutrientMaster:
             transposed_df.columns = transposed_df.iloc[0]
             transposed_df = transposed_df[1:]
             transposed_df = transposed_df.reset_index(drop=True)
-        
+
         return transposed_df
 
     @handle_exception(funny_message="Your meal is exceptionally distinctive, and we may need to reconsider how to calculate its nutrient contents. Please visit us again later.")
     def total_nutrients_based_on_food_intake(self, ingredients_from_user, layout_position=st) -> pd.DataFrame:
 
+        layout_position.write("Just one moment, we are doing the science 😎 ...")
+
         # Extract total nutrients in high match score ingredients and tranpose the result
-        df_database = self.sum_total_nutrients_in_high_match_score_ingredients(ingredients_from_user[["Ingredient", "Estimated weight (g)"]])        
+        df_database = self.sum_total_nutrients_in_high_match_score_ingredients(ingredients_from_user[["Ingredient", "Estimated weight (g)"]], min_match_score=55)
         transposed_df_database = self._transpose_and_reformat_dataframe(df_database)
 
         # Extract total nutrients in low match score ingredients
         df_openai = self.calculate_total_nutrients_for_low_match_ingredients_using_openai(ingredients_from_user[["Ingredient", "Estimated weight (g)"]])
+        
+        try:
+            # Calculate total nutrients from high and low match score ingredients
+            final_df = pd.concat([transposed_df_database, df_openai], axis=1)
+            final_df["actual_intake"] = final_df["total_database"] + final_df["total_openai"]
 
-        # Calculate total nutrients from high and low match score ingredients
-        combined_df = pd.concat([transposed_df_database, df_openai], axis=1)
-        combined_df["Actual Intake"] = combined_df["total_database"] + combined_df["total_openai"]
+            # Drop unused columns
+            final_df.drop(["total_database", "Nutrient_openai", "total_openai"], axis=1, inplace=True)
 
-        # Drop unused columns
-        combined_df.drop(["total_database", "Nutrient_openai", "total_openai"], axis=1, inplace=True)
+            # Convert nutrient values into float
+            final_df["actual_intake"] = final_df["actual_intake"].astype(float).round(1)
 
-        # Convert nutrient values into float
-        combined_df["Actual Intake"] = combined_df["Actual Intake"].astype(float).round(1)
+            logger.info("Successfully ran low match ingredients through OpenAI")
+        
+        except:
+            logger.error("Something went wrong with OpenAI, recalculating all ingredients' nutrients using internal database")
 
-        # Show total nutrients on streamlit
+            # Something went wrong with OpenAI prompt, recalculate using internal database only
+            df_database = self.sum_total_nutrients_in_high_match_score_ingredients(ingredients_from_user[["Ingredient", "Estimated weight (g)"]], min_match_score=40)
+            final_df = self._transpose_and_reformat_dataframe(df_database)
+            final_df.rename(columns={"total_database": "actual_intake"}, inplace=True)
+
         logger.info("Finished calculating total nutrients based on food intake")
-        layout_position.table(combined_df.style.format({"Actual Intake": "{:.1f}"}))
-
-        # Make a copy of the dataframe for internal usage
-        combined_df_copy = combined_df.copy()
 
         # Add dish_description column
-        combined_df_copy["dish_description"] = ingredients_from_user["dish_description"]
-        combined_df_copy["dish_description"] = combined_df_copy["dish_description"].fillna(ingredients_from_user["dish_description"].iloc[0])
+        final_df["dish_description"] = ingredients_from_user["dish_description"]
+        final_df["dish_description"] = final_df["dish_description"].fillna(ingredients_from_user["dish_description"].iloc[0])
 
-        # Rename Actual Intake column
-        combined_df_copy.rename(columns={"Actual Intake": "actual_intake"}, inplace=True)
-        
-        return combined_df_copy
-    
+        return final_df
