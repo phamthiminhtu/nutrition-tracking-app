@@ -33,13 +33,13 @@ with st.sidebar:
         name, logged_in, username = authenticator.log_in()
         if logged_in:
             st.session_state["name"], st.session_state["logged_in"], st.session_state["username"] = name,logged_in,username
-    if st.session_state.get('logged_in') and st.button('Logout'):
+    if st.session_state.get('logged_in') and st.sidebar.button('Logout'):
         st.session_state['logged_in'] = None
         st.session_state['name']=None
         st.session_state['username']=None
     elif st.session_state.get("logged_in") is False:
         st.error('Username/password is incorrect')
-    with st.expander('Register new user'):
+    with st.sidebar.expander('Register new user'):
         authenticator.register_user_form()
     
     
