@@ -43,12 +43,6 @@ class Authenticator:
     def log_out(self):
             self.authenticator.logout(location='unrendered')
             logging.info("----------- finish logged out----------")
-        #    
-        #    st.session_state['logged_in'] = False
-        #elif st.session_state["logged_in"] is False:
-        #    st.error('Username/password is incorrect')
-        #elif st.session_state["logged_in"] is None:
-        #    st.warning('Please enter your username and password')
     @handle_exception(has_random_message_printed_out=True)
     def get_user_id(self,username):
         result = self.conn.get_user_id(username)
