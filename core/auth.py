@@ -16,43 +16,39 @@ from core.utils import handle_exception
 logging.basicConfig(level=logging.INFO)
 import yaml
 from yaml.loader import SafeLoader
-with open('config.yaml') as file:
-    config = yaml.load(file, Loader=SafeLoader)
+
 class Authenticator:
     def __init__(self) -> None:
+        with open('config.yaml') as file:
+            self.config = yaml.load(file, Loader=SafeLoader)
         self.conn = DuckdbConnector()
+        self.users = self.conn.fetch_users()
+        #print(users)
+        #print("og config________",config['credentials'])
+        self.config['cookie']={'expiry_days': 0, 'key': 'abcdefqwe', 'name': 'choc_cookie'}
+        self.config['credentials']['usernames']={}
+        if self.users:
+            for username, (username, user_id, password) in enumerate(self.users):
+                self.config['credentials']['usernames'][username] = {'email': user_id,'logged_in': False, 'name': username, 'password':password}
+        self.authenticator = stauth.Authenticate(self.config['credentials'],self.config['cookie']['name'],self.config['cookie']['key'],self.config['cookie']['expiry_days'])
 
     logging.info("----------- Running log_in()-----------")
     @handle_exception(has_random_message_printed_out=True)
     def log_in(self):
         "return yes, no and none for auth status"
-        #self.conn.create_users_table()
-        users = self.conn.fetch_users()
-        logging.info("----------- finish fetching user()-----------")
-        #print(users)
-        #print("og config________",config['credentials'])
-        config['cookie']={'expiry_days': 0, 'key': 'abcdefqwe', 'name': 'choc_cookie'}
-        config['credentials']['usernames']={}
-        #{'usernames': {'tu': {'email': 'tu@gmail.com', 'logged_in': False, 'name': 'Thi Minh Tu', 'password': 'Protein'}, 'tyler': {'email': 'nyan@gmail.com', 'logged_in': False, 'name': 'Nyan Htun', 'password': 'Vitamin A'}}}
-        logging.info("-----------users",users)
-        if users:
-            for username, (username, user_id, password) in enumerate(users):
-                config['credentials']['usernames'][username] = {'email': user_id,'logged_in': False, 'name': username, 'password':password}
-        #print(config)
-        logging.info("----------- addding credentials----------")
-        self.authenticator = stauth.Authenticate(config['credentials'],config['cookie']['name'],config['cookie']['key'],config['cookie']['expiry_days'])
         self.name,self.authentication_status, self.username = self.authenticator.login(location='sidebar')
-        logging.info("----------- finish logged in----------")
+        logging.info("----------- finish loggedin----------")
         return self.name, self.authentication_status, self.username
     @handle_exception(has_random_message_printed_out=True)
     def log_out(self):
-        if st.session_state["logged_in"]:
-            self.authenticator.logout(location='sidebar')
-            st.session_state['logged_in'] = False
-        elif st.session_state["logged_in"] is False:
-            st.error('Username/password is incorrect')
-        elif st.session_state["logged_in"] is None:
-            st.warning('Please enter your username and password')
+            self.authenticator.logout(location='unrendered')
+            logging.info("----------- finish logged out----------")
+        #    
+        #    st.session_state['logged_in'] = False
+        #elif st.session_state["logged_in"] is False:
+        #    st.error('Username/password is incorrect')
+        #elif st.session_state["logged_in"] is None:
+        #    st.warning('Please enter your username and password')
     @handle_exception(has_random_message_printed_out=True)
     def get_user_id(self,username):
         result = self.conn.get_user_id(username)
