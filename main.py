@@ -42,10 +42,6 @@ with st.sidebar:
     with st.sidebar.expander('Register new user'):
         authenticator.register_user_form()
     
-    
-
-#wait_while_condition_is_valid((st.session_state.get('logged_in') is None))
-
 ### TODO: replace this with actual input
 
 #print(st.session_state.get('email'))
