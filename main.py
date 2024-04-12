@@ -23,44 +23,26 @@ DIABETES_MODEL_PATH = "core/ml_models/diabetes_random_forest_model.sav"
 main_app_miscellaneous = MainAppMiscellaneous(openai_client=OPENAI_CLIENT)
 diabetes_assessor = DiabetesAssessor(model_path=DIABETES_MODEL_PATH)
 telegram_bot = TelegramBot(telegram_bot_token=TELEGRAM_BOT_TOKEN)
-authenticator = Authenticator()
+
 logging.basicConfig(level=logging.INFO)
 st.set_page_config(layout='wide')
-
-
-#st.session_state['expander'] = False
-#st.session_state['name'] = None
-#st.session_state['username']= None
-## @Nyan
-# Login option.
-# A class in a python file (Nyan.py file - please rename it) e.g. Authenticator = Authenticator(), with methods like:
-# Authenticator.log_in()
-# Authenticator.recover_password()
-# Authenticator.create_new_account()
-#if 'login_button' not in st.session_state:
-#        st.session_state.login_button = False
-
-#def click_login_button():
-#    st.session_state.login_button = True
-    #if not st.session_state.get('authentication_status'):
-    
-    #print('____________',st.session_state.get("name"),'___________',st.session_state.get("logged_in"))
-#login_button = st.sidebar.button('Login',disabled=st.session_state.get('logged_in'), on_click=click_login_button())
+authenticator = Authenticator()
 
 with st.sidebar:
     if st.session_state.get('logged_in') is None:
         name, logged_in, username = authenticator.log_in()
-    if logged_in:
-        st.session_state["name"], st.session_state["logged_in"], st.session_state["username"] = name,logged_in,username
-    print ('________',logged_in,'______',username)
+        if logged_in:
+            st.session_state["name"], st.session_state["logged_in"], st.session_state["username"] = name,logged_in,username
+    if st.session_state.get('logged_in') and st.button('Logout'):
+        st.session_state['logged_in'] = None
+        st.session_state['name']=None
+        st.session_state['username']=None
+    elif st.session_state.get("logged_in") is False:
+        st.error('Username/password is incorrect')
     with st.expander('Register new user'):
-        st.session_state.expander = True
         authenticator.register_user_form()
-    if st.session_state.get('logged_in'):
-        logout_button = st.sidebar.button('Log out')
-        if logout_button:
-            st.session_state['logged_in'] = False
-        #authenticator.log_out()
+    
+    
 
 #wait_while_condition_is_valid((st.session_state.get('logged_in') is None))
 
