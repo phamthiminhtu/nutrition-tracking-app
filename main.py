@@ -26,6 +26,7 @@ diabetes_assessor = DiabetesAssessor(model_path=DIABETES_MODEL_PATH)
 telegram_bot = TelegramBot(telegram_bot_token=TELEGRAM_BOT_TOKEN)
 logging.basicConfig(level=logging.INFO)
 logging.root.setLevel(logging.NOTSET)
+# st.set_page_config(layout='centered')
 st.set_page_config(layout='wide')
 
 
@@ -56,16 +57,16 @@ def reset_session_state():
     st.session_state["sending_telegram_message_result"] = None
 
 # container, grid, row settings
-buff1, maincol, buff2 = st.columns([1,8,1])
-buff1, col5, col10, buff2 = st.columns([1,5,5,1])
+# buff1, maincol, buff2 = st.columns([1,8,1])
+# buff1, col5, col10, buff2 = st.columns([1,5,5,1])
 # my_grid = grid(2, [2, 4, 1], 1, 4, vertical_align="bottom")
 # row1 = row(2, vertical_align="center")
 
 # set main title
 # with maincol, st.container(border=True):
-with maincol:
-    original_title = '<h1 style="font-family: monospace; color:#D44A1A; font-size: 50px;">MealMinder </h1>'
-    st.markdown(original_title, unsafe_allow_html=True)
+# with maincol:
+original_title = '<h1 style="font-family: monospace; color:#D44A1A; font-size: 75px;">MealMinder </h1>'
+st.markdown(original_title, unsafe_allow_html=True)
 # st.markdown(original_title)
 
 # Set the background image
@@ -102,60 +103,25 @@ st.markdown(background_image, unsafe_allow_html=True)
 
 ####
 # with maincol, st.container(height=50, border=True):
-with maincol:
-    main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
-
-# with maincol, st.container(height=80, border=True):    
-#     # horizontal menu
-#     selected = option_menu(
-#         menu_title=None,    
-#         # menu_title="Main Menu",
-#         # menu_title=main_app_miscellaneous.say_hello(user_name=st.session_state['user_name']),
-#         options=["🍔 My Food Tracker", "📖 My Nutrition Intake", "👩‍⚕👨‍⚕ Diabetes Risk Assessment"],
-#         icons=["hamburger","hamburger","hamburger"],
-#         # menu_icon=None,
-#         default_index=0,
-#         orientation="horizontal",
-#         styles={
-#             "container": {},
-#             "icon": {},
-#             "nav-link": {
-#                 "font-size": "13px",
-#                 "text-align": "center",
-#                 "margin": "0px",
-#                 "--hover-colour": "#007932",
-#             },
-#             "nav-link-selected": {"background-colour":"#007932"},
-#         }
-#     )
-
-#columns
-# with buff1:
 # with maincol:
-# # with col5:
-#     if selected == "🍔 My Food Tracker":
-#         st.title(f"What have you eaten today? 😋")
-
-#     if selected == "📖 My Nutrition Intake":
-#         st.title(f"I want to get my nutrition intake history")
-
-#     if selected == "👩‍⚕👨‍⚕ Diabetes Risk Assessment":
-#         st.title(f"Start assessing my diabetes risk")
+main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
 
 # Main page with 2 tabs
 # with maincol:
 # with maincol, st.container(height=1000, border=True):
-with maincol, st.container(height=1000,border=True):
-    track_new_meal_tab, user_recommended_intake_history_tab, assess_diabetes_risk_tab = st.tabs(
-        ["🍔 Track the food I ate ", "📖 See my nutrition intake history ", "🩺 Assess my diabetes risk "]
-    )
+# with st.container(height=1000,border=True):
+track_new_meal_tab, user_recommended_intake_history_tab, assess_diabetes_risk_tab = st.tabs(
+    ["🍔 Track the food I ate ", "📖 See my nutrition intake history ", "🩺 Assess my diabetes risk "]
+)
 
 # 1. Get dish description from user and estimate its ingredients
-# with maincol, st.container(height=1000,border=True):
-dish_description = track_new_meal_tab.text_input("What have you eaten today? 😋", help="Describe your meal taken as best possible.").strip()
-if dish_description != st.session_state.get('dish_description', '###') and dish_description!= '':
-    reset_session_state()   # rerun the whole app when user inputs a new dish
-    st.session_state['dish_description'] = dish_description
+
+with track_new_meal_tab:
+    estimated_ingredient_container = st.container(border=True)
+    dish_description = estimated_ingredient_container.text_input("What have you eaten today? 😋", help="Describe your meal taken as best possible.").strip()
+    if dish_description != st.session_state.get('dish_description', '###') and dish_description!= '':
+        reset_session_state()   # rerun the whole app when user inputs a new dish
+        st.session_state['dish_description'] = dish_description
 
 # Flow 3 - 12. User wants to get their historical data
 # with col5:
@@ -226,18 +192,20 @@ if st.session_state.get('ingredient_df') is None:
 
 wait_while_condition_is_valid((st.session_state.get('ingredient_df') is None))
 
-edited_ingredient_df = main_app_miscellaneous.display_and_let_user_edit_ingredient(
-    ingredient_df=st.session_state.get('ingredient_df'),
-    layout_position=track_new_meal_tab
-)
+with track_new_meal_tab:
+    edited_ingredient_df = main_app_miscellaneous.display_and_let_user_edit_ingredient(
+        ingredient_df=st.session_state.get('ingredient_df'),
+        layout_position=estimated_ingredient_container
+    )
 
-# with maincol, st.container(height=1000, border=True):
-if st.session_state.get('ingredient_df') is not None:
-    track_new_meal_tab.write("Press continue to get your nutrition estimation...")
-    if track_new_meal_tab.button(label="Continue", key="confirm_ingredient_weights", type="primary"):
-        st.session_state['confirm_ingredient_weights_button'] = True
+# with , st.container(height=1000, border=True):
+with track_new_meal_tab:
+    if st.session_state.get('ingredient_df') is not None:
+        estimated_ingredient_container.write("Press continue to get your nutrition estimation...")
+        if estimated_ingredient_container.button(label="Continue", key="confirm_ingredient_weights", type="primary"):
+            st.session_state['confirm_ingredient_weights_button'] = True
 
-    wait_while_condition_is_valid((not st.session_state.get('confirm_ingredient_weights_button', False)))
+        wait_while_condition_is_valid((not st.session_state.get('confirm_ingredient_weights_button', False)))
 
 # Wait and let user edit their ingredients until user click confirm_ingredient_weights_button
 st.session_state['ingredient_df'] = edited_ingredient_df
@@ -287,35 +255,38 @@ if st.session_state.get('user_personal_data') is None:
 # 6. Join with recommended intake
 # Only run when we have user_personal_data
 # @Tu
-
-logging.info("-----------Running combine_and_show_users_recommended_intake()-----------")
-user_recommended_intake_result = main_app_miscellaneous.combine_and_show_users_recommended_intake(
-    user_personal_data=st.session_state['user_personal_data'],
-    user_intake_df_temp=user_intake_df_temp,
-    user_intake_df_temp_name="user_intake_df_temp",
-    layout_position=track_new_meal_tab
-)
-logging.info("-----------Finished combine_and_show_users_recommended_intake-----------")
+with track_new_meal_tab:
+    nutrient_intake_chart_container = st.container(border=True)
+    logging.info("-----------Running combine_and_show_users_recommended_intake()-----------")
+    user_recommended_intake_result = main_app_miscellaneous.combine_and_show_users_recommended_intake(
+        user_personal_data=st.session_state['user_personal_data'],
+        user_intake_df_temp=user_intake_df_temp,
+        user_intake_df_temp_name="user_intake_df_temp",
+        layout_position=nutrient_intake_chart_container
+    )
+    logging.info("-----------Finished combine_and_show_users_recommended_intake-----------")
 
 # # 6. @Michael
 # # Visualize data
-meal_record_date = main_app_miscellaneous.get_meal_record_date(
-    layout_position=track_new_meal_tab,
-    has_user_intake_df_temp_empty=has_user_intake_df_temp_empty
-)
-user_intake_df_temp['meal_record_date'] = meal_record_date
-
-logging.info("-----------Running get_user_confirmation_and_try_to_save_their_data()-----------")
-if st.session_state.get('save_meal_result') is None:
-    save_meal_result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_their_data(
-        dish_description=st.session_state['dish_description'],
-        user_id=st.session_state['user_id'],
-        is_logged_in=st.session_state['is_logged_in'],
-        layout_position=track_new_meal_tab,
+with track_new_meal_tab:
+    consumuption_date_save_info_container = st.container(border=True)
+    meal_record_date = main_app_miscellaneous.get_meal_record_date(
+        layout_position=consumuption_date_save_info_container,
         has_user_intake_df_temp_empty=has_user_intake_df_temp_empty
     )
-    st.session_state['save_meal_result'] = save_meal_result
-logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_data-----------")
+    user_intake_df_temp['meal_record_date'] = meal_record_date
+
+    logging.info("-----------Running get_user_confirmation_and_try_to_save_their_data()-----------")
+    if st.session_state.get('save_meal_result') is None:
+        save_meal_result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_their_data(
+            dish_description=st.session_state['dish_description'],
+            user_id=st.session_state['user_id'],
+            is_logged_in=st.session_state['is_logged_in'],
+            layout_position=consumuption_date_save_info_container,
+            has_user_intake_df_temp_empty=has_user_intake_df_temp_empty
+        )
+        st.session_state['save_meal_result'] = save_meal_result
+    logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_data-----------")
 
 # Aggregate user_recommended_intake_df by day
 if st.session_state.get('user_recommended_intake_df') is None:
@@ -338,50 +309,53 @@ nutrient_info = dishrecommend.retrieve_nutrient_intake_info(user_recommended_int
 logging.info("Finished collecting the nutrient intake information for the dish recommendation.")
 
 # Asking the user if they want dish recommendation
-dish_recommend_user_input = track_new_meal_tab.selectbox("Do you want a dish recommendation?", ["Yes", "No"])
-if not st.session_state.get('dish_recommend_user_input') and dish_recommend_user_input:
-    st.session_state['dish_recommend_user_input'] = True
- # If user selected "Yes", calling the dish recommendation function
-if st.session_state.get('dish_recommend_user_input'):
+with track_new_meal_tab:
+    dish_recommendation_preference_container = st.container(border=True)
+    dish_recommend_user_input = dish_recommendation_preference_container.selectbox("Do you want a dish recommendation?", ["Yes", "No"])
+    if not st.session_state.get('dish_recommend_user_input') and dish_recommend_user_input:
+        st.session_state['dish_recommend_user_input'] = True
+    # If user selected "Yes", calling the dish recommendation function
+    if st.session_state.get('dish_recommend_user_input'):
 
-    logging.info("Checking user preferences for cuisine, allergies, if any leftover ingredients.")
-    cuisine, allergies, ingredients = dishrecommend.get_user_input(layout_position=track_new_meal_tab)
-    logging.info("Finished reading user preferences for the dish recommendation..")
+        logging.info("Checking user preferences for cuisine, allergies, if any leftover ingredients.")
+        cuisine, allergies, ingredients = dishrecommend.get_user_input(layout_position=dish_recommendation_preference_container)
+        logging.info("Finished reading user preferences for the dish recommendation..")
 
-    logging.info("Recommending dish to the user based on the given preferences.")
-    if track_new_meal_tab.button("Recommend Dish", type="primary"):
-        recommended_dish = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
-        track_new_meal_tab.write(recommended_dish)
-        st.session_state['recommended_recipe'] = recommended_dish
-    logging.info("Finished dish recommendation based on the user preferences.")
+        logging.info("Recommending dish to the user based on the given preferences.")
+        if dish_recommendation_preference_container.button("Recommend Dish", type="primary"):
+            dish_recommendation_output_container = st.container(border=True)
+            recommended_dish = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
+            dish_recommendation_output_container.write(recommended_dish)
+            st.session_state['recommended_recipe'] = recommended_dish
+        logging.info("Finished dish recommendation based on the user preferences.")
 
-wait_while_condition_is_valid(condition=(st.session_state.get('recommended_recipe') is None))
+    wait_while_condition_is_valid(condition=(st.session_state.get('recommended_recipe') is None))
 
-if st.session_state.get('recommended_recipe') is not None:
+    if st.session_state.get('recommended_recipe') is not None:
 
-    track_new_meal_tab.info("""
-        If this is your first time with us,
-        please search for @meal_minder_bot on Telegram and say hi so that we can reach out to you 😉
-    """)
-    user_telegram_user_name = track_new_meal_tab.text_input("Let us know your Telegram user name to receive this recipe")
+        dish_recommendation_output_container .info("""
+            If this is your first time with us,
+            please search for @meal_minder_bot on Telegram and say hi so that we can reach out to you 😉
+        """)
+        user_telegram_user_name = dish_recommendation_output_container .text_input("Let us know your Telegram user name to receive this recipe")
 
-    # reset session_state if user inputs another user namse
-    if st.session_state.get('user_telegram_user_name') is not None and user_telegram_user_name != "" and user_telegram_user_name != st.session_state.get('user_telegram_user_name'):
-        st.session_state['user_telegram_user_name'] = None
+        # reset session_state if user inputs another user namse
+        if st.session_state.get('user_telegram_user_name') is not None and user_telegram_user_name != "" and user_telegram_user_name != st.session_state.get('user_telegram_user_name'):
+            st.session_state['user_telegram_user_name'] = None
 
-    if st.session_state.get('user_telegram_user_name') is None and user_telegram_user_name != "":
-        st.session_state['user_telegram_user_name'] = user_telegram_user_name
+        if st.session_state.get('user_telegram_user_name') is None and user_telegram_user_name != "":
+            st.session_state['user_telegram_user_name'] = user_telegram_user_name
 
-    if st.session_state.get('user_telegram_user_name') is not None:
-        print("-----------Running send_message_to_user_name-----------")
-        if st.session_state.get("sending_telegram_message_result") is None:
-            sending_message_result = telegram_bot.send_message_to_user_name(
-                user_name=st.session_state.get('user_telegram_user_name'),
-                message=st.session_state.get('recommended_recipe'),
-                layout_position=track_new_meal_tab
-            )
-            if sending_message_result.get("status") == 200:
-                st.session_state["sending_telegram_message_result"] = sending_message_result
+        if st.session_state.get('user_telegram_user_name') is not None:
+            print("-----------Running send_message_to_user_name-----------")
+            if st.session_state.get("sending_telegram_message_result") is None:
+                sending_message_result = telegram_bot.send_message_to_user_name(
+                    user_name=st.session_state.get('user_telegram_user_name'),
+                    message=st.session_state.get('recommended_recipe'),
+                    layout_position=dish_recommendation_preference_container
+                )
+                if sending_message_result.get("status") == 200:
+                    st.session_state["sending_telegram_message_result"] = sending_message_result
 
-        print("-----------Finished send_message_to_user_name-----------")
+            print("-----------Finished send_message_to_user_name-----------")
 

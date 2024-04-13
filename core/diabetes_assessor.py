@@ -163,6 +163,7 @@ class DiabetesAssessor:
             "🚬 Have you smoked at least 100 cigarettes in your entire life?",
             ["Yes", "No"],
             help="Note: 5 packs = 100 cigarettes",
+            index=None,
             horizontal=True
         )
         # is_smoker = form.selectbox(
@@ -176,6 +177,7 @@ class DiabetesAssessor:
             is_heavy_alcohol_consumer = form.radio(
                 "🍺 Do you have more than 7 alcoholic drinks per week?",
                 ["Yes", "No"],
+                index=None,
                 horizontal=True
             )
         else:
