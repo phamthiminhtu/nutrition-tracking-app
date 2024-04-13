@@ -9,6 +9,8 @@ from core.duckdb_connector import *
 from core.utils import handle_exception, wait_while_condition_is_valid
 from core.sql.user_daily_recommended_intake_history import anonymous_user_daily_nutrient_intake_query_template, combine_user_actual_vs_recommend_intake_logic
 from core.visualization import users_recommended_intake_chart, user_historical_hexbin_chart
+from streamlit_option_menu import option_menu
+from streamlit_extras.row import row
 
 RECOMMENDED_DAILY_NUTRIENT_INTAKE_TABLE_ID = "ilab.main.daily_nutrients_recommendation"
 USER_DAILY_RECOMMENDED_INTAKE_HISTORY_VIEW_ID = "ilab.main.user_daily_recommended_intake_history"
@@ -340,7 +342,7 @@ class MainAppMiscellaneous:
     def display_and_let_user_edit_ingredient(self, ingredient_df, layout_position=st):
         if not ingredient_df.empty:
             columns_to_display = ["Ingredient", "Estimated weight (g)"]
-            layout_position.write(f'Here is our estimated weight of each ingredient for one serving of 🍕 {st.session_state["dish_description"]} 🍳:')
+            layout_position.write(f'Here is our estimated weight of each ingredient for one serving of 🍴 {st.session_state["dish_description"]} 🍴:')
             
             # Show ingredients table and let users edit 
             edited_df = layout_position.data_editor(ingredient_df[columns_to_display], num_rows="dynamic")
