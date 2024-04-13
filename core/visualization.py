@@ -4,7 +4,6 @@ import streamlit as st
 import pandas as pd
 
 def users_recommended_intake_chart(df, layout_position=st):
-
     # Set max intake difference percentage to 100
     #df.loc[df['Actual intake / Recommended intake (%)'] > 100, 'Actual intake / Recommended intake (%)'] = 100
     df['Intake Display'] = df['Actual intake / Recommended intake (%)'].clip(upper=100)
@@ -28,10 +27,6 @@ def users_recommended_intake_chart(df, layout_position=st):
 
     # Show graph
     layout_position.altair_chart(base)
-
-
-
-
 
 def user_historical_hexbin_chart(df, layout_position):
     # Convert 'record_date' to datetime and extract 'dd-mm' format for plotting
@@ -84,7 +79,23 @@ def user_historical_hexbin_chart(df, layout_position):
     layout_position.altair_chart(hexbin)
 
 
+def recommended_nutrients_chart(df, layout_position=st):
+    # Normalizing the Nutrient_Value column between 0 and 1
+    df['Normalized_Nutrient_Value'] = (df['Nutrient_Value'] - df['Nutrient_Value'].min()) / (df['Nutrient_Value'].max() - df['Nutrient_Value'].min())
 
+    # Setting thee graph 
+    title = alt.TitleParams("Nutrient Value Tracker", anchor="middle")
+
+    base = alt.Chart(df, title=title).mark_bar().encode(
+        x=alt.X('Normalized_Nutrient_Value:Q', title='Nutrient Value', scale=alt.Scale(domain=(0, 1))),
+        y=alt.Y('Nutrient:O', title='Nutrients').sort('x'),
+        color=alt.Color('Normalized_Nutrient_Value:Q', scale=alt.Scale(scheme='goldgreen'))
+    ).properties(width=800)
+
+    base.mark_bar() + base.mark_text(align='left', dx=2)
+
+    # displaying the graph
+    layout_position.altair_chart(base)
 
 
 
