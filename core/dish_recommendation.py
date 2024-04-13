@@ -5,6 +5,7 @@ import pandas as pd
 import logging
 import streamlit as st
 from core.openai_api import *
+from core.visualization import *
 
 # Setting up logging
 logger = logging.getLogger(__name__)
@@ -30,7 +31,7 @@ class DishRecommender:
         df_user_recommended_intake_result = pd.DataFrame(user_recommended_intake_result['value'])
 
         # Extracting nutrient, daily_recommended_intake, and its measurement
-        nutrient_info = ", ".join([f"{row['nutrient']}-{row['daily_recommended_intake']} {row['measurement']}" for index, row in df_user_recommended_intake_result.iterrows()])
+        nutrient_info = ", ".join([f"{row['nutrient']}-{row['intake_diff']} {row['measurement']}" for index, row in df_user_recommended_intake_result.iterrows()])
     
     logging.info("End of the function call to retrieve nutrient intake information.")
 
@@ -64,18 +65,19 @@ class DishRecommender:
             Provides dish recommendations based on the given user preferences using the OpenAI API.
         """
         prompt = ""
-
+        result_format = f"""recommend a dish along with its dish name, ingredients with its weight in gram and receipe.
+                        """
         if (allergies is not None and ingredients is not None):
-            prompt = f"Based on your preferences - nutrient: {nutrient_info}, cuisine: {cuisine}, ingredients: {ingredients}, and allergies: {allergies}, recommend a dish along with its dish name, ingredients and receipe.   "
+            prompt = f"Based on your preferences - nutrient: {nutrient_info}, cuisine: {cuisine}, ingredients: {ingredients}, and allergies: {allergies}, recommend a dish in this exact format dish name, ingredients with its weight in gram and receipe for one serve."
         
         if (allergies is not None and ingredients is None):
-            prompt = f"Based on your preferences - nutrient: {nutrient_info}, cuisine: {cuisine}, and allergies: {allergies}, recommend a dish along with its dish name, ingredients and receipe."
+            prompt = f"Based on your preferences - nutrient: {nutrient_info}, cuisine: {cuisine}, and allergies: {allergies}, recommend a dish in this exact format dish name, ingredients with its weight in gram and receipe for one serve."
         
         if (allergies is None and ingredients is not None):
-            prompt = f"Based on your preferences - nutrient: {nutrient_info}, cuisine: {cuisine}, and ingredients: {ingredients}, recommend a dish along with its dish name, ingredients and receipe"
+            prompt = f"Based on your preferences - nutrient: {nutrient_info}, cuisine: {cuisine}, and ingredients: {ingredients}, recommend a dish in this exact format dish name, ingredients with its weight in gram and receipe for one serve."
         
         if (allergies is None and ingredients is None):
-            prompt = f"Based on your preferences - nutrient: {nutrient_info}, and cuisine: {cuisine}, recommend a dish along with its and in a format dish name, ingredients and receipe."
+            prompt = f"Based on your preferences - nutrient: {nutrient_info}, and cuisine: {cuisine}, recommend a dish in this exact format dish name, ingredients with its weight in gram and receipe for one serve."
     
         # Retrieving the dish to be recommend to user using OpenAI API 
         response = self.openai_api.run_prompt(prompt=prompt)
@@ -88,3 +90,57 @@ class DishRecommender:
             raise ValueError("Sorry!! couldn't to retrieve dish recommendation for your preferences.")
         
     logging.info("End of the function call for dish recommendation.")
+
+    logging.info("Function call to retrieve recommended dish name.")
+    def get_recommended_dish_name(self, recommended_dish):
+        #print("inside the function call to retrieve recommended dish name.")
+        #print(recommended_dish)
+        dish_name = None
+            
+        if dish_name is None:
+            result_lines = recommended_dish.split('\n')
+            # Extracting the dish name
+            for line in result_lines:
+                if line.startswith("Dish Name:") or line.startswith("Dish:"):
+                    dish_name = line.split(":")[1].strip()
+                    break
+
+        if dish_name is None:
+            pattern = r"called\s(.*?)[.]"
+            # Checking the first match of the pattern in the prompt_result variable
+            match = re.search(pattern, recommended_dish)
+
+            # Extracting the dish name if a match is found
+            if match:
+                dish_name = match.group(1).strip()
+        
+        return dish_name
+    logging.info("End of the function call to retrieve recommended dish name.")
+
+    logging.info("Function call to calculate and display the total nutrients after the dish recommendation.")
+    def get_recommended_dish_nutrients(self, earlier_nutrients_intake, recommended_dish_nutrients, layout_position):
+        print("inside the get_recommended_dish_nutrients function.")
+        df_earlier_nutrients_intake = pd.DataFrame(earlier_nutrients_intake['value'])
+        df_recommended_dish_nutrients = pd.DataFrame(recommended_dish_nutrients)
+        
+        # Renaming the actual_intake column in the recommended_dish_nutrients recommended_intake
+        df_recommended_dish_nutrients.rename(columns={"actual_intake": "recommended_intake"}, inplace=True)  
+
+        print("Earlier consumed dish.")
+        print(df_earlier_nutrients_intake)
+        print("Recommended dish.")  
+        print(df_recommended_dish_nutrients)
+
+        # Merging the two dataframes on the common column "Nutrient"
+        #df_merged = pd.merge(df_earlier_nutrients_intake, df_recommended_dish_nutrients, left_on="nutrient", right_on="Nutrient")
+
+        # Adding a new column "Nutrient_Value" which is the sum of "daily_recommended_intake" and "actual_intake"
+        #df_merged["Nutrient_Value"] = df_merged["actual_intake"] + df_merged["recommended_intake"]
+        
+
+        # Selecting only the "Nutrient" and "Nutrient_Value" columns to create the new dataframe
+        #df_computed_recommended_nutrients = df_merged[["Nutrient", "Nutrient_Value"]]
+
+        #print("New df", df_computed_recommended_nutrients)
+        #recommended_nutrients_chart(df_computed_recommended_nutrients, layout_position=layout_position)
+    logging.info("End of the function call to calculate and display the total nutrients after the dish recommendation.")
