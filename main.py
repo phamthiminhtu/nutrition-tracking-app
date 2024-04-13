@@ -49,7 +49,11 @@ def reset_session_state():
     st.session_state['has_fruit_and_veggie_intake'] = True
     st.session_state['save_meal_result'] = None
     st.session_state['user_telegram_user_name'] = None
+    st.session_state['dish_recommend'] = False
     st.session_state['recommended_recipe'] = None
+    st.session_state['recommended_dish_name'] = None
+    st.session_state['recommended_dish_ingredients'] = None
+    st.session_state['recommended_dish_nutrients'] = None
     st.session_state["sending_telegram_message_result"] = None
 
 
@@ -241,6 +245,7 @@ if st.session_state.get('user_recommended_intake_df') is None:
 dishrecommend = DishRecommender(openai_client=OPENAI_CLIENT)
 
 logging.info("Retrieving nutrient intake information.")
+print(user_recommended_intake_result)
 nutrient_info = dishrecommend.retrieve_nutrient_intake_info(user_recommended_intake_result)
 logging.info("Finished collecting the nutrient intake information for the dish recommendation.")
 
@@ -248,7 +253,8 @@ logging.info("Finished collecting the nutrient intake information for the dish r
 dish_recommend_user_input = track_new_meal_tab.selectbox("Do you want a dish recommendation?", ["Yes", "No"])
 if not st.session_state.get('dish_recommend_user_input') and dish_recommend_user_input:
     st.session_state['dish_recommend_user_input'] = True
- # If user selected "Yes", calling the dish recommendation function
+
+# If user selected "Yes", calling the dish recommendation function
 if st.session_state.get('dish_recommend_user_input'):
 
     logging.info("Checking user preferences for cuisine, allergies, if any leftover ingredients.")
@@ -257,10 +263,28 @@ if st.session_state.get('dish_recommend_user_input'):
 
     logging.info("Recommending dish to the user based on the given preferences.")
     if track_new_meal_tab.button("Recommend Dish"):
-        recommended_dish = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
-        track_new_meal_tab.write(recommended_dish)
-        st.session_state['recommended_recipe'] = recommended_dish
+        st.session_state['recommended_recipe'] = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
+        st.session_state['recommended_dish_name'] = dishrecommend.get_recommended_dish_name(st.session_state['recommended_recipe'])
+        st.session_state['dish_recommend'] = False
     logging.info("Finished dish recommendation based on the user preferences.")
+
+    logging.info("Retrieving the ingrdients of the recommended dish.")
+    st.session_state['recommended_dish_ingredients'] = main_app_miscellaneous.get_user_input_dish_and_estimate_ingredients(st.session_state['recommended_dish_name'], layout_position=track_new_meal_tab)
+    logging.info("End of retrieving the ingrdients of the recommended dish.")
+
+    logging.info("Collecting the nutrients of the recommended dish.")
+    Nutrient = NutrientMaster(openai_client=OPENAI_CLIENT)
+    st.session_state['recommended_dish_nutrients'] = Nutrient.total_nutrients_based_on_food_intake(st.session_state['recommended_dish_ingredients'], layout_position=track_new_meal_tab)
+    logging.info("End of collecting the nutrients of the recommended dish.")
+    
+    
+# Displaying the recommended dish recipe
+if st.session_state['recommended_recipe'] is not None:
+    track_new_meal_tab.write(st.session_state['recommended_recipe'])
+
+    logging.info("Calculating and displaying the total nutrients after the dish recommendation.")
+    dishrecommend.get_recommended_dish_nutrients(user_recommended_intake_result, st.session_state['recommended_dish_nutrients'], track_new_meal_tab)
+    logging.info("End of calculating and displaying the total nutrients after the dish recommendation.")
 
 wait_while_condition_is_valid(condition=(st.session_state.get('recommended_recipe') is None))
 
