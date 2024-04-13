@@ -1,4 +1,5 @@
 import os
+import re
 import logging
 import threading
 import streamlit as st
@@ -6,9 +7,8 @@ from core.main_app_miscellaneous import *
 from core.calculate_nutrient_intake import NutrientMaster
 from core.diabetes_assessor import *
 from core.telegram_bot import *
-from core.monali import read_data   ### TODO: rename
-from core.monali import *
 from core.auth import *
+from core.dish_recommendation import *
 from core.utils import wait_while_condition_is_valid
 
 OPENAI_API_KEY = "OPENAI_API_KEY"
@@ -25,6 +25,7 @@ diabetes_assessor = DiabetesAssessor(model_path=DIABETES_MODEL_PATH)
 telegram_bot = TelegramBot(telegram_bot_token=TELEGRAM_BOT_TOKEN)
 
 logging.basicConfig(level=logging.INFO)
+logging.root.setLevel(logging.NOTSET)
 st.set_page_config(layout='wide')
 authenticator = Authenticator()
 
@@ -71,6 +72,7 @@ def reset_session_state():
     st.session_state['save_meal_result'] = None
     st.session_state['user_telegram_user_name'] = None
     st.session_state['recommended_recipe'] = None
+    st.session_state["sending_telegram_message_result"] = None
 
 
 main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
@@ -226,8 +228,6 @@ logging.info("-----------Finished combine_and_show_users_recommended_intake-----
 
 # # 6. @Michael
 # # Visualize data
-
-
 meal_record_date = main_app_miscellaneous.get_meal_record_date(
     layout_position=track_new_meal_tab,
     has_user_intake_df_temp_empty=has_user_intake_df_temp_empty
@@ -257,60 +257,37 @@ if st.session_state.get('user_recommended_intake_df') is None:
     )
     st.session_state['user_recommended_intake_df'] = user_recommended_intake_from_database_df
 
-user_recommended_intake_df = st.session_state['user_recommended_intake_df']
-
-##### TEMPORARILY COMMENT OUT until columns are fixed and streamlit form is added
-
+# user_recommended_intake_df = st.session_state['user_recommended_intake_df']
 
 # 5. Recommend dish.
-df_nutrient_data = pd.DataFrame() if user_recommended_intake_df is None else user_recommended_intake_df.copy()
-#### TODO: CHANGE THIS - These 2 columns are not applicable anymore
-# df_nutrient_data['daily_requirement_microgram'] = df_nutrient_data["daily_recommended_intake"]
-# df_nutrient_data["daily_actual_microgram"] = df_nutrient_data["actual_intake"]
-####
-# if not df_nutrient_data.empty:
+dishrecommend = DishRecommender(openai_client=OPENAI_CLIENT)
 
-#     dishrecommend = DishRecommender(openai_client=OPENAI_CLIENT)
+logging.info("Retrieving nutrient intake information.")
+nutrient_info = dishrecommend.retrieve_nutrient_intake_info(user_recommended_intake_result)
+logging.info("Finished collecting the nutrient intake information for the dish recommendation.")
 
-#     logging.info("-----------Running calculate_intake_difference-----------")
-#     nutrient_info = dishrecommend.calculate_intake_difference(df_nutrient_data)
-#     logging.info("-----------Finished calculate_intake_difference-----------")
+# Asking the user if they want dish recommendation
+dish_recommend_user_input = track_new_meal_tab.selectbox("Do you want a dish recommendation?", ["Yes", "No"])
+if not st.session_state.get('dish_recommend_user_input') and dish_recommend_user_input:
+    st.session_state['dish_recommend_user_input'] = True
+ # If user selected "Yes", calling the dish recommendation function
+if st.session_state.get('dish_recommend_user_input'):
 
-#     logging.info("-----------Running get_user_input-----------")
-#     cuisine, allergies, ingredients = dishrecommend.get_user_input()
-#     logging.info("-----------Finished get_user_input-----------")
+    logging.info("Checking user preferences for cuisine, allergies, if any leftover ingredients.")
+    cuisine, allergies, ingredients = dishrecommend.get_user_input(layout_position=track_new_meal_tab)
+    logging.info("Finished reading user preferences for the dish recommendation..")
 
-#     logging.info("-----------Running get_dish_recommendation-----------")
-#     if st.button("Recommend Dish"):
-#         recommended_dish = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
-#         st.write(recommended_dish)
-#     logging.info("-----------Finished get_dish_recommendation-----------")
-recommended_recipe = """
-    Quick boil – Remove impurities from beef with a 5 minute boil, it’s the path to a beautiful clear soup;
+    logging.info("Recommending dish to the user based on the given preferences.")
+    if track_new_meal_tab.button("Recommend Dish"):
+        recommended_dish = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
+        track_new_meal_tab.write(recommended_dish)
+        st.session_state['recommended_recipe'] = recommended_dish
+    logging.info("Finished dish recommendation based on the user preferences.")
 
-    Scum – be amazed at all the icky stuff that comes out;
+wait_while_condition_is_valid(condition=(st.session_state.get('recommended_recipe') is None))
 
-    Wash the bones to get all the icky scum off;
+if st.session_state.get('recommended_recipe') is not None:
 
-    Simmer for 3 hours – bones, beef, water, onion, ginger and spices (cinnamon, cardamom, coriander, star anise);
-
-    Remove brisket  – some is used for Pho topping, see below recipe for ways to use remainder;
-
-    Simmer 40 minutes further with just bones;
-
-    Strain; then
-
-    Ladle into bowls over noodles and pile on Toppings!
-"""
-
-
-
-if st.session_state.get('recommended_recipe') is None and recommended_recipe != "":
-    st.session_state['recommended_recipe'] = recommended_recipe
-
-
-
-if not df_nutrient_data.empty and st.session_state.get('recommended_recipe') is not None:
     track_new_meal_tab.info("""
         If this is your first time with us,
         please search for @meal_minder_bot on Telegram and say hi so that we can reach out to you 😉
@@ -325,8 +302,14 @@ if not df_nutrient_data.empty and st.session_state.get('recommended_recipe') is 
         st.session_state['user_telegram_user_name'] = user_telegram_user_name
 
     if st.session_state.get('user_telegram_user_name') is not None:
-        telegram_bot.send_message_to_user_name(
-            user_name=st.session_state.get('user_telegram_user_name'),
-            message=st.session_state.get('recommended_recipe'),
-            layout_position=track_new_meal_tab
-        )
+        print("-----------Running send_message_to_user_name-----------")
+        if st.session_state.get("sending_telegram_message_result") is None:
+            sending_message_result = telegram_bot.send_message_to_user_name(
+                user_name=st.session_state.get('user_telegram_user_name'),
+                message=st.session_state.get('recommended_recipe'),
+                layout_position=track_new_meal_tab
+            )
+            if sending_message_result.get("status") == 200:
+                st.session_state["sending_telegram_message_result"] = sending_message_result
+
+        print("-----------Finished send_message_to_user_name-----------")
