@@ -27,7 +27,6 @@ telegram_bot = TelegramBot(telegram_bot_token=TELEGRAM_BOT_TOKEN)
 logging.basicConfig(level=logging.INFO)
 st.set_page_config(layout='wide')
 authenticator = Authenticator()
-
 with st.sidebar:
     if st.session_state.get('logged_in') is None:
         name, logged_in, username = authenticator.log_in()
@@ -41,7 +40,7 @@ with st.sidebar:
         st.error('Username/password is incorrect')
     with st.sidebar.expander('Register new user'):
         authenticator.register_user_form()
-    
+
 ### TODO: replace this with actual input
 
 #print(st.session_state.get('email'))
