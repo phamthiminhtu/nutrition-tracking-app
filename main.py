@@ -9,6 +9,9 @@ from core.diabetes_assessor import *
 from core.telegram_bot import *
 from core.dish_recommendation import *
 from core.utils import wait_while_condition_is_valid
+from streamlit_option_menu import option_menu
+from streamlit_extras.row import row
+
 
 OPENAI_API_KEY = "OPENAI_API_KEY"
 OPENAI_CLIENT = OpenAI(
@@ -52,22 +55,111 @@ def reset_session_state():
     st.session_state['recommended_recipe'] = None
     st.session_state["sending_telegram_message_result"] = None
 
+# container, grid, row settings
+buff1, maincol, buff2 = st.columns([1,8,1])
+buff1, col5, col10, buff2 = st.columns([1,5,5,1])
+# my_grid = grid(2, [2, 4, 1], 1, 4, vertical_align="bottom")
+# row1 = row(2, vertical_align="center")
 
-main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
+# set main title
+# with maincol, st.container(border=True):
+with maincol:
+    original_title = '<h1 style="font-family: monospace; color:#D44A1A; font-size: 50px;">MealMinder </h1>'
+    st.markdown(original_title, unsafe_allow_html=True)
+# st.markdown(original_title)
+
+# Set the background image
+background_image = """
+<style>
+[data-testid="stAppViewContainer"] > .main {
+    background-image: url("https://i.pinimg.com/originals/57/b5/e2/57b5e2121c57ac65eaff26ef584ecd65.jpg");
+    background-size: 100vw 100vh;  # This sets the size to cover 100% of the viewport width and height
+    background-position: center;  
+    background-repeat: no-repeat;
+}
+</style>
+"""
+st.markdown(background_image, unsafe_allow_html=True)
+###
+
+# st.text_input("", placeholder="Streamlit CSS ")
+
+# input_style = """
+# <style>
+# input[type="text"] {
+#     background-color: transparent;
+#     color: #a19eae;  // This changes the text color inside the input box
+# }
+# div[data-baseweb="base-input"] {
+#     background-color: transparent !important;
+# }
+# [data-testid="stAppViewContainer"] {
+#     background-color: transparent !important;
+# }
+# </style>
+# """
+# st.markdown(input_style, unsafe_allow_html=True)
+
+####
+# with maincol, st.container(height=50, border=True):
+with maincol:
+    main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
+
+# with maincol, st.container(height=80, border=True):    
+#     # horizontal menu
+#     selected = option_menu(
+#         menu_title=None,    
+#         # menu_title="Main Menu",
+#         # menu_title=main_app_miscellaneous.say_hello(user_name=st.session_state['user_name']),
+#         options=["🍔 My Food Tracker", "📖 My Nutrition Intake", "👩‍⚕👨‍⚕ Diabetes Risk Assessment"],
+#         icons=["hamburger","hamburger","hamburger"],
+#         # menu_icon=None,
+#         default_index=0,
+#         orientation="horizontal",
+#         styles={
+#             "container": {},
+#             "icon": {},
+#             "nav-link": {
+#                 "font-size": "13px",
+#                 "text-align": "center",
+#                 "margin": "0px",
+#                 "--hover-colour": "#007932",
+#             },
+#             "nav-link-selected": {"background-colour":"#007932"},
+#         }
+#     )
+
+#columns
+# with buff1:
+# with maincol:
+# # with col5:
+#     if selected == "🍔 My Food Tracker":
+#         st.title(f"What have you eaten today? 😋")
+
+#     if selected == "📖 My Nutrition Intake":
+#         st.title(f"I want to get my nutrition intake history")
+
+#     if selected == "👩‍⚕👨‍⚕ Diabetes Risk Assessment":
+#         st.title(f"Start assessing my diabetes risk")
 
 # Main page with 2 tabs
-track_new_meal_tab, user_recommended_intake_history_tab, assess_diabetes_risk_tab = st.tabs(
-    [":green[Track the food I ate] 🍔", "See my nutrition intake history 📖", "Assess my diabetes risk 👩‍⚕👨‍⚕"]
-)
+# with maincol:
+# with maincol, st.container(height=1000, border=True):
+with maincol, st.container(height=1000,border=True):
+    track_new_meal_tab, user_recommended_intake_history_tab, assess_diabetes_risk_tab = st.tabs(
+        ["🍔 Track the food I ate ", "📖 See my nutrition intake history ", "🩺 Assess my diabetes risk "]
+    )
 
 # 1. Get dish description from user and estimate its ingredients
-dish_description = track_new_meal_tab.text_input("What have you eaten today? 😋").strip()
+# with maincol, st.container(height=1000,border=True):
+dish_description = track_new_meal_tab.text_input("What have you eaten today? 😋", help="Describe your meal taken as best possible.").strip()
 if dish_description != st.session_state.get('dish_description', '###') and dish_description!= '':
     reset_session_state()   # rerun the whole app when user inputs a new dish
     st.session_state['dish_description'] = dish_description
 
 # Flow 3 - 12. User wants to get their historical data
-get_intake_history_button = user_recommended_intake_history_tab.button("I want to get my nutrition intake history")
+# with col5:
+get_intake_history_button = user_recommended_intake_history_tab.button("I want to get my nutrition intake history", type="primary")
 if not st.session_state.get('get_intake_history_button') and get_intake_history_button:
     st.session_state['get_intake_history_button'] = True
 
@@ -86,7 +178,7 @@ if st.session_state.get('get_intake_history_button'):
 
 
 # Diabetes prediction
-assess_diabetes_risk_button = assess_diabetes_risk_tab.button("Start assessing my diabetes risk")
+assess_diabetes_risk_button = assess_diabetes_risk_tab.button("Start assessing my diabetes risk", type="primary")
 if not st.session_state.get('assess_diabetes_risk_button') and assess_diabetes_risk_button:
     st.session_state['assess_diabetes_risk_button'] = True
 
@@ -139,12 +231,13 @@ edited_ingredient_df = main_app_miscellaneous.display_and_let_user_edit_ingredie
     layout_position=track_new_meal_tab
 )
 
+# with maincol, st.container(height=1000, border=True):
 if st.session_state.get('ingredient_df') is not None:
     track_new_meal_tab.write("Press continue to get your nutrition estimation...")
-    if track_new_meal_tab.button(label="Continue", key="confirm_ingredient_weights"):
+    if track_new_meal_tab.button(label="Continue", key="confirm_ingredient_weights", type="primary"):
         st.session_state['confirm_ingredient_weights_button'] = True
 
-wait_while_condition_is_valid((not st.session_state.get('confirm_ingredient_weights_button', False)))
+    wait_while_condition_is_valid((not st.session_state.get('confirm_ingredient_weights_button', False)))
 
 # Wait and let user edit their ingredients until user click confirm_ingredient_weights_button
 st.session_state['ingredient_df'] = edited_ingredient_df
@@ -256,7 +349,7 @@ if st.session_state.get('dish_recommend_user_input'):
     logging.info("Finished reading user preferences for the dish recommendation..")
 
     logging.info("Recommending dish to the user based on the given preferences.")
-    if track_new_meal_tab.button("Recommend Dish"):
+    if track_new_meal_tab.button("Recommend Dish", type="primary"):
         recommended_dish = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
         track_new_meal_tab.write(recommended_dish)
         st.session_state['recommended_recipe'] = recommended_dish
@@ -291,3 +384,4 @@ if st.session_state.get('recommended_recipe') is not None:
                 st.session_state["sending_telegram_message_result"] = sending_message_result
 
         print("-----------Finished send_message_to_user_name-----------")
+
