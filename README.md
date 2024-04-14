@@ -8,13 +8,18 @@ High level design: [link](https://lucid.app/lucidchart/43f83c16-c313-422e-9fc5-f
     - https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key
 
 # INTERNAL - Clone this repo to your Git profile
-`git clone --mirror git@github.com:phamthiminhtu/ilab.git <your-git-repo>`
+These commands "mirror" (Git's term) the ilab repo on phamthiminhtu profile to your profile which makes it possible for you to show off your work. They help preserve all git history in `git@github.com:phamthiminhtu/ilab.git` repo. In other words, show what you have contributed (committed).
 
-`cd <your-git-repo>`
 
-`git push --mirror <your-git-repo>`
+`git clone --mirror git@github.com:phamthiminhtu/ilab.git <your-git-repo-name>`
 
-Where `<your-git-repo>` is the URL of new (empty) repo in your Git profile you want to clone to.
+`cd <your-git-repo-name>`
+
+`git push --mirror <your-git-repo-url>`
+
+Where:
+* `<your-git-repo-name>` is the **name** of the repo. E.g: `cloned-ilab`
+* `<your-git-repo-url>` is the **URL** of new (empty) repo in your Git profile you want to clone to. E.g: `git@github.com:phamthiminhtu/cloned-ilab.git`
 
 [Ref: stackoverflow](https://stackoverflow.com/questions/17371150/moving-git-repository-content-to-another-repository-preserving-history#:~:text=If%20you%27re%20looking%20to%20preserve%20the%20existing%20branches%20and%20commit%20history%2C%20here%27s%20one%20way%20that%20worked%20for%20me.)
 
