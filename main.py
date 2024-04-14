@@ -7,7 +7,7 @@ from core.main_app_miscellaneous import *
 from core.calculate_nutrient_intake import NutrientMaster
 from core.diabetes_assessor import *
 from core.telegram_bot import *
-from core.auth import *
+from core.auth import Authenticator
 from core.dish_recommendation import *
 from core.utils import wait_while_condition_is_valid
 
@@ -26,38 +26,47 @@ telegram_bot = TelegramBot(telegram_bot_token=TELEGRAM_BOT_TOKEN)
 
 logging.basicConfig(level=logging.INFO)
 logging.root.setLevel(logging.NOTSET)
-st.set_page_config(layout='wide')
+st.set_page_config(layout='wide', page_icon='image/picture_1.png')
+
 authenticator = Authenticator()
+with st.popover("Log in 🙋‍♀️"):
+    if st.session_state.get('is_logged_in') is None:
+        name, authentication_status, username = authenticator.user_login()
+        
+        if authentication_status == True:
+            st.session_state["name"], st.session_state["is_logged_in"], st.session_state["user_name"] = name, authentication_status, username
+        else:
+            st.session_state["name"] = None
+            st.session_state["is_logged_in"] = None
+            st.session_state["user_name"] = None
 
 with st.sidebar:
-    if st.session_state.get('logged_in') is None:
-        name, logged_in, username = authenticator.log_in()
-        if logged_in:
-            st.session_state["name"], st.session_state["logged_in"], st.session_state["username"] = name,logged_in,username
-    if st.session_state.get('logged_in') and st.sidebar.button('Logout'):
-        st.session_state['logged_in'] = None
-        st.session_state['name']=None
-        st.session_state['username']=None
-    elif st.session_state.get("logged_in") is False:
-        st.error('Username/password is incorrect')
-    with st.sidebar.expander('Register new user'):
-        authenticator.register_user_form()
-    
+    st.image("image/picture_1.png", use_column_width=True)
+    authenticator.new_user_registration()
+
+st.session_state['user_id'] = st.session_state.get("user_name")
+
+# with st.sidebar:
+#     if st.session_state.get('logged_in') is None:
+#         name, logged_in, username = authenticator.log_in()
+#         if logged_in:
+#             st.session_state["name"], st.session_state["logged_in"], st.session_state["username"] = name,logged_in,username
+#     if st.session_state.get('logged_in') and st.sidebar.button('Logout'):
+#         st.session_state['logged_in'] = None
+#         st.session_state['name']=None
+#         st.session_state['username']=None
+#     elif st.session_state.get("logged_in") is False:
+#         st.error('Username/password is incorrect')
+#     with st.sidebar.expander('Register new user'):
+#         authenticator.register_user_form()
+
+
 ### TODO: replace this with actual input
 
-#print(st.session_state.get('email'))
-st.session_state['is_logged_in'] = st.session_state.get("logged_in")
-st.session_state['user_name'] = st.session_state.get("username")
-#print(authenticator.get_user_id(st.session_state.get('username')))
-st.session_state['user_id'] = st.session_state.get("username")
-# user_name = None
-# user_id = "abc"
-#st.session_state['user_id'] = "tu_4@gmail.com"
-# st.session_state["user_id"] = None
-
-# st.session_state['is_logged_in'] = True
-# st.session_state['user_name'] = "Ardy"
-# st.session_state['user_id'] = "ardy@uts"
+# #print(st.session_state.get('email'))
+# st.session_state['is_logged_in'] = st.session_state.get("logged_in")
+# st.session_state['user_name'] = st.session_state.get("username")
+# #print(authenticator.get_user_id(st.session_state.get('username')))
 
 def reset_session_state():
     st.session_state['dish_description'] = None
