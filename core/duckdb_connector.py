@@ -11,7 +11,7 @@ from core.sql.user_authentication import *
 
 USER_NUTRIENT_INTAKE_HISTORY_TABLE_ID = "ilab.main.user_nutrient_intake_history"
 USER_DAILY_RECOMMENDED_INTAKE_HISTORY_TABLE_ID = "ilab.main.user_daily_recommended_intake_history"
-USER_PROFILES_TABLE_ID = "ilab.main.users"
+USER_PROFILES_TABLE_ID = "ilab.main.user_details"
 
 class DuckdbConnector:
 
@@ -159,12 +159,12 @@ class DuckdbConnector:
         query_template = self.jinja_environment.from_string(
             """
                 SELECT
-                    user_id,
+                    username,
                     MAX(gender),
                     MAX(age)
                 FROM {{ table_id }}
-                WHERE user_id = '{{ user_id }}'
-                GROUP BY user_id
+                WHERE username = '{{ user_id }}'
+                GROUP BY username
             """
         )
         query = query_template.render(
@@ -179,6 +179,7 @@ class DuckdbConnector:
                 "gender": result[0][1],
                 "age": result[0][2]
             }
+
         return user_personal_data
     @handle_exception(has_random_message_printed_out=True)
     def fetch_users(self):
