@@ -126,8 +126,8 @@ class DishRecommender:
                     recommended_dish_ingredients[ingredients_name] = float(weight)
             except Exception as e:
                 pass
-
-        df_recommended_dish_ingredients = pd.DataFrame(recommended_dish_ingredients.items(), columns=['Ingredient', 'Estimated weight (g)'])
+        if recommended_dish_ingredients:
+            df_recommended_dish_ingredients = pd.DataFrame(recommended_dish_ingredients.items(), columns=['Ingredient', 'Estimated weight (g)'])
         return df_recommended_dish_ingredients
     
     logging.info("End of the function call to retrieve recommended dish ingredients.")
@@ -158,5 +158,8 @@ class DishRecommender:
         
         # Displaying the graph nutirents after the dish recommendation
         # users_recommended_intake_chart(df_computed_recommended_nutrients, layout_position=layout_position)
+        logging.info("End of the function call to calculate and display the total nutrients after the dish recommendation.")
+        
+        return df_computed_recommended_nutrients
 
-    logging.info("End of the function call to calculate and display the total nutrients after the dish recommendation.")
+        
