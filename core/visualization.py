@@ -4,7 +4,6 @@ import streamlit as st
 import pandas as pd
 
 def users_recommended_intake_chart(df, layout_position=st):
-
     # Set max intake difference percentage to 100
     #df.loc[df['Actual intake / Recommended intake (%)'] > 100, 'Actual intake / Recommended intake (%)'] = 100
     df['Intake Display'] = df['Actual intake / Recommended intake (%)'].clip(upper=100)
@@ -28,10 +27,6 @@ def users_recommended_intake_chart(df, layout_position=st):
 
     # Show graph
     layout_position.altair_chart(base)
-
-
-
-
 
 def user_historical_hexbin_chart(df, layout_position):
     # Convert 'record_date' to datetime and extract 'dd-mm' format for plotting
@@ -82,16 +77,6 @@ def user_historical_hexbin_chart(df, layout_position):
 
     # Show the chart in the specified layout position
     layout_position.altair_chart(hexbin)
-
-
-
-
-
-
-
-
-
-
 
 
 
