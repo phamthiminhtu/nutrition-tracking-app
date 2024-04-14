@@ -351,14 +351,6 @@ class MainAppMiscellaneous:
             return edited_df
 
     @handle_exception(has_random_message_printed_out=True)
-    def display_user_intake_df(self, user_intake_df, layout_position=st):
-        if isinstance(user_intake_df, pd.DataFrame):
-            user_intake_df = user_intake_df.rename(columns={
-                "actual_intake": "Actual Intake",
-            })
-            # layout_position.dataframe(user_intake_df[["Nutrient", "Actual Intake"]].style.format({"Actual Intake": "{:.1f}"}))
-
-    @handle_exception(has_random_message_printed_out=True)
     def compare_and_return_the_smaller_date(
         self,
         date_input_1: datetime.datetime.date,
