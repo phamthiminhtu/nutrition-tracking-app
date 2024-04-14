@@ -195,3 +195,40 @@ class NutrientMaster:
         final_df["dish_description"] = final_df["dish_description"].fillna(ingredients_from_user["dish_description"].iloc[0])
 
         return final_df
+
+    @handle_exception(funny_message="Your meal is exceptionally distinctive, and we may need to reconsider how to calculate its nutrient contents. Please visit us again later.")
+    def get_recommended_dish_nutrients(self, recommended_dish_ingredients, layout_position=st) -> pd.DataFrame:
+
+        #layout_position.write("Just one moment, we are doing the science 😎 ...")
+
+        # Extract total nutrients in high match score ingredients and tranpose the result
+        df_database = self.sum_total_nutrients_in_high_match_score_ingredients(recommended_dish_ingredients[["Ingredient", "Estimated weight (g)"]], min_match_score=55)
+        transposed_df_database = self._transpose_and_reformat_dataframe(df_database)
+
+        # Extract total nutrients in low match score ingredients
+        df_openai = self.calculate_total_nutrients_for_low_match_ingredients_using_openai(recommended_dish_ingredients[["Ingredient", "Estimated weight (g)"]])
+        
+        try:
+            # Calculate total nutrients from high and low match score ingredients
+            final_df = pd.concat([transposed_df_database, df_openai], axis=1)
+            final_df["actual_intake"] = final_df["total_database"] + final_df["total_openai"]
+
+            # Drop unused columns
+            final_df.drop(["total_database", "Nutrient_openai", "total_openai"], axis=1, inplace=True)
+
+            # Convert nutrient values into float
+            final_df["actual_intake"] = final_df["actual_intake"].astype(float).round(1)
+
+            logger.info("Successfully ran low match ingredients through OpenAI")
+        
+        except:
+            logger.error("Something went wrong with OpenAI, recalculating all ingredients' nutrients using internal database")
+
+            # Something went wrong with OpenAI prompt, recalculate using internal database only
+            df_database = self.sum_total_nutrients_in_high_match_score_ingredients(recommended_dish_ingredients[["Ingredient", "Estimated weight (g)"]], min_match_score=40)
+            final_df = self._transpose_and_reformat_dataframe(df_database)
+            final_df.rename(columns={"total_database": "actual_intake"}, inplace=True)
+
+        logger.info("Finished calculating recommended dish nutrients based on the ingredients and its weight")
+
+        return final_df

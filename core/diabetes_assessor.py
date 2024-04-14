@@ -135,61 +135,61 @@ class DiabetesAssessor:
             value=None,
             placeholder="Type a number..."
         )
-        is_smoker = form.selectbox(
+        is_smoker = form.radio(
             "🚬 Have you smoked at least 100 cigarettes in your entire life?",
             ("No", 'Yes'),
             help="Note: 5 packs = 100 cigarettes",
             index=None,
-            placeholder="Select your answer..."
+            horizontal=True
         )
 
         if gender == "female":
-            is_heavy_alcohol_consumer = form.selectbox(
+            is_heavy_alcohol_consumer = form.radio(
                 "🍺 Do you have more than 7 alcoholic drinks per week?",
                 ("No", 'Yes'),
                 index=None,
-                placeholder="Select your answer..."
+                horizontal=True
             )
         else:
-            is_heavy_alcohol_consumer = form.selectbox(
+            is_heavy_alcohol_consumer = form.radio(
                 "🍺 Do you have more than 14 alcoholic drinks per week?",
                 ("No", 'Yes'),
                 index=None,
-                placeholder="Select your answer..."
+                horizontal=True
             )
 
-        has_physical_activity = form.selectbox(
+        has_physical_activity = form.radio(
             "🏃‍♀️🏃 Do you have any physical activity in the past 30 days?",
             ("No", 'Yes'),
             index=None,
-            placeholder="Select your answer..."
+            horizontal=True
         )
 
-        has_stroke = form.selectbox(
+        has_stroke = form.radio(
             "🌪 Have you (ever told) had a stroke?",
             ("No", 'Yes'),
             index=None,
-            placeholder="Select your answer..."
+            horizontal=True
         )
-        has_heart_disease = form.selectbox(
+        has_heart_disease = form.radio(
             "🫀 Do you have coronary heart disease or myocardial infarction?",
             ("No", 'Yes'),
             index=None,
-            placeholder="Select your answer..."
+            horizontal=True
         )
 
-        has_cholesterol_check = form.selectbox(
+        has_cholesterol_check = form.radio(
             "👩‍⚕👨‍⚕ Have you checked your cholesterol in the past 5 years?",
             ("No", 'Yes'),
             index=None,
-            placeholder="Select your answer..."
+            horizontal=True
         )
 
-        overall_health = form.selectbox(
+        overall_health = form.radio(
             "🥇🥈🥉 Please rate your overall health",
             ('Excellent', 'Very good', 'Good', 'Fair', 'Poor'),
             index=None,
-            placeholder="Select your answer..."
+            horizontal=True
         )
 
         submitted = form.form_submit_button("Submit")

@@ -202,11 +202,11 @@ class MainAppMiscellaneous:
             "status": 200,
             "login_or_create_account": "No"
         }
-        has_historical_data_saved = layout_position.selectbox(
+        has_historical_data_saved = layout_position.radio(
             "Do you want to save this meal info?",
             ("Yes", 'No'),
             index=None,
-            placeholder="Select your answer..."
+            horizontal=True
         )
         # wait until user inputs
         wait_while_condition_is_valid((has_historical_data_saved is None))
