@@ -14,7 +14,7 @@ High level design: [link](https://lucid.app/lucidchart/43f83c16-c313-422e-9fc5-f
 
 `git push --mirror <your-git-repo>`
 
-Where <your-git-repo> is the URL of new (empty) repo in your Git profile you want to clone to.
+Where `<your-git-repo>` is the URL of new (empty) repo in your Git profile you want to clone to.
 
 [Ref: stackoverflow](https://stackoverflow.com/questions/17371150/moving-git-repository-content-to-another-repository-preserving-history#:~:text=If%20you%27re%20looking%20to%20preserve%20the%20existing%20branches%20and%20commit%20history%2C%20here%27s%20one%20way%20that%20worked%20for%20me.)
 
