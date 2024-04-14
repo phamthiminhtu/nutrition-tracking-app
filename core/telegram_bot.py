@@ -88,11 +88,17 @@ class TelegramBot:
         layout_position
     ) -> None:
         user_name_trim = user_name.strip()
+        layout_position.write("Sending you the awesome recipe 🥘 ...")
         chat_id_info = self.get_new_chat_ids_from_user_names(
             user_names=[user_name_trim]
         )
+        sending_message_result_dict = {"status": 200}
         if chat_id_info.get("status") == 200:
             chat_id = chat_id_info.get("value").get(user_name_trim)
             sending_message_result = self.send_telegram_message(chat_id=chat_id, message=message)
+            sending_message_result_dict["sending_message_result"] = sending_message_result
             if sending_message_result:
                 layout_position.write(sending_message_result)
+            else:
+                layout_position.write("We couldn't send the recipe 😞 Double check your Telegram user name or try again later")
+        return sending_message_result_dict
