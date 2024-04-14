@@ -7,6 +7,7 @@ import logging
 import streamlit as st
 from core.openai_api import *
 from core.visualization import *
+from core.utils import handle_exception
 
 # Setting up logging
 logger = logging.getLogger(__name__)
@@ -25,6 +26,7 @@ class DishRecommender:
         self.openai_api = OpenAIAssistant(openai_client=openai_client)
 
     logging.info("Function call to retrieve nutrient intake information.")
+    @handle_exception(has_random_message_printed_out=True)
     def retrieve_nutrient_intake_info(self, user_recommended_intake_result):
         """
             Collecting the nutrient, daily_recommended_intake, and its measurement information. 
@@ -40,6 +42,7 @@ class DishRecommender:
 
 
     logging.info("Function call to read user preferences for dish recommendation.")
+    @handle_exception(has_random_message_printed_out=True)
     def get_user_input(self, layout_position):
         """
             Takes input from the user for Cuisine, Ingredients, and if any Allergies.
@@ -63,6 +66,7 @@ class DishRecommender:
 
     
     logging.info("Function call for dish recommendation.")
+    @handle_exception(has_random_message_printed_out=True)
     def get_dish_recommendation(self, nutrient_info, cuisine, ingredients, allergies):
         """
             Provides dish recommendations based on the given user preferences using the OpenAI API.
@@ -112,6 +116,7 @@ class DishRecommender:
 
 
     logging.info("Function call to retrieve recommended dish ingredients.")
+    @handle_exception(has_random_message_printed_out=True)
     def get_recommended_dish_ingredients(self, recommended_dish):
         """
             Retrieve ingredients of the recommended dish.
@@ -134,6 +139,7 @@ class DishRecommender:
 
 
     logging.info("Function call to calculate and display the total nutrients after the dish recommendation.")
+    @handle_exception(has_random_message_printed_out=True)
     def get_total_nutrients_after_dish_recommend(self, earlier_nutrients_intake, recommended_dish_nutrients, layout_position):
         """
             Calculates and displays the total nutrients after the dish recommendation.
