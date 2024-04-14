@@ -124,7 +124,7 @@ class Authenticator:
 
         # Sign up page
         with layout_position.expander("Sign up"):
-            with st.form('Sign up'):    
+            with st.form('Sign up',clear_on_submit=True):    
 
                 # Extract user information
                 username = st.text_input('Username')
