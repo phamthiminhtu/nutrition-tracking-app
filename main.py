@@ -263,7 +263,7 @@ if st.session_state.get('dish_recommend_user_input'):
 
     logging.info("Recommending dish to the user based on the given preferences.")
     if track_new_meal_tab.button("Recommend Dish"):
-
+        track_new_meal_tab.write("🍱🥗🥪 Bringing an awesome recipe to you ...")
         if st.session_state.get('recommended_recipe') is None:
             recommended_recipe = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
             st.session_state['recommended_recipe'] = recommended_recipe
