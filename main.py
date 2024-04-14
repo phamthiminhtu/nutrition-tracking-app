@@ -195,11 +195,6 @@ if st.session_state.get('total_nutrients_based_on_food_intake') is None:
 
 wait_while_condition_is_valid((st.session_state.get('total_nutrients_based_on_food_intake') is None))
 
-main_app_miscellaneous.display_user_intake_df(
-    user_intake_df=st.session_state['total_nutrients_based_on_food_intake'],
-    layout_position=track_new_meal_tab
-)
-
 # 3. Check user's log in status
 # @Nyan
 # TODO: create the a table storing user's personal data: age, gender etc.
