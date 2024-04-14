@@ -8,6 +8,9 @@ High level design: [link](https://lucid.app/lucidchart/43f83c16-c313-422e-9fc5-f
     - https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key
 
 # INTERNAL - Clone this repo to your Git profile
+These commands "mirror" (Git's term) the ilab repo on phamthiminhtu profile to your profile which makes it possible for you to show off your work. They help preserve all git history in `git@github.com:phamthiminhtu/ilab.git` repo. In other words, show what you have contributed (committed).
+
+
 `git clone --mirror git@github.com:phamthiminhtu/ilab.git <your-git-repo-name>`
 
 `cd <your-git-repo-name>`
