@@ -7,6 +7,18 @@ create_user_profiles_query = """
         password STRING
     );
 """
+
+create_user_profiles_query_2nd_version = """
+    CREATE OR REPLACE TABLE ilab.main.user_details (
+        username VARCHAR,
+        name STRING,
+        email STRING,
+        age INTEGER,
+        gender STRING,
+        password VARCHAR
+    );
+"""
+
 fetch_users_query = """
     SELECT username, user_id, password FROM {{table_id}}
 """
@@ -57,3 +69,30 @@ register_new_user_query = """
         SELECT * FROM records_to_insert
     );
 """
+
+register_new_user_query_2nd_version = """
+    INSERT INTO {{ table_id }}
+        (WITH raw AS (
+            SELECT
+                $username AS username,
+                $name AS name,
+                $email AS email,
+                $age AS age,
+                $gender AS gender,
+                $password AS password
+        ),
+        source AS (
+            SELECT
+            CAST(username AS STRING) AS username,
+            CAST(name AS STRING) AS name,
+            CAST(email AS VARCHAR) as email,
+            CAST(age as INTEGER) AS age,
+            CAST(gender as STRING) AS gender,
+            CAST(password as VARCHAR) AS password
+        
+        FROM raw
+        )
+        SELECT *
+        FROM source
+    );
+            """
