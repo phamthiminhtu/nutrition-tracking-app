@@ -23,6 +23,7 @@ DIABETES_MODEL_PATH = "core/ml_models/diabetes_random_forest_model.sav"
 main_app_miscellaneous = MainAppMiscellaneous(openai_client=OPENAI_CLIENT)
 diabetes_assessor = DiabetesAssessor(model_path=DIABETES_MODEL_PATH)
 telegram_bot = TelegramBot(telegram_bot_token=TELEGRAM_BOT_TOKEN)
+Nutrient = NutrientMaster(openai_client=OPENAI_CLIENT)
 
 logging.basicConfig(level=logging.INFO)
 logging.root.setLevel(logging.NOTSET)
@@ -80,7 +81,12 @@ def reset_session_state():
     st.session_state['has_fruit_and_veggie_intake'] = True
     st.session_state['save_meal_result'] = None
     st.session_state['user_telegram_user_name'] = None
+    st.session_state['dish_recommend'] = False
     st.session_state['recommended_recipe'] = None
+    st.session_state['recommended_dish_name'] = None
+    st.session_state['recommended_dish_ingredients'] = None
+    st.session_state['recommended_dish_nutrients'] = None
+    st.session_state["df_computed_recommended_nutrients"] = None
     st.session_state["sending_telegram_message_result"] = None
 
 
@@ -182,7 +188,6 @@ st.session_state['ingredient_df'] = edited_ingredient_df
 
 # # 2-3. Nutrient actual intake
 if st.session_state.get('total_nutrients_based_on_food_intake') is None:
-    Nutrient = NutrientMaster(openai_client=OPENAI_CLIENT)
     total_nutrients_based_on_food_intake = Nutrient.total_nutrients_based_on_food_intake(
                                             ingredients_from_user=st.session_state['ingredient_df'],
                                             layout_position=track_new_meal_tab
@@ -190,11 +195,6 @@ if st.session_state.get('total_nutrients_based_on_food_intake') is None:
     st.session_state['total_nutrients_based_on_food_intake'] = total_nutrients_based_on_food_intake
 
 wait_while_condition_is_valid((st.session_state.get('total_nutrients_based_on_food_intake') is None))
-
-main_app_miscellaneous.display_user_intake_df(
-    user_intake_df=st.session_state['total_nutrients_based_on_food_intake'],
-    layout_position=track_new_meal_tab
-)
 
 # 3. Check user's log in status
 # @Nyan
@@ -276,10 +276,11 @@ nutrient_info = dishrecommend.retrieve_nutrient_intake_info(user_recommended_int
 logging.info("Finished collecting the nutrient intake information for the dish recommendation.")
 
 # Asking the user if they want dish recommendation
-dish_recommend_user_input = track_new_meal_tab.selectbox("Do you want a dish recommendation?", ["Yes", "No"])
-if not st.session_state.get('dish_recommend_user_input') and dish_recommend_user_input:
+dish_recommend_user_input = track_new_meal_tab.radio("🍽️🥘 Do you want a dish recommendation?", ["Yes", "No"], index=None, horizontal=True)
+if dish_recommend_user_input is not None:
     st.session_state['dish_recommend_user_input'] = True
- # If user selected "Yes", calling the dish recommendation function
+
+# If user selected "Yes", calling the dish recommendation function
 if st.session_state.get('dish_recommend_user_input'):
 
     logging.info("Checking user preferences for cuisine, allergies, if any leftover ingredients.")
@@ -288,10 +289,33 @@ if st.session_state.get('dish_recommend_user_input'):
 
     logging.info("Recommending dish to the user based on the given preferences.")
     if track_new_meal_tab.button("Recommend Dish"):
-        recommended_dish = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
-        track_new_meal_tab.write(recommended_dish)
-        st.session_state['recommended_recipe'] = recommended_dish
+        track_new_meal_tab.write("🍱🥗🥪 Bringing an awesome recipe to you ...")
+        if st.session_state.get('recommended_recipe') is None:
+            recommended_recipe = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
+            st.session_state['recommended_recipe'] = recommended_recipe
+
+        if st.session_state.get('recommended_dish_ingredients') is None:
+            recommended_dish_ingredients = dishrecommend.get_recommended_dish_ingredients(st.session_state['recommended_recipe'])
+            st.session_state['recommended_dish_ingredients'] = recommended_dish_ingredients
     logging.info("Finished dish recommendation based on the user preferences.")
+
+    wait_while_condition_is_valid(condition=(st.session_state.get('recommended_dish_ingredients') is None))
+
+    logging.info("Collecting the nutrients of the recommended dish.")
+    if st.session_state.get('recommended_dish_nutrients') is None:
+        recommended_dish_nutrients = Nutrient.get_recommended_dish_nutrients(st.session_state['recommended_dish_ingredients'], layout_position=track_new_meal_tab)
+        st.session_state["recommended_dish_nutrients"] = recommended_dish_nutrients
+    logging.info("End of collecting the nutrients of the recommended dish.")
+
+
+# Displaying the recommended dish recipe
+if st.session_state.get('recommended_recipe') is not None:
+    track_new_meal_tab.write(st.session_state['recommended_recipe'])
+    logging.info("Calculating and displaying the total nutrients after the dish recommendation.")
+    if st.session_state.get('df_computed_recommended_nutrients') is None:
+        df_computed_recommended_nutrients = dishrecommend.get_total_nutrients_after_dish_recommend(user_recommended_intake_result, st.session_state['recommended_dish_nutrients'], track_new_meal_tab)
+        st.session_state["df_computed_recommended_nutrients"] = df_computed_recommended_nutrients
+    logging.info("End of calculating and displaying the total nutrients after the dish recommendation.")
 
 wait_while_condition_is_valid(condition=(st.session_state.get('recommended_recipe') is None))
 
