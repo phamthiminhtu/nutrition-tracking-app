@@ -47,28 +47,6 @@ with st.sidebar:
 
 st.session_state['user_id'] = st.session_state.get("user_name")
 
-# with st.sidebar:
-#     if st.session_state.get('logged_in') is None:
-#         name, logged_in, username = authenticator.log_in()
-#         if logged_in:
-#             st.session_state["name"], st.session_state["logged_in"], st.session_state["username"] = name,logged_in,username
-#     if st.session_state.get('logged_in') and st.sidebar.button('Logout'):
-#         st.session_state['logged_in'] = None
-#         st.session_state['name']=None
-#         st.session_state['username']=None
-#     elif st.session_state.get("logged_in") is False:
-#         st.error('Username/password is incorrect')
-#     with st.sidebar.expander('Register new user'):
-#         authenticator.register_user_form()
-
-
-### TODO: replace this with actual input
-
-# #print(st.session_state.get('email'))
-# st.session_state['is_logged_in'] = st.session_state.get("logged_in")
-# st.session_state['user_name'] = st.session_state.get("username")
-# #print(authenticator.get_user_id(st.session_state.get('username')))
-
 def reset_session_state():
     st.session_state['dish_description'] = None
     st.session_state['ingredient_df'] = None
