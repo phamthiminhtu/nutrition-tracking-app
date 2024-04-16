@@ -169,6 +169,7 @@ class MainAppMiscellaneous:
             user_recommended_intake_df = self.get_user_recommended_intake(
                 user_intake_df_temp_name=user_intake_df_temp_name
             )
+
             user_recommended_intake_df_to_show = user_recommended_intake_df.copy()
             user_recommended_intake_df_to_show = user_recommended_intake_df_to_show.rename(columns=USER_INTAKE_COLUMNS_DICT)
             columns_to_show = USER_INTAKE_COLUMNS_DICT.values()
