@@ -1,5 +1,4 @@
 import json
-from openai import OpenAI
 import pandas as pd
 import streamlit as st
 from core.utils import handle_exception
