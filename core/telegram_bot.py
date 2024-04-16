@@ -48,11 +48,16 @@ class TelegramBot:
 
             if len(user_name_chat_id_map.values()) == len(user_names):
                 break
-
-        result = {
-            "status": 200,
-            "value": user_name_chat_id_map
-        }
+        if user_name_chat_id_map:
+            result = {
+                "status": 200,
+                "value": user_name_chat_id_map
+            }
+        else:
+            result = {
+                "status": 400,
+                "value": "User has not interacted with the bot"
+            }
 
         return result
 
@@ -165,9 +170,10 @@ class TelegramBot:
         logging.info("------Running send_message_to_user_name------")
         user_name_trim = user_name.strip()
         layout_position.write("Sending you the awesome recipe 🥘 ...")
-        chat_id = int(self.get_chat_id(user_name=user_name_trim))
+        chat_id = self.get_chat_id(user_name=user_name_trim)
         sending_message_result_dict = {"status": 0}
         if chat_id:
+            chat_id = int(chat_id)
             sending_message_result = self.send_telegram_message(chat_id=chat_id, message=message)
             sending_message_result_dict["sending_message_result"] = sending_message_result
             if sending_message_result:
