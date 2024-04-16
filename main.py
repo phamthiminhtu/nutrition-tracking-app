@@ -57,34 +57,33 @@ def reset_session_state():
     st.session_state["sending_telegram_message_result"] = None
 
 # container, grid, row settings
-# buff1, maincol, buff2 = st.columns([1,8,1])
+buff1, maincol, buff2 = st.columns([1,8,1])
 # buff1, col5, col10, buff2 = st.columns([1,5,5,1])
 # my_grid = grid(2, [2, 4, 1], 1, 4, vertical_align="bottom")
 # row1 = row(2, vertical_align="center")
 
-# set main title
-# with maincol, st.container(border=True):
-# with maincol:
-original_title = '<h1 style="font-family: monospace; color:#D44A1A; font-size: 75px;">MealMinder </h1>'
-st.markdown(original_title, unsafe_allow_html=True)
-# st.markdown(original_title)
+# Set the Main title
+with maincol:
+    original_title = '<h1 style="font-family: monospace; color:#D44A1A; font-size: 75px;">MealMinder </h1>'
+    st.markdown(original_title, unsafe_allow_html=True)
 
-# Set the background image
+# Set the Background image
 background_image = """
 <style>
 [data-testid="stAppViewContainer"] > .main {
     background-image: url("https://i.pinimg.com/originals/57/b5/e2/57b5e2121c57ac65eaff26ef584ecd65.jpg");
-    background-size: 100vw 100vh;  # This sets the size to cover 100% of the viewport width and height
+    background-size: cover;
+    # background-size: 100% 100%;
+    # background-size: 100vw 100vh;  # This sets the size to cover 100% of the viewport width and height
     background-position: center;  
-    background-repeat: no-repeat;
+    # background-repeat: no-repeat;
 }
 </style>
 """
 st.markdown(background_image, unsafe_allow_html=True)
+
 ###
-
 # st.text_input("", placeholder="Streamlit CSS ")
-
 # input_style = """
 # <style>
 # input[type="text"] {
@@ -100,31 +99,28 @@ st.markdown(background_image, unsafe_allow_html=True)
 # </style>
 # """
 # st.markdown(input_style, unsafe_allow_html=True)
-
 ####
-# with maincol, st.container(height=50, border=True):
-# with maincol:
-main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
+
+with maincol:
+    main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
+    # intro_message = main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
 
 # Main page with 2 tabs
-# with maincol:
-# with maincol, st.container(height=1000, border=True):
-# with st.container(height=1000,border=True):
-track_new_meal_tab, user_recommended_intake_history_tab, assess_diabetes_risk_tab = st.tabs(
-    ["🍔 Track the food I ate ", "📖 See my nutrition intake history ", "🩺 Assess my diabetes risk "]
+with maincol:
+    track_new_meal_tab, user_recommended_intake_history_tab, assess_diabetes_risk_tab = st.tabs(
+        ["🍔 Track the food I ate ", "📖 See my nutrition intake history ", "🩺 Assess my diabetes risk "]
 )
 
 # 1. Get dish description from user and estimate its ingredients
-
 with track_new_meal_tab:
-    estimated_ingredient_container = st.container(border=True)
+    estimated_ingredient_container = st.expander(":orange[**1. Today's Meal**]")
+    # estimated_ingredient_container = st.container(border=True)
     dish_description = estimated_ingredient_container.text_input("What have you eaten today? 😋", help="Describe your meal taken as best possible.").strip()
     if dish_description != st.session_state.get('dish_description', '###') and dish_description!= '':
         reset_session_state()   # rerun the whole app when user inputs a new dish
         st.session_state['dish_description'] = dish_description
 
 # Flow 3 - 12. User wants to get their historical data
-# with col5:
 get_intake_history_button = user_recommended_intake_history_tab.button("I want to get my nutrition intake history", type="primary")
 if not st.session_state.get('get_intake_history_button') and get_intake_history_button:
     st.session_state['get_intake_history_button'] = True
@@ -198,7 +194,6 @@ with track_new_meal_tab:
         layout_position=estimated_ingredient_container
     )
 
-# with , st.container(height=1000, border=True):
 with track_new_meal_tab:
     if st.session_state.get('ingredient_df') is not None:
         estimated_ingredient_container.write("Press continue to get your nutrition estimation...")
@@ -256,7 +251,8 @@ if st.session_state.get('user_personal_data') is None:
 # Only run when we have user_personal_data
 # @Tu
 with track_new_meal_tab:
-    nutrient_intake_chart_container = st.container(border=True)
+    nutrient_intake_chart_container = st.expander(":orange[**2. Your Nutrient Intake Today**]")
+    # nutrient_intake_chart_container = st.container(border=True)
     logging.info("-----------Running combine_and_show_users_recommended_intake()-----------")
     user_recommended_intake_result = main_app_miscellaneous.combine_and_show_users_recommended_intake(
         user_personal_data=st.session_state['user_personal_data'],
@@ -269,7 +265,8 @@ with track_new_meal_tab:
 # # 6. @Michael
 # # Visualize data
 with track_new_meal_tab:
-    consumuption_date_save_info_container = st.container(border=True)
+    # consumuption_date_save_info_container = st.container(border=True)
+    consumuption_date_save_info_container = st.expander(":orange[**3. Start Meal Tracking**]")
     meal_record_date = main_app_miscellaneous.get_meal_record_date(
         layout_position=consumuption_date_save_info_container,
         has_user_intake_df_temp_empty=has_user_intake_df_temp_empty
@@ -310,7 +307,8 @@ logging.info("Finished collecting the nutrient intake information for the dish r
 
 # Asking the user if they want dish recommendation
 with track_new_meal_tab:
-    dish_recommendation_preference_container = st.container(border=True)
+    # dish_recommendation_preference_container = st.container(border=True)
+    dish_recommendation_preference_container = st.expander(":orange[**4. Your Next Dish Preferences**]")
     dish_recommend_user_input = dish_recommendation_preference_container.selectbox("Do you want a dish recommendation?", ["Yes", "No"])
     if not st.session_state.get('dish_recommend_user_input') and dish_recommend_user_input:
         st.session_state['dish_recommend_user_input'] = True
@@ -323,7 +321,8 @@ with track_new_meal_tab:
 
         logging.info("Recommending dish to the user based on the given preferences.")
         if dish_recommendation_preference_container.button("Recommend Dish", type="primary"):
-            dish_recommendation_output_container = st.container(border=True)
+            # dish_recommendation_output_container = st.container(border=True)
+            dish_recommendation_output_container = st.expander(":orange[**5. MealMinder's Dish Recommendation**]")
             recommended_dish = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
             dish_recommendation_output_container.write(recommended_dish)
             st.session_state['recommended_recipe'] = recommended_dish
@@ -332,12 +331,12 @@ with track_new_meal_tab:
     wait_while_condition_is_valid(condition=(st.session_state.get('recommended_recipe') is None))
 
     if st.session_state.get('recommended_recipe') is not None:
-
-        dish_recommendation_output_container .info("""
+        telegram_container = st.expander(":orange[**6. Dish Receipe Sent To Your Phone With Telegram**]")
+        telegram_container.info("""
             If this is your first time with us,
             please search for @meal_minder_bot on Telegram and say hi so that we can reach out to you 😉
         """)
-        user_telegram_user_name = dish_recommendation_output_container .text_input("Let us know your Telegram user name to receive this recipe")
+        user_telegram_user_name = telegram_container.text_input("Let us know your Telegram user name to receive this recipe")
 
         # reset session_state if user inputs another user namse
         if st.session_state.get('user_telegram_user_name') is not None and user_telegram_user_name != "" and user_telegram_user_name != st.session_state.get('user_telegram_user_name'):
