@@ -125,15 +125,13 @@ class DiabetesAssessor:
     ) -> dict:
         layout_position.info("You're almost there 😉 Could you share some other basic info about your health? It'll help us assess your risk for diabetes 📝")
         form = layout_position.form("diabetes_prediction_form")
-        weight = form.slider(
-            "🙋‍♀️🙋‍♂️ What is your weight in Kg?",
-            1,650
-        )
-        # weight = form.number_input(
-        #     "🙋‍♀️🙋‍♂️ What's your weight (kg)?",
-        #     value=None,
-        #     placeholder="Type a number..."
-        # )
+        with form:    
+            col1, col2 = st.columns(2)
+        with col1:
+            weight = st.slider(
+                "🙋‍♀️🙋‍♂️ What is your weight in Kg?",
+                1,650
+            )
         # st.markdown(
         #     """<style>
         # div[class*="stSlider"] > label > div[data-testid="stMarkdownContainer"] > p {
@@ -142,15 +140,11 @@ class DiabetesAssessor:
         #     </style>
         #     """, unsafe_allow_html=True
         # )
-        height = form.slider(
-            "🙋‍♀️🙋‍♂️ What's your height in Meters?",
-            0.50,3.00
-        )
-        # height = form.number_input(
-        #     "🙋‍♀️🙋‍♂️ What's your height in meters?",
-        #     value=None,
-        #     placeholder="Type a number..."
-        # )
+        with col2:
+            height = st.slider(
+                "🙋‍♀️🙋‍♂️ What's your height in Meters?",
+                0.50,3.00
+            )
         st.markdown(
             """<style>
         div[class*="stSlider"] > label > div[data-testid="stMarkdownContainer"] > p {
@@ -159,105 +153,65 @@ class DiabetesAssessor:
             </style>
             """, unsafe_allow_html=True
         )
-        is_smoker = form.radio(
-            "🚬 Have you smoked at least 100 cigarettes in your entire life?",
-            ["Yes", "No"],
-            help="Note: 5 packs = 100 cigarettes",
-            index=None,
-            horizontal=True
-        )
-        # is_smoker = form.selectbox(
-        #     "🚬 Have you smoked at least 100 cigarettes in your entire life?",
-        #     ("Yes", "No"),
-        #     help="Note: 5 packs = 100 cigarettes",
-        #     index=None,
-        #     placeholder="Select your answer..."
-        # )
-        if gender == "female":
-            is_heavy_alcohol_consumer = form.radio(
-                "🍺 Do you have more than 7 alcoholic drinks per week?",
+        with col1:
+            st.markdown("###")
+            is_smoker = st.radio(
+                "🚬 Have you smoked at least 100 cigarettes in your entire life?",
                 ["Yes", "No"],
+                help="Note: 5 packs = 100 cigarettes",
                 index=None,
                 horizontal=True
             )
-        else:
-            is_heavy_alcohol_consumer = form.radio(
-                "🍺 Do you have more than 14 alcoholic drinks per week?",
+        with col2:
+            st.markdown("###")
+            if gender == "female":
+                is_heavy_alcohol_consumer = st.radio(
+                    "🍺 Do you have more than 7 alcoholic drinks per week?",
+                    ["Yes", "No"],
+                    index=None,
+                    horizontal=True
+                )
+            else:
+                is_heavy_alcohol_consumer = st.radio(
+                    "🍺 Do you have more than 14 alcoholic drinks per week?",
+                    ["Yes", "No"],
+                    horizontal=True
+                )
+        with col1:
+            st.markdown("###")
+            has_physical_activity = st.radio(
+                "🏃‍♀️🏃 Do you have any physical activity in the past 30 days?",
                 ["Yes", "No"],
                 horizontal=True
             )
-        # if gender == "female":
-        #     is_heavy_alcohol_consumer = form.selectbox(
-        #         "🍺 Do you have more than 7 alcoholic drinks per week?",
-        #         ("Yes", "No"),
-        #         index=None,
-        #         placeholder="Select your answer..."
-        #     )
-        # else:
-        #     is_heavy_alcohol_consumer = form.selectbox(
-        #         "🍺 Do you have more than 14 alcoholic drinks per week?",
-        #         ("Yes", "No"),
-        #         index=None,
-        #         placeholder="Select your answer..."
-        #     )
-
-        has_physical_activity = form.radio(
-            "🏃‍♀️🏃 Do you have any physical activity in the past 30 days?",
-            ["Yes", "No"],
-            horizontal=True
-        )
-        # has_physical_activity = form.selectbox(
-        #     "🏃‍♀️🏃 Do you have any physical activity in the past 30 days?",
-        #     ("Yes", "No"),
-        #     index=None,
-        #     placeholder="Select your answer..."
-        # )
-
-        has_stroke = form.radio(
-            "🌪 Have you ever had a stroke?",
-            ["Yes", "No"],
-            horizontal=True
-        )
-        # has_stroke = form.selectbox(
-        #     "🌪 Have you ever had a stroke?",
-        #     ("Yes", "No"),
-        #     index=None,
-        #     placeholder="Select your answer..."
-        # )
-        has_heart_disease = form.radio(
-            "🫀 Do you have coronary heart disease or myocardial infarction?",
-            ["Yes", "No"],
-            horizontal=True
-        )
-        # has_heart_disease = form.selectbox(
-        #     "🫀 Do you have coronary heart disease or myocardial infarction?",
-        #     ("Yes", "No"),
-        #     index=None,
-        #     placeholder="Select your answer..."
-        # )
-
-        has_cholesterol_check = form.radio(
-            "👩‍⚕👨‍⚕ Have you checked your cholesterol in the past 5 years?",
-            ["Yes", "No"],
-            horizontal=True
-        )
-        # has_cholesterol_check = form.selectbox(
-        #     "👩‍⚕👨‍⚕ Have you checked your cholesterol in the past 5 years?",
-        #     ("Yes", "No"),
-        #     index=None,
-        #     placeholder="Select your answer..."
-        # )
-        overall_health = form.radio(
-            "🥇🥈🥉 Please rate your overall health",
-            [":green[Excellent]", ":green[Very good]", ":orange[Good]", ":orange[Fair]", ":red[Poor]"],
-            horizontal=True
-        )
-        # overall_health = form.selectbox(
-        #     "🥇🥈🥉 Please rate your overall health",
-        #     ('Excellent', 'Very good', 'Good', 'Fair', 'Poor'),
-        #     index=None,
-        #     placeholder="Select your answer..."
-        # )
+        with col2:
+            st.markdown("###")
+            has_stroke = st.radio(
+                "🌪 Have you ever had a stroke?",
+                ["Yes", "No"],
+                horizontal=True
+            )
+        with col1:
+            st.markdown("###")
+            has_heart_disease = st.radio(
+                "🫀 Do you have coronary heart disease or myocardial infarction?",
+                ["Yes", "No"],
+                horizontal=True
+            )
+        with col2:
+            st.markdown("###")
+            has_cholesterol_check = st.radio(
+                "👩‍⚕👨‍⚕ Have you checked your cholesterol in the past 5 years?",
+                ["Yes", "No"],
+                horizontal=True
+            )
+        with col1:
+            st.markdown("###")
+            overall_health = form.radio(
+                "🥇🥈🥉 Please rate your overall health",
+                [":green[Excellent]", ":green[Very good]", ":orange[Good]", ":orange[Fair]", ":red[Poor]"],
+                horizontal=True
+            )
         st.markdown(
             """<style>
         div[class*="stRadio"] > label > div[data-testid="stMarkdownContainer"] > p {
