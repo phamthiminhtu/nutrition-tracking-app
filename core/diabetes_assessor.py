@@ -157,7 +157,7 @@ class DiabetesAssessor:
             st.markdown("###")
             is_smoker = st.radio(
                 "🚬 Have you smoked at least 100 cigarettes in your entire life?",
-                ["Yes", "No"],
+                ["No", "Yes"],
                 help="Note: 5 packs = 100 cigarettes",
                 index=None,
                 horizontal=True
@@ -167,42 +167,42 @@ class DiabetesAssessor:
             if gender == "female":
                 is_heavy_alcohol_consumer = st.radio(
                     "🍺 Do you have more than 7 alcoholic drinks per week?",
-                    ["Yes", "No"],
+                    ["No", "Yes"],
                     index=None,
                     horizontal=True
                 )
             else:
                 is_heavy_alcohol_consumer = st.radio(
                     "🍺 Do you have more than 14 alcoholic drinks per week?",
-                    ["Yes", "No"],
+                    ["No", "Yes"],
                     horizontal=True
                 )
         with col1:
             st.markdown("###")
             has_physical_activity = st.radio(
                 "🏃‍♀️🏃 Do you have any physical activity in the past 30 days?",
-                ["Yes", "No"],
+                ["No", "Yes"],
                 horizontal=True
             )
         with col2:
             st.markdown("###")
             has_stroke = st.radio(
                 "🌪 Have you ever had a stroke?",
-                ["Yes", "No"],
+                ["No", "Yes"],
                 horizontal=True
             )
         with col1:
             st.markdown("###")
             has_heart_disease = st.radio(
                 "🫀 Do you have coronary heart disease or myocardial infarction?",
-                ["Yes", "No"],
+                ["No", "Yes"],
                 horizontal=True
             )
         with col2:
             st.markdown("###")
             has_cholesterol_check = st.radio(
                 "👩‍⚕👨‍⚕ Have you checked your cholesterol in the past 5 years?",
-                ["Yes", "No"],
+                ["No", "Yes"],
                 horizontal=True
             )
         with col1:

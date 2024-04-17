@@ -9,8 +9,8 @@ from core.diabetes_assessor import *
 from core.telegram_bot import *
 from core.dish_recommendation import *
 from core.utils import wait_while_condition_is_valid
-from streamlit_option_menu import option_menu
-from streamlit_extras.row import row
+# from streamlit_option_menu import option_menu
+# from streamlit_extras.row import row
 
 
 OPENAI_API_KEY = "OPENAI_API_KEY"
