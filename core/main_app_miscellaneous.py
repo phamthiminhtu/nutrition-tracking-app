@@ -223,13 +223,13 @@ class MainAppMiscellaneous:
                     storing_historical_data_message = storing_historical_data_result.get("message")
                     layout_position.write(storing_historical_data_message)
             else:
-                login_or_create_account = layout_position.selectbox(
-                    "Looks like you haven't logged in, do you want to log in to save this meal's intake estimation?",
-                    ("Yes", 'No'),
-                    index=None,
-                    placeholder="Select your answer..."
-                )
-                result["login_or_create_account"] = login_or_create_account
+                #login_or_create_account = layout_position.selectbox(
+                #    "Looks like you haven't logged in, do you want to log in to save this meal's intake estimation?",
+                #    ("Yes", "No"),
+                #    index=None,
+                #    placeholder="Select your answer...")
+                layout_position.write(":blue[Please log in at the top of this page!👆]")
+                result["login_or_create_account"] = True
         return result
 
     @handle_exception(has_random_message_printed_out=True)
