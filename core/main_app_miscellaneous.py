@@ -228,7 +228,8 @@ class MainAppMiscellaneous:
                 #    ("Yes", "No"),
                 #    index=None,
                 #    placeholder="Select your answer...")
-                layout_position.write(":blue[Please log in at the top of this page!👆]")
+                #st.info('This is a purely informational message', icon="ℹ️")
+                layout_position.info(":blue[Please log in at the top of this page!👆]", icon="ℹ️")
                 result["login_or_create_account"] = True
         return result
 
