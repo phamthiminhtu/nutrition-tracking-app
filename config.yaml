@@ -1,0 +1,4 @@
+cookie:
+  expiry_days: 0
+  key: abcde
+  name: abcde

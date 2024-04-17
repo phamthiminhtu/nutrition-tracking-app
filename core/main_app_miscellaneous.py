@@ -171,6 +171,7 @@ class MainAppMiscellaneous:
             user_recommended_intake_df = self.get_user_recommended_intake(
                 user_intake_df_temp_name=user_intake_df_temp_name
             )
+
             user_recommended_intake_df_to_show = user_recommended_intake_df.copy()
             user_recommended_intake_df_to_show = user_recommended_intake_df_to_show.rename(columns=USER_INTAKE_COLUMNS_DICT)
             columns_to_show = USER_INTAKE_COLUMNS_DICT.values()
@@ -204,11 +205,11 @@ class MainAppMiscellaneous:
             "status": 200,
             "login_or_create_account": "No"
         }
-        has_historical_data_saved = layout_position.selectbox(
+        has_historical_data_saved = layout_position.radio(
             "Do you want to save this meal info?",
             ("Yes", 'No'),
             index=None,
-            placeholder="Select your answer..."
+            horizontal=True
         )
         # wait until user inputs
         wait_while_condition_is_valid((has_historical_data_saved is None))
@@ -351,14 +352,6 @@ class MainAppMiscellaneous:
             edited_df["dish_description"] = ingredient_df["dish_description"]
             edited_df["dish_description"] = edited_df["dish_description"].fillna(ingredient_df["dish_description"].iloc[0])
             return edited_df
-
-    @handle_exception(has_random_message_printed_out=True)
-    def display_user_intake_df(self, user_intake_df, layout_position=st):
-        if isinstance(user_intake_df, pd.DataFrame):
-            user_intake_df = user_intake_df.rename(columns={
-                "actual_intake": "Actual Intake",
-            })
-            # layout_position.dataframe(user_intake_df[["Nutrient", "Actual Intake"]].style.format({"Actual Intake": "{:.1f}"}))
 
     @handle_exception(has_random_message_printed_out=True)
     def compare_and_return_the_smaller_date(
