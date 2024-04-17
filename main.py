@@ -1,13 +1,14 @@
 import os
-import re
 import logging
-import threading
+import pandas as pd
 import streamlit as st
-from core.main_app_miscellaneous import *
+from openai import OpenAI
+from core.main_app_miscellaneous import MainAppMiscellaneous
 from core.calculate_nutrient_intake import NutrientMaster
-from core.diabetes_assessor import *
-from core.telegram_bot import *
-from core.dish_recommendation import *
+from core.diabetes_assessor import DiabetesAssessor
+from core.telegram_bot import TelegramBot
+from core.auth import Authenticator
+from core.dish_recommendation import DishRecommender
 from core.utils import wait_while_condition_is_valid
 # from streamlit_option_menu import option_menu
 # from streamlit_extras.row import row
@@ -17,6 +18,7 @@ OPENAI_API_KEY = "OPENAI_API_KEY"
 OPENAI_CLIENT = OpenAI(
   api_key=os.environ.get(OPENAI_API_KEY),
 )
+
 TELEGRAM_BOT_API_KEY_ENV_KEY = "TELEGRAM_BOT_API_KEY"
 TELEGRAM_BOT_TOKEN = os.environ.get(TELEGRAM_BOT_API_KEY_ENV_KEY)
 DIABETES_MODEL_PATH = "core/ml_models/diabetes_random_forest_model.sav"
@@ -24,23 +26,29 @@ DIABETES_MODEL_PATH = "core/ml_models/diabetes_random_forest_model.sav"
 main_app_miscellaneous = MainAppMiscellaneous(openai_client=OPENAI_CLIENT)
 diabetes_assessor = DiabetesAssessor(model_path=DIABETES_MODEL_PATH)
 telegram_bot = TelegramBot(telegram_bot_token=TELEGRAM_BOT_TOKEN)
+Nutrient = NutrientMaster(openai_client=OPENAI_CLIENT)
+
 logging.basicConfig(level=logging.INFO)
-logging.root.setLevel(logging.NOTSET)
-# st.set_page_config(layout='centered')
-st.set_page_config(layout='wide')
+st.set_page_config(layout='wide', page_icon='image/picture_1.png')
 
+authenticator = Authenticator()
+with st.popover("Log in 🙋‍♀️"):
+    if st.session_state.get('is_logged_in') is None:
+        name, authentication_status, username = authenticator.user_login()
 
-# @Nyan
-# Login option.
-# A class in a python file (Nyan.py file - please rename it) e.g. Authenticator = Authenticator(), with methods like:
-# Authenticator.log_in()
-# Authenticator.recover_password()
-# Authenticator.create_new_account()
+        if authentication_status == True:
+            st.session_state["name"], st.session_state["is_logged_in"], st.session_state["user_name"] = name, authentication_status, username
+        else:
+            st.session_state["name"] = None
+            st.session_state["is_logged_in"] = None
+            st.session_state["user_name"] = None
 
-### TODO: replace this with actual input
-st.session_state['is_logged_in'] = True
-st.session_state['user_name'] = "Ardy"
-st.session_state['user_id'] = "ardy@uts"
+with st.sidebar:
+    st.image("image/picture_1.png", use_column_width=True)
+    authenticator.new_user_registration()
+
+st.session_state['user_id'] = st.session_state.get("user_name")
+
 def reset_session_state():
     st.session_state['dish_description'] = None
     st.session_state['ingredient_df'] = None
@@ -53,7 +61,12 @@ def reset_session_state():
     st.session_state['has_fruit_and_veggie_intake'] = True
     st.session_state['save_meal_result'] = None
     st.session_state['user_telegram_user_name'] = None
+    st.session_state['dish_recommend'] = False
     st.session_state['recommended_recipe'] = None
+    st.session_state['recommended_dish_name'] = None
+    st.session_state['recommended_dish_ingredients'] = None
+    st.session_state['recommended_dish_nutrients'] = None
+    st.session_state["df_computed_recommended_nutrients"] = None
     st.session_state["sending_telegram_message_result"] = None
 
 # container, grid, row settings
@@ -207,7 +220,6 @@ st.session_state['ingredient_df'] = edited_ingredient_df
 
 # # 2-3. Nutrient actual intake
 if st.session_state.get('total_nutrients_based_on_food_intake') is None:
-    Nutrient = NutrientMaster(openai_client=OPENAI_CLIENT)
     total_nutrients_based_on_food_intake = Nutrient.total_nutrients_based_on_food_intake(
                                             ingredients_from_user=st.session_state['ingredient_df'],
                                             layout_position=track_new_meal_tab
@@ -215,11 +227,6 @@ if st.session_state.get('total_nutrients_based_on_food_intake') is None:
     st.session_state['total_nutrients_based_on_food_intake'] = total_nutrients_based_on_food_intake
 
 wait_while_condition_is_valid((st.session_state.get('total_nutrients_based_on_food_intake') is None))
-
-main_app_miscellaneous.display_user_intake_df(
-    user_intake_df=st.session_state['total_nutrients_based_on_food_intake'],
-    layout_position=track_new_meal_tab
-)
 
 # 3. Check user's log in status
 # @Nyan
@@ -273,16 +280,16 @@ with track_new_meal_tab:
     )
     user_intake_df_temp['meal_record_date'] = meal_record_date
 
+if st.session_state.get('save_meal_result') is None:
     logging.info("-----------Running get_user_confirmation_and_try_to_save_their_data()-----------")
-    if st.session_state.get('save_meal_result') is None:
-        save_meal_result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_their_data(
-            dish_description=st.session_state['dish_description'],
-            user_id=st.session_state['user_id'],
-            is_logged_in=st.session_state['is_logged_in'],
-            layout_position=consumuption_date_save_info_container,
-            has_user_intake_df_temp_empty=has_user_intake_df_temp_empty
-        )
-        st.session_state['save_meal_result'] = save_meal_result
+    save_meal_result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_their_data(
+        dish_description=st.session_state['dish_description'],
+        user_id=st.session_state['user_id'],
+        is_logged_in=st.session_state['is_logged_in'],
+        layout_position=track_new_meal_tab,
+        has_user_intake_df_temp_empty=has_user_intake_df_temp_empty
+    )
+    st.session_state['save_meal_result'] = save_meal_result
     logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_data-----------")
 
 # Aggregate user_recommended_intake_df by day
@@ -314,21 +321,48 @@ with track_new_meal_tab:
         st.session_state['dish_recommend_user_input'] = True
     # If user selected "Yes", calling the dish recommendation function
     if st.session_state.get('dish_recommend_user_input'):
+dish_recommend_user_input = track_new_meal_tab.radio("🍽️🥘 Do you want a dish recommendation?", ["Yes", "No"], index=None, horizontal=True)
+if dish_recommend_user_input is not None:
+    st.session_state['dish_recommend_user_input'] = True
+
+# If user selected "Yes", calling the dish recommendation function
+if st.session_state.get('dish_recommend_user_input'):
 
         logging.info("Checking user preferences for cuisine, allergies, if any leftover ingredients.")
         cuisine, allergies, ingredients = dishrecommend.get_user_input(layout_position=dish_recommendation_preference_container)
         logging.info("Finished reading user preferences for the dish recommendation..")
 
-        logging.info("Recommending dish to the user based on the given preferences.")
-        if dish_recommendation_preference_container.button("Recommend Dish", type="primary"):
-            # dish_recommendation_output_container = st.container(border=True)
-            dish_recommendation_output_container = st.expander(":orange[**5. MealMinder's Dish Recommendation**]")
-            recommended_dish = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
-            dish_recommendation_output_container.write(recommended_dish)
-            st.session_state['recommended_recipe'] = recommended_dish
-        logging.info("Finished dish recommendation based on the user preferences.")
+    if track_new_meal_tab.button("Recommend Dish"):
+        track_new_meal_tab.write("🍱🥗🥪 Bringing an awesome recipe to you ...")
+        if st.session_state.get('recommended_recipe') is None:
+            logging.info("Recommending dish to the user based on the given preferences.")
+            recommended_recipe = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
+            st.session_state['recommended_recipe'] = recommended_recipe
 
-    wait_while_condition_is_valid(condition=(st.session_state.get('recommended_recipe') is None))
+        if st.session_state.get('recommended_dish_ingredients') is None:
+            recommended_dish_ingredients = dishrecommend.get_recommended_dish_ingredients(st.session_state['recommended_recipe'])
+            st.session_state['recommended_dish_ingredients'] = recommended_dish_ingredients
+            logging.info("Finished dish recommendation based on the user preferences.")
+
+    wait_while_condition_is_valid(condition=(st.session_state.get('recommended_dish_ingredients') is None))
+
+    if st.session_state.get('recommended_dish_nutrients') is None:
+        logging.info("Collecting the nutrients of the recommended dish.")
+        recommended_dish_nutrients = Nutrient.get_recommended_dish_nutrients(st.session_state['recommended_dish_ingredients'], layout_position=track_new_meal_tab)
+        st.session_state["recommended_dish_nutrients"] = recommended_dish_nutrients
+        logging.info("End of collecting the nutrients of the recommended dish.")
+
+
+# Displaying the recommended dish recipe
+if st.session_state.get('recommended_recipe') is not None:
+    track_new_meal_tab.write(st.session_state['recommended_recipe'])
+    logging.info("Calculating and displaying the total nutrients after the dish recommendation.")
+    if st.session_state.get('df_computed_recommended_nutrients') is None:
+        df_computed_recommended_nutrients = dishrecommend.get_total_nutrients_after_dish_recommend(user_recommended_intake_result, st.session_state['recommended_dish_nutrients'], track_new_meal_tab)
+        st.session_state["df_computed_recommended_nutrients"] = df_computed_recommended_nutrients
+    logging.info("End of calculating and displaying the total nutrients after the dish recommendation.")
+
+wait_while_condition_is_valid(condition=(st.session_state.get('recommended_recipe') is None))
 
     if st.session_state.get('recommended_recipe') is not None:
         telegram_container = st.expander(":orange[**6. Dish Receipe Sent To Your Phone With Telegram**]")
@@ -345,16 +379,12 @@ with track_new_meal_tab:
         if st.session_state.get('user_telegram_user_name') is None and user_telegram_user_name != "":
             st.session_state['user_telegram_user_name'] = user_telegram_user_name
 
-        if st.session_state.get('user_telegram_user_name') is not None:
-            print("-----------Running send_message_to_user_name-----------")
-            if st.session_state.get("sending_telegram_message_result") is None:
-                sending_message_result = telegram_bot.send_message_to_user_name(
-                    user_name=st.session_state.get('user_telegram_user_name'),
-                    message=st.session_state.get('recommended_recipe'),
-                    layout_position=dish_recommendation_preference_container
-                )
-                if sending_message_result.get("status") == 200:
-                    st.session_state["sending_telegram_message_result"] = sending_message_result
-
-            print("-----------Finished send_message_to_user_name-----------")
-
+    if st.session_state.get('user_telegram_user_name') is not None:
+        if st.session_state.get("sending_telegram_message_result") is None:
+            sending_message_result = telegram_bot.send_message_to_user_name(
+                user_name=st.session_state.get('user_telegram_user_name'),
+                message=st.session_state.get('recommended_recipe'),
+                layout_position=track_new_meal_tab
+            )
+            if sending_message_result.get("status") == 200:
+                st.session_state["sending_telegram_message_result"] = sending_message_result
