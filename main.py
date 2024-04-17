@@ -11,7 +11,6 @@ from core.auth import Authenticator
 from core.dish_recommendation import *
 from core.utils import wait_while_condition_is_valid
 
-os.environ['OPENAI_API_KEY']='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'
 OPENAI_API_KEY = "OPENAI_API_KEY"
 OPENAI_CLIENT = OpenAI(
   api_key=os.environ.get(OPENAI_API_KEY),
@@ -115,7 +114,7 @@ if st.session_state.get('is_logged_in'):
         user_recommended_intake_history_df = user_recommended_intake_history_result.get("value")
         st.session_state['user_recommended_intake_history_df'] = user_recommended_intake_history_df
         logging.info("-----------Finished get_user_historical_data.-----------")
-    
+
 
 # Diabetes prediction
 assess_diabetes_risk_button = assess_diabetes_risk_tab.button("Start assessing my diabetes risk")
