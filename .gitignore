@@ -1,4 +1,8 @@
 *.pyc
+*.ipynb
+venv/
+tyler/
+path\/to\git/venv/
 tu.ipynb
 michael_tests.ipynb
 logs.log
