@@ -10,9 +10,6 @@ from core.telegram_bot import TelegramBot
 from core.auth import Authenticator
 from core.dish_recommendation import DishRecommender
 from core.utils import wait_while_condition_is_valid
-# from streamlit_option_menu import option_menu
-# from streamlit_extras.row import row
-
 
 OPENAI_API_KEY = "OPENAI_API_KEY"
 OPENAI_CLIENT = OpenAI(
@@ -71,9 +68,6 @@ def reset_session_state():
 
 # container, grid, row settings
 buff1, maincol, buff2 = st.columns([1,8,1])
-# buff1, col5, col10, buff2 = st.columns([1,5,5,1])
-# my_grid = grid(2, [2, 4, 1], 1, 4, vertical_align="bottom")
-# row1 = row(2, vertical_align="center")
 
 # Set the Main title
 with maincol:
@@ -95,25 +89,6 @@ background_image = """
 """
 st.markdown(background_image, unsafe_allow_html=True)
 
-###
-# st.text_input("", placeholder="Streamlit CSS ")
-# input_style = """
-# <style>
-# input[type="text"] {
-#     background-color: transparent;
-#     color: #a19eae;  // This changes the text color inside the input box
-# }
-# div[data-baseweb="base-input"] {
-#     background-color: transparent !important;
-# }
-# [data-testid="stAppViewContainer"] {
-#     background-color: transparent !important;
-# }
-# </style>
-# """
-# st.markdown(input_style, unsafe_allow_html=True)
-####
-
 with maincol:
     main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
     # intro_message = main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
@@ -126,9 +101,9 @@ with maincol:
 
 # 1. Get dish description from user and estimate its ingredients
 with track_new_meal_tab:
-    estimated_ingredient_container = st.expander(":orange[**1. Today's Meal**]")
+    estimated_ingredient_container = st.expander(":orange[**1. What Healthy Meal Today?**]")
     # estimated_ingredient_container = st.container(border=True)
-    dish_description = estimated_ingredient_container.text_input("What have you eaten today? 😋", help="Describe your meal taken as best possible.").strip()
+    dish_description = estimated_ingredient_container.text_input("Enter your dish 😋", help="Describe your meal taken as best possible.").strip()
     if dish_description != st.session_state.get('dish_description', '###') and dish_description!= '':
         reset_session_state()   # rerun the whole app when user inputs a new dish
         st.session_state['dish_description'] = dish_description
@@ -151,12 +126,10 @@ if st.session_state.get('get_intake_history_button'):
     st.session_state['user_recommended_intake_history_df'] = user_recommended_intake_history_df
     logging.info("-----------Finished get_user_historical_data.-----------")
 
-
 # Diabetes prediction
 assess_diabetes_risk_button = assess_diabetes_risk_tab.button("Start assessing my diabetes risk", type="primary")
 if not st.session_state.get('assess_diabetes_risk_button') and assess_diabetes_risk_button:
     st.session_state['assess_diabetes_risk_button'] = True
-
 
 if st.session_state.get('assess_diabetes_risk_button'):
     if st.session_state.get('user_age_and_gender') is None:
@@ -253,12 +226,11 @@ if st.session_state.get('user_personal_data') is None:
     st.session_state['user_personal_data'] = user_personal_data
     logging.info("-----------Finished get_user_personal_data-----------")
 
-
 # 6. Join with recommended intake
 # Only run when we have user_personal_data
 # @Tu
 with track_new_meal_tab:
-    nutrient_intake_chart_container = st.expander(":orange[**2. Your Nutrient Intake Today**]")
+    nutrient_intake_chart_container = st.expander(":orange[**2. View The Nutritional Value In The Meal You Enjoyed**]")
     # nutrient_intake_chart_container = st.container(border=True)
     logging.info("-----------Running combine_and_show_users_recommended_intake()-----------")
     user_recommended_intake_result = main_app_miscellaneous.combine_and_show_users_recommended_intake(
@@ -273,24 +245,24 @@ with track_new_meal_tab:
 # # Visualize data
 with track_new_meal_tab:
     # consumuption_date_save_info_container = st.container(border=True)
-    consumuption_date_save_info_container = st.expander(":orange[**3. Start Meal Tracking**]")
+    consumuption_date_save_info_container = st.expander(":orange[**3. Save Your Meal For Future Reference**]")
     meal_record_date = main_app_miscellaneous.get_meal_record_date(
         layout_position=consumuption_date_save_info_container,
         has_user_intake_df_temp_empty=has_user_intake_df_temp_empty
     )
     user_intake_df_temp['meal_record_date'] = meal_record_date
 
-if st.session_state.get('save_meal_result') is None:
-    logging.info("-----------Running get_user_confirmation_and_try_to_save_their_data()-----------")
-    save_meal_result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_their_data(
-        dish_description=st.session_state['dish_description'],
-        user_id=st.session_state['user_id'],
-        is_logged_in=st.session_state['is_logged_in'],
-        layout_position=track_new_meal_tab,
-        has_user_intake_df_temp_empty=has_user_intake_df_temp_empty
-    )
-    st.session_state['save_meal_result'] = save_meal_result
-    logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_data-----------")
+    if st.session_state.get('save_meal_result') is None:
+        logging.info("-----------Running get_user_confirmation_and_try_to_save_their_data()-----------")
+        save_meal_result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_their_data(
+            dish_description=st.session_state['dish_description'],
+            user_id=st.session_state['user_id'],
+            is_logged_in=st.session_state['is_logged_in'],
+            layout_position=consumuption_date_save_info_container,
+            has_user_intake_df_temp_empty=has_user_intake_df_temp_empty
+        )
+        st.session_state['save_meal_result'] = save_meal_result
+        logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_data-----------")
 
 # Aggregate user_recommended_intake_df by day
 if st.session_state.get('user_recommended_intake_df') is None:
@@ -315,57 +287,61 @@ logging.info("Finished collecting the nutrient intake information for the dish r
 # Asking the user if they want dish recommendation
 with track_new_meal_tab:
     # dish_recommendation_preference_container = st.container(border=True)
-    dish_recommendation_preference_container = st.expander(":orange[**4. Your Next Dish Preferences**]")
-    dish_recommend_user_input = dish_recommendation_preference_container.selectbox("Do you want a dish recommendation?", ["Yes", "No"])
-    if not st.session_state.get('dish_recommend_user_input') and dish_recommend_user_input:
+    dish_recommendation_preference_container = st.expander(":orange[**4. Lets Spice Up Your Next Meal With MealMinder's Inspiring Ideas**]")
+    dish_recommend_user_input = dish_recommendation_preference_container.radio("🍽️🥘Do you want a dish recommendation?", ["Yes", "No"], horizontal=True)
+    # if not st.session_state.get('dish_recommend_user_input') and dish_recommend_user_input:
+    #     st.session_state['dish_recommend_user_input'] = True
+    # If user selected "Yes", calling the dish recommendation function
+    # if st.session_state.get('dish_recommend_user_input'):
+    #     dish_recommend_user_input = dish_recommendation_output_container.radio("🍽️🥘 Do you want a dish recommendation?", ["Yes", "No"], index=None, horizontal=True)
+
+    if dish_recommend_user_input is not None:
         st.session_state['dish_recommend_user_input'] = True
+
     # If user selected "Yes", calling the dish recommendation function
     if st.session_state.get('dish_recommend_user_input'):
-dish_recommend_user_input = track_new_meal_tab.radio("🍽️🥘 Do you want a dish recommendation?", ["Yes", "No"], index=None, horizontal=True)
-if dish_recommend_user_input is not None:
-    st.session_state['dish_recommend_user_input'] = True
-
-# If user selected "Yes", calling the dish recommendation function
-if st.session_state.get('dish_recommend_user_input'):
-
         logging.info("Checking user preferences for cuisine, allergies, if any leftover ingredients.")
         cuisine, allergies, ingredients = dishrecommend.get_user_input(layout_position=dish_recommendation_preference_container)
         logging.info("Finished reading user preferences for the dish recommendation..")
 
-    if track_new_meal_tab.button("Recommend Dish"):
-        track_new_meal_tab.write("🍱🥗🥪 Bringing an awesome recipe to you ...")
-        if st.session_state.get('recommended_recipe') is None:
-            logging.info("Recommending dish to the user based on the given preferences.")
-            recommended_recipe = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
-            st.session_state['recommended_recipe'] = recommended_recipe
+    if dish_recommendation_preference_container.button("Recommend Dish", type="primary"):
+        dish_recommendation_preference_container.write("🍱🥗🥪 Bringing an awesome recipe to you ...")
 
-        if st.session_state.get('recommended_dish_ingredients') is None:
-            recommended_dish_ingredients = dishrecommend.get_recommended_dish_ingredients(st.session_state['recommended_recipe'])
-            st.session_state['recommended_dish_ingredients'] = recommended_dish_ingredients
-            logging.info("Finished dish recommendation based on the user preferences.")
+# Displaying the recommended dish recipe
+    dish_recommendation_output_container = st.expander(":orange[**5. Here's A Yummy Recommendation For You**]")
+    if st.session_state.get('recommended_recipe') is None:
+        logging.info("Recommending dish to the user based on the given preferences.")
+        recommended_recipe = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
+        st.session_state['recommended_recipe'] = recommended_recipe
+
+    if st.session_state.get('recommended_dish_ingredients') is None:
+        recommended_dish_ingredients = dishrecommend.get_recommended_dish_ingredients(st.session_state['recommended_recipe'])
+        st.session_state['recommended_dish_ingredients'] = recommended_dish_ingredients
+        logging.info("Finished dish recommendation based on the user preferences.")
 
     wait_while_condition_is_valid(condition=(st.session_state.get('recommended_dish_ingredients') is None))
 
     if st.session_state.get('recommended_dish_nutrients') is None:
         logging.info("Collecting the nutrients of the recommended dish.")
-        recommended_dish_nutrients = Nutrient.get_recommended_dish_nutrients(st.session_state['recommended_dish_ingredients'], layout_position=track_new_meal_tab)
+        recommended_dish_nutrients = Nutrient.get_recommended_dish_nutrients(st.session_state['recommended_dish_ingredients'], layout_position=dish_recommendation_output_container)
         st.session_state["recommended_dish_nutrients"] = recommended_dish_nutrients
         logging.info("End of collecting the nutrients of the recommended dish.")
 
-
-# Displaying the recommended dish recipe
-if st.session_state.get('recommended_recipe') is not None:
-    track_new_meal_tab.write(st.session_state['recommended_recipe'])
-    logging.info("Calculating and displaying the total nutrients after the dish recommendation.")
-    if st.session_state.get('df_computed_recommended_nutrients') is None:
-        df_computed_recommended_nutrients = dishrecommend.get_total_nutrients_after_dish_recommend(user_recommended_intake_result, st.session_state['recommended_dish_nutrients'], track_new_meal_tab)
-        st.session_state["df_computed_recommended_nutrients"] = df_computed_recommended_nutrients
-    logging.info("End of calculating and displaying the total nutrients after the dish recommendation.")
-
-wait_while_condition_is_valid(condition=(st.session_state.get('recommended_recipe') is None))
-
+#     dish_recommendation_output_container = st.expander(":orange[**5. Here's A Yummy Recommendation For You**]")
     if st.session_state.get('recommended_recipe') is not None:
-        telegram_container = st.expander(":orange[**6. Dish Receipe Sent To Your Phone With Telegram**]")
+        track_new_meal_tab.write(st.session_state['recommended_recipe'])
+        logging.info("Calculating and displaying the total nutrients after the dish recommendation.")
+        if st.session_state.get('df_computed_recommended_nutrients') is None:
+            df_computed_recommended_nutrients = dishrecommend.get_total_nutrients_after_dish_recommend(user_recommended_intake_result, st.session_state['recommended_dish_nutrients'], dish_recommendation_output_container)
+            st.session_state["df_computed_recommended_nutrients"] = df_computed_recommended_nutrients
+        logging.info("End of calculating and displaying the total nutrients after the dish recommendation.")
+
+    wait_while_condition_is_valid(condition=(st.session_state.get('recommended_recipe') is None))
+
+# Send dish recipe to Telegram
+with track_new_meal_tab:
+    if st.session_state.get('recommended_recipe') is not None:
+        telegram_container = st.expander(":orange[**6. Lets Send This Yummy Recipe To You**]")
         telegram_container.info("""
             If this is your first time with us,
             please search for @meal_minder_bot on Telegram and say hi so that we can reach out to you 😉

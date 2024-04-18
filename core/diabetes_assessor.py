@@ -107,9 +107,9 @@ class DiabetesAssessor:
         else:
             has_fruit_and_veggie_intake = self._check_user_fruit_and_veggie_intake_from_database(user_id=user_id)
             if has_fruit_and_veggie_intake:
-                layout_position.write("Great! Your nutrion history shows that you have fruits and veggies in your diet!")
+                layout_position.write("Great! Your nutrition history shows that you have fruits and veggies in your diet!")
             else:
-                layout_position.write("We checked your nutrion history and looks like you are lacking fruits and veggies in your diet.")
+                layout_position.write("We checked your nutrition history and looks like you are lacking fruits and veggies in your diet.")
                 has_fruit_and_veggie_intake_string = layout_position.selectbox(
                     "Do you agree?",
                     ("Yes", 'No, I have been consuming fruits and vegetables 1 or more times per day'),
@@ -126,7 +126,7 @@ class DiabetesAssessor:
         layout_position.info("You're almost there 😉 Could you share some other basic info about your health? It'll help us assess your risk for diabetes 📝")
         form = layout_position.form("diabetes_prediction_form")
         with form:    
-            col1, col2 = st.columns(2)
+            col1, col2, col3 = st.columns([10,1,10])
         with col1:
             weight = st.slider(
                 "🙋‍♀️🙋‍♂️ What is your weight in Kg?",
@@ -140,7 +140,7 @@ class DiabetesAssessor:
         #     </style>
         #     """, unsafe_allow_html=True
         # )
-        with col2:
+        with col3:
             height = st.slider(
                 "🙋‍♀️🙋‍♂️ What's your height in Meters?",
                 0.50,3.00
@@ -162,7 +162,7 @@ class DiabetesAssessor:
                 index=None,
                 horizontal=True
             )
-        with col2:
+        with col3:
             st.markdown("###")
             if gender == "female":
                 is_heavy_alcohol_consumer = st.radio(
@@ -184,7 +184,7 @@ class DiabetesAssessor:
                 ["No", "Yes"],
                 horizontal=True
             )
-        with col2:
+        with col3:
             st.markdown("###")
             has_stroke = st.radio(
                 "🌪 Have you ever had a stroke?",
@@ -198,7 +198,7 @@ class DiabetesAssessor:
                 ["No", "Yes"],
                 horizontal=True
             )
-        with col2:
+        with col3:
             st.markdown("###")
             has_cholesterol_check = st.radio(
                 "👩‍⚕👨‍⚕ Have you checked your cholesterol in the past 5 years?",
