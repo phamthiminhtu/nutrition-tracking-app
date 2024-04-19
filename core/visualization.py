@@ -4,171 +4,75 @@ import streamlit as st
 import pandas as pd
 
 def users_recommended_intake_chart(df, layout_position=st):
-    # Set max intake difference percentage to 100
-    #df.loc[df['Actual intake / Recommended intake (%)'] > 100, 'Actual intake / Recommended intake (%)'] = 100
+    # Cap intake values at 100
     df['Intake Display'] = df['Actual intake / Recommended intake (%)'].clip(upper=100)
 
     # Set graph title
     title = alt.TitleParams("Nutrient Intake Tracker", anchor="middle")
 
     # Set up the bar graph
-    base = alt.Chart(df, title=title).mark_bar().encode(
+    bar_chart = alt.Chart(df, title=title).mark_bar().encode(
         x=alt.X('Intake Display:Q', title='Intake Percentage', scale=alt.Scale(domain=[0, 100], clamp=True)),
         y=alt.Y('Nutrient:O', title='Nutrients').sort('x'),
-          color=alt.condition(
-            alt.datum['Actual intake / Recommended intake (%)'] > 100,  # Condition for values greater than 100
-            alt.value('red'),  # Apply red color
-            alt.Color('Actual intake / Recommended intake (%):Q', legend= None, scale=alt.Scale(scheme='goldgreen', domain=[0, 100]))  # Else use steelblue color
-        )
-        #color = alt.Color('Actual intake / Recommended intake (%):Q', legend= None, scale=alt.Scale(scheme='goldgreen', domain=[0, 100]))
+        color=alt.Color('Intake Display:Q', legend=None, scale=alt.Scale(scheme='goldgreen')),
+        tooltip=[
+            alt.Tooltip('Nutrient:N', title='Nutrient:'),
+            alt.Tooltip('Actual intake / Recommended intake (%):Q', title='Actual Intake Percentage:')
+        ]
     ).properties(width=800)
 
-    base.mark_bar() + base.mark_text(align='left', dx=2)
+    # Show graph in the Streamlit layout position
+    layout_position.altair_chart(bar_chart)
 
-    # Show graph
-    layout_position.altair_chart(base)
-
-def user_historical_hexbin_chart(df, layout_position):
+def user_historical_square_heatmap(df, layout_position):
     # Convert 'record_date' to datetime and extract 'dd-mm' format for plotting
-    df['day_month'] = pd.to_datetime(df['record_date']).dt.strftime('%d-%m')
-    df['day'] = pd.to_datetime(df['record_date']).dt.day
-    df['month'] = pd.to_datetime(df['record_date']).dt.month
+    df['record_date'] = pd.to_datetime(df['record_date'])
+    df['day_month'] = df['record_date'].dt.strftime('%d-%m')
 
-    # Assign a numeric index to each nutrient for the y-axis positioning
-    df['nutrient_index'] = df['nutrient'].astype('category').cat.codes
+    # Only keep rows where 'nutrient' is not null to ensure no null nutrient entries are created
+    df_clean = df.dropna(subset=['nutrient'])
 
-    # Define hexagon size and shape
-    hex_size = 112  # Adjust the size of the hexagons here
-    hex_shape = "M0,-2.3094010768L2,-1.1547005384 2,1.1547005384 0,2.3094010768 -2,1.1547005384 -2,-1.1547005384Z"
+    # Ensure all dates are represented in the data, even those without data points
+    date_range = pd.date_range(df_clean['record_date'].min(), df_clean['record_date'].max())
+    all_dates = pd.DataFrame(date_range, columns=['record_date'])
+    all_dates['day_month'] = all_dates['record_date'].dt.strftime('%d-%m')
 
-    # Calculate x and y positions for hexbins with an offset for a staggered layout
-    df['x_pos'] = df['day'] + (df['month'] - 1) * 31
-    df['x_offset'] = df['x_pos'] + (df['nutrient_index'] % 2) * 0.5
+    # Merge the complete date range with the cleaned data on 'day_month' using 'outer' join to keep all dates
+    df_merged = pd.merge(all_dates, df_clean, on='day_month', how='outer')
 
-    # Create the hexbin plot
-    hexbin = alt.Chart(df).mark_point(
-        size=hex_size,
-        shape=hex_shape,
-        filled=True,
+    # Drop rows where both nutrient and actual_over_recommended_intake_percent are null
+    df_merged = df_merged.dropna(subset=['nutrient', 'actual_over_recommended_intake_percent'], how='all')
+
+    # Cap values at 100 for coloring and fill missing entries
+    df_merged['capped_intake_percent'] = df_merged['actual_over_recommended_intake_percent'].clip(upper=100).fillna(0)
+
+    # Define categories based on the original nutrient data to avoid introducing 'null' or '-1' categories
+    nutrient_categories = pd.Categorical(df_clean['nutrient'].unique())
+    df_merged['nutrient'] = pd.Categorical(df_merged['nutrient'], categories=nutrient_categories)
+
+    # Create the square heatmap plot
+    square_heatmap = alt.Chart(df_merged).mark_rect(
+        stroke='black',  # Black border around each square
+        strokeWidth=0.5  # Border width
     ).encode(
-        x=alt.X('record_date:T',
-                title='Date',
-                axis=alt.Axis(labelAngle=270, format='%Y-%m-%d'),
-                scale=alt.Scale(zero=False)),
-        y=alt.Y('nutrient:N',
-                title='Nutrient',
-                scale=alt.Scale(zero=False)),
-        color=alt.Color('actual_over_recommended_intake_percent:Q',
-                        title='Percentage Achieved',
-                        scale=alt.Scale(domain=[0, 100],
-                                        scheme='goldgreen')),
-        tooltip=['nutrient', 'day_month', 'actual_over_recommended_intake_percent']
+        x=alt.X('day_month:O', title='Date', axis=alt.Axis(labelAngle=270), sort=all_dates['day_month'].tolist()),  # Sorted by date
+        y=alt.Y('nutrient:N', title='Nutrient', sort='ascending'),
+        color=alt.Color('capped_intake_percent:Q', 
+                    scale=alt.Scale(domain=[0, 100], scheme='goldgreen'),
+                    title='Intake Percentage - capped at 100%'),  # Custom color legend title
+        tooltip=[
+            alt.Tooltip('nutrient', title='Nutrient:'),
+            alt.Tooltip('day_month', title='Date:'),
+            alt.Tooltip('actual_over_recommended_intake_percent', title='Intake Percentage:')
+        ]
     ).properties(
         width=1000,
-        height=700,
-        # Centering the title
-        title=alt.TitleParams(
-            text="Historical Nutrient Intake Tracker",
-            align="center"
-        )
+        height=800,
+        title=alt.TitleParams('Historical Nutrient Intake Tracker', anchor='middle')
     ).configure_view(
         strokeWidth=0
     )
 
     # Show the chart in the specified layout position
-    layout_position.altair_chart(hexbin)
+    layout_position.altair_chart(square_heatmap)
 
-
-
-
-
-
-
-#def user_historical_data_chart(df, layout_position=st):
-    # Clip values at 100% for visualization
-#    df['actual_over_recommended_intake_percent'] = df['actual_over_recommended_intake_percent'].clip(upper=100)
-
-    # Set graph title
-#    title = alt.TitleParams("Historical Nutrient Intake Tracker", anchor="middle")
-
-    # Set up the heatmap
- #   heatmap = alt.Chart(df, title=title).mark_rect().encode(
-  #      x=alt.X('record_date:O', title='Date', scale=alt.Scale(domain=(df['record_date'].min(), df['record_date'].max()))),
-   #     y=alt.Y('nutrient:O', title='Nutrient', sort='-x'),
-    #    color=alt.Color('actual_over_recommended_intake_percent:Q', 
-     #                   title='Percentage Achieved', 
-      #                  scale=alt.Scale(domain=[0, 100], scheme='goldgreen'))
-  #  ).properties(width=800, height=400)
-
-    # Show graph in the specified layout position
-   # layout_position.altair_chart(heatmap)
-
-
-
-
-
-#---------------------------------------------------------------------------
-## Place holder for dish recommender:
-
-#def users_recommended_with_dish_chart(df, layout_position=st):
-    # Assuming 'dish_intake_increase' is the column with the amount added by the new dish
-    # Create a new column for the stacked value
-#    df['Total Intake with Dish'] = df['Actual intake'] + df['dish_intake_increase']
-#    df['Total Intake with Dish (%)'] = (df['Total Intake with Dish'] / df['Recommended intake']) * 100
-
-    # Clip the values at 100% for visualization
-#    df['Total Intake with Dish (%)'] = df['Total Intake with Dish (%)'].clip(upper=100)
-
-    # Set graph title
-#    title = alt.TitleParams("Nutrient Intake Tracker with Dish Recommendation", anchor="middle")
-
-    # Base chart for actual intake
-#    base_actual = alt.Chart(df).mark_bar().encode(
-#        x=alt.X('Actual intake / Recommended intake (%):Q', title='Percentage'),
-#        y=alt.Y('Nutrient:O', sort='-x'),
-#        color=alt.value('steelblue')  # Use a fixed color for actual intake
-#   )
-
-    # Added intake from dish
-#    base_dish = alt.Chart(df).mark_bar().encode(
-#        x=alt.X('Total Intake with Dish (%):Q'),
-#        y='Nutrient:O',
-#        color=alt.value('goldenrod')  # Use a fixed color for intake increase from dish
-#    )
-
-    # Combined chart
-#    chart = alt.layer(base_actual, base_dish).resolve_scale(x='independent').properties(
-#        title=title,
-#        width=800
-#   )
-
-    # Display the stacked bar chart
-#    layout_position.altair_chart(chart)
-#---------------------------------------------------------------------------
-
-## Feel free to delete the codes below
-
-
-
-# def user_historical_data_chart_line(df, layout_position=st):
-
-#     # Set max intake difference percentage to 100
-#     df.loc[df['actual_over_recommended_intake_percent'] > 100, 'actual_over_recommended_intake_percent'] = 100
-
-#     # Set graph title
-#     title = alt.TitleParams("Historical Nutrient Intake Tracker", anchor="middle")
-
-#     # Set up the bar graph
-#     base = alt.Chart(df, title=title).mark_bar().encode(
-#         x=alt.X('actual_over_recommended_intake_percent:Q', title='percentage', scale=alt.Scale(domain=[0, 100], clamp=True)),
-#         y=alt.Y('nutrient:O', title='').sort('x'),
-#         color = alt.Color('actual_over_recommended_intake_percent:Q', legend= None, scale=alt.Scale(scheme='goldgreen', domain=[0, 100]))
-#     ).properties(width=800)
-
-#     base.mark_bar() + base.mark_text(align='left', dx=2)
-
-#     # Show graph
-#     layout_position.altair_chart(base)
-
-#df = pd.read_csv("anika_sample.csv")
-#user_historical_data_chart(df)

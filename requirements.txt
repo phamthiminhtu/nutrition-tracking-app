@@ -7,3 +7,4 @@ streamlit-authenticator==0.3.1
 pandas==2.2.1
 fuzzywuzzy==0.18.0
 scikit-learn==1.2.2
+altair==5.1.2
