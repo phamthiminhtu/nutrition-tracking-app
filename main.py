@@ -1,14 +1,14 @@
 import os
-import re
 import logging
-import threading
+import pandas as pd
 import streamlit as st
-from core.main_app_miscellaneous import *
+from openai import OpenAI
+from core.main_app_miscellaneous import MainAppMiscellaneous
 from core.calculate_nutrient_intake import NutrientMaster
-from core.diabetes_assessor import *
-from core.telegram_bot import *
+from core.diabetes_assessor import DiabetesAssessor
+from core.telegram_bot import TelegramBot
 from core.auth import Authenticator
-from core.dish_recommendation import *
+from core.dish_recommendation import DishRecommender
 from core.utils import wait_while_condition_is_valid
 
 OPENAI_API_KEY = "OPENAI_API_KEY"
@@ -26,7 +26,6 @@ telegram_bot = TelegramBot(telegram_bot_token=TELEGRAM_BOT_TOKEN)
 Nutrient = NutrientMaster(openai_client=OPENAI_CLIENT)
 
 logging.basicConfig(level=logging.INFO)
-logging.root.setLevel(logging.NOTSET)
 st.set_page_config(layout='wide', page_icon='image/picture_1.png')
 
 authenticator = Authenticator()
@@ -246,8 +245,8 @@ meal_record_date = main_app_miscellaneous.get_meal_record_date(
 )
 user_intake_df_temp['meal_record_date'] = meal_record_date
 
-logging.info("-----------Running get_user_confirmation_and_try_to_save_their_data()-----------")
 if st.session_state.get('save_meal_result') is None:
+    logging.info("-----------Running get_user_confirmation_and_try_to_save_their_data()-----------")
     save_meal_result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_their_data(
         dish_description=st.session_state['dish_description'],
         user_id=st.session_state['user_id'],
@@ -260,8 +259,6 @@ if st.session_state.get('save_meal_result') is None:
 wait_while_condition_is_valid((st.session_state.get('save_meal_result') is None))
 
 logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_data-----------")
-
-
 
 # Aggregate user_recommended_intake_df by day
 if st.session_state.get('user_recommended_intake_df') is None:
@@ -295,25 +292,25 @@ if st.session_state.get('dish_recommend_user_input'):
     cuisine, allergies, ingredients = dishrecommend.get_user_input(layout_position=track_new_meal_tab)
     logging.info("Finished reading user preferences for the dish recommendation..")
 
-    logging.info("Recommending dish to the user based on the given preferences.")
     if track_new_meal_tab.button("Recommend Dish"):
         track_new_meal_tab.write("🍱🥗🥪 Bringing an awesome recipe to you ...")
         if st.session_state.get('recommended_recipe') is None:
+            logging.info("Recommending dish to the user based on the given preferences.")
             recommended_recipe = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
             st.session_state['recommended_recipe'] = recommended_recipe
 
         if st.session_state.get('recommended_dish_ingredients') is None:
             recommended_dish_ingredients = dishrecommend.get_recommended_dish_ingredients(st.session_state['recommended_recipe'])
             st.session_state['recommended_dish_ingredients'] = recommended_dish_ingredients
-    logging.info("Finished dish recommendation based on the user preferences.")
+            logging.info("Finished dish recommendation based on the user preferences.")
 
     wait_while_condition_is_valid(condition=(st.session_state.get('recommended_dish_ingredients') is None))
 
-    logging.info("Collecting the nutrients of the recommended dish.")
     if st.session_state.get('recommended_dish_nutrients') is None:
+        logging.info("Collecting the nutrients of the recommended dish.")
         recommended_dish_nutrients = Nutrient.get_recommended_dish_nutrients(st.session_state['recommended_dish_ingredients'], layout_position=track_new_meal_tab)
         st.session_state["recommended_dish_nutrients"] = recommended_dish_nutrients
-    logging.info("End of collecting the nutrients of the recommended dish.")
+        logging.info("End of collecting the nutrients of the recommended dish.")
 
 
 # Displaying the recommended dish recipe
@@ -349,7 +346,6 @@ if st.session_state.get('recommended_recipe') is not None:
         st.session_state['user_telegram_user_name'] = user_telegram_user_name
 
     if st.session_state.get('user_telegram_user_name') is not None:
-        print("-----------Running send_message_to_user_name-----------")
         if st.session_state.get("sending_telegram_message_result") is None:
             sending_message_result = telegram_bot.send_message_to_user_name(
                 user_name=st.session_state.get('user_telegram_user_name'),
@@ -358,5 +354,3 @@ if st.session_state.get('recommended_recipe') is not None:
             )
             if sending_message_result.get("status") == 200:
                 st.session_state["sending_telegram_message_result"] = sending_message_result
-
-        print("-----------Finished send_message_to_user_name-----------")
