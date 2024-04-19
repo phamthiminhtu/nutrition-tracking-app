@@ -79,10 +79,13 @@ class Authenticator:
         return authenticator
 
     @handle_exception(has_random_message_printed_out=True)
-    def user_login(self, layout_position=st):
+    def user_login(self,layout_position=st):
 
         # Check if is existing user and then login
+        #if key is None:
         name, authentication_status, username = self.authenticator.login()
+        #else:
+        #    name, authentication_status, username = self.authenticator.login(fields={'Form name':key})
 
         if authentication_status != False:
             logging.info("Login successful")
