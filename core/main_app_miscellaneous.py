@@ -264,7 +264,7 @@ class MainAppMiscellaneous:
             x=alt.X('sum(percentage)', title='Percentage Intake'),
             y=alt.Y('Nutrient', sort=alt.EncodingSortField(field='percentage', op='sum', order='ascending')),
             color=alt.Color('type', scale=alt.Scale(domain=['Previous Meal', 'Recommended Meal'],
-                                                    range=['#096913', '#67c916'])),
+                                                    range=['#096913', '#B6C471'])),
             tooltip=[
                 alt.Tooltip('Nutrient', title='Nutrient:'),
                 alt.Tooltip('type', title='Meal:'),
