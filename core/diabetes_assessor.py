@@ -130,7 +130,7 @@ class DiabetesAssessor:
         with col1:
             weight = st.slider(
                 "🙋‍♀️🙋‍♂️ What is your weight in Kg?",
-                1,650
+                1,200
             )
         # st.markdown(
         #     """<style>
@@ -142,7 +142,7 @@ class DiabetesAssessor:
         # )
         with col3:
             height = st.slider(
-                "🙋‍♀️🙋‍♂️ What's your height in Meters?",
+                "🙋‍♀️🙋‍♂️ What's your height in meters?",
                 0.50,3.00
             )
         st.markdown(
