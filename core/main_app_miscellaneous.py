@@ -9,8 +9,8 @@ from core.duckdb_connector import *
 from core.utils import handle_exception, wait_while_condition_is_valid
 from core.sql.user_daily_recommended_intake_history import anonymous_user_daily_nutrient_intake_query_template, combine_user_actual_vs_recommend_intake_logic
 from core.visualization import users_recommended_intake_chart, user_historical_hexbin_chart
-from streamlit_option_menu import option_menu
-from streamlit_extras.row import row
+# from streamlit_option_menu import option_menu
+# from streamlit_extras.row import row
 
 RECOMMENDED_DAILY_NUTRIENT_INTAKE_TABLE_ID = "ilab.main.daily_nutrients_recommendation"
 USER_DAILY_RECOMMENDED_INTAKE_HISTORY_VIEW_ID = "ilab.main.user_daily_recommended_intake_history"
