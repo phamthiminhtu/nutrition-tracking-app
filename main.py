@@ -29,20 +29,34 @@ logging.basicConfig(level=logging.INFO)
 st.set_page_config(layout='wide', page_icon='image/picture_1.png')
 
 authenticator = Authenticator()
-with st.popover("Log in 🙋‍♀️"):
+with st.popover("Log in 🔐"):
     if st.session_state.get('is_logged_in') is None:
         name, authentication_status, username = authenticator.user_login()
-
         if authentication_status == True:
             st.session_state["name"], st.session_state["is_logged_in"], st.session_state["user_name"] = name, authentication_status, username
         else:
             st.session_state["name"] = None
             st.session_state["is_logged_in"] = None
             st.session_state["user_name"] = None
-
+#login()
 with st.sidebar:
     st.image("image/picture_1.png", use_column_width=True)
     authenticator.new_user_registration()
+    if st.session_state.get('is_logged_in'):
+        if st.sidebar.button('Logout'):
+            st.session_state["name"] = None
+            st.session_state["is_logged_in"] = None
+            st.session_state["user_name"] = None
+
+#with st.popover("Log in 🔐"):
+#   if st.session_state.get('is_logged_in') is None:
+#       name, authentication_status, username = authenticator.user_login('login2')
+#       if authentication_status:
+#           st.session_state["name"], st.session_state["is_logged_in"], st.session_state["user_name"] = name, authentication_status, username
+#       else:
+#           st.session_state["name"] = None
+#           st.session_state["is_logged_in"] = None
+#           st.session_state["user_name"] = None
 
 st.session_state['user_id'] = st.session_state.get("user_name")
 
@@ -67,7 +81,7 @@ def reset_session_state():
     st.session_state["sending_telegram_message_result"] = None
 
 
-main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
+main_app_miscellaneous.say_hello(user_name=st.session_state.get('user_name'))
 
 # Main page with 2 tabs
 track_new_meal_tab, user_recommended_intake_history_tab, assess_diabetes_risk_tab = st.tabs(
@@ -81,22 +95,24 @@ if dish_description != st.session_state.get('dish_description', '###') and dish_
     st.session_state['dish_description'] = dish_description
 
 # Flow 3 - 12. User wants to get their historical data
+user_recommended_intake_history_tab.info('Please logged in first to see the intake history 😉', icon='🔐')
 get_intake_history_button = user_recommended_intake_history_tab.button("I want to get my nutrition intake history")
 if not st.session_state.get('get_intake_history_button') and get_intake_history_button:
     st.session_state['get_intake_history_button'] = True
 
-if st.session_state.get('get_intake_history_button'):
-    logging.info("-----------Running get_user_historical_data()-----------")
-    selected_date_range = main_app_miscellaneous.select_date_range(layout_position=user_recommended_intake_history_tab)
-    user_recommended_intake_history_result = main_app_miscellaneous.show_user_historical_data_result(
-        is_logged_in=st.session_state['is_logged_in'],
-        user_id=st.session_state['user_id'],
-        layout_position=user_recommended_intake_history_tab,
-        selected_date_range=selected_date_range
-    )
-    user_recommended_intake_history_df = user_recommended_intake_history_result.get("value")
-    st.session_state['user_recommended_intake_history_df'] = user_recommended_intake_history_df
-    logging.info("-----------Finished get_user_historical_data.-----------")
+if st.session_state.get('is_logged_in'):
+    if st.session_state.get('get_intake_history_button'):
+        logging.info("-----------Running get_user_historical_data()-----------")
+        selected_date_range = main_app_miscellaneous.select_date_range(layout_position=user_recommended_intake_history_tab)
+        user_recommended_intake_history_result = main_app_miscellaneous.show_user_historical_data_result(
+            is_logged_in=st.session_state['is_logged_in'],
+            user_id=st.session_state['user_id'],
+            layout_position=user_recommended_intake_history_tab,
+            selected_date_range=selected_date_range
+        )
+        user_recommended_intake_history_df = user_recommended_intake_history_result.get("value")
+        st.session_state['user_recommended_intake_history_df'] = user_recommended_intake_history_df
+        logging.info("-----------Finished get_user_historical_data.-----------")
 
 
 # Diabetes prediction
@@ -177,12 +193,21 @@ wait_while_condition_is_valid((st.session_state.get('total_nutrients_based_on_fo
 # @Nyan
 # TODO: create the a table storing user's personal data: age, gender etc.
 # Update this data if there are any changes.
-
-wait_while_condition_is_valid((st.session_state.get('total_nutrients_based_on_food_intake') is None))
+#with st.expander("Log in 🔐"):
+#    if st.session_state.get('is_logged_in') is None:
+#        name, authentication_status, username = authenticator.user_login()
+#        if authentication_status:
+#            st.session_state["name"], st.session_state["is_logged_in"], st.session_state["user_name"] = name, authentication_status, username
+#        else:
+#            st.session_state["name"] = None
+#            st.session_state["is_logged_in"] = None
+#            st.session_state["user_name"] = None
+#
+#
 
 ### TODO: replace this with actual input
 user_intake_df_temp = st.session_state['total_nutrients_based_on_food_intake']
-user_intake_df_temp["user_id"] = st.session_state['user_id']
+user_intake_df_temp["user_id"] = st.session_state.get('user_name')
 ###
 
 # 4 + 5. Get user's age + gender
@@ -191,7 +216,7 @@ if st.session_state.get('user_personal_data') is None:
     logging.info("----------- Running get_user_personal_data()-----------")
     user_personal_data = main_app_miscellaneous.get_user_personal_data(
         is_logged_in=st.session_state['is_logged_in'],
-        user_id=st.session_state['user_id'],
+        user_id=st.session_state['user_name'],
         has_user_intake_df_temp_empty=has_user_intake_df_temp_empty,   ## handle case total_nutrients_based_on_food_intake is not a DataFrame but a dict
         layout_position=track_new_meal_tab
     )
@@ -230,7 +255,10 @@ if st.session_state.get('save_meal_result') is None:
         has_user_intake_df_temp_empty=has_user_intake_df_temp_empty
     )
     st.session_state['save_meal_result'] = save_meal_result
-    logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_data-----------")
+
+wait_while_condition_is_valid((st.session_state.get('save_meal_result') is None))
+
+logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_data-----------")
 
 # Aggregate user_recommended_intake_df by day
 if st.session_state.get('user_recommended_intake_df') is None:
@@ -293,8 +321,14 @@ if st.session_state.get('recommended_recipe') is not None:
         df_computed_recommended_nutrients = dishrecommend.get_total_nutrients_after_dish_recommend(user_recommended_intake_result, st.session_state['recommended_dish_nutrients'], track_new_meal_tab)
         st.session_state["df_computed_recommended_nutrients"] = df_computed_recommended_nutrients
     logging.info("End of calculating and displaying the total nutrients after the dish recommendation.")
+    logging.info("-----------Running combined_intake_chart()-----------")
+    show_combined_chart = main_app_miscellaneous.combined_intake_chart(user_recommended_intake_result,st.session_state['df_computed_recommended_nutrients'],track_new_meal_tab)
+    st.session_state['show_combined_chart'] = show_combined_chart
+    logging.info("-----------Finished combined_intake_chart-----------")
 
 wait_while_condition_is_valid(condition=(st.session_state.get('recommended_recipe') is None))
+
+    
 
 if st.session_state.get('recommended_recipe') is not None:
 
