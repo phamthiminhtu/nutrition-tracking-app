@@ -96,12 +96,12 @@ with maincol:
 # Main page with 2 tabs
 with maincol:
     track_new_meal_tab, user_recommended_intake_history_tab, assess_diabetes_risk_tab = st.tabs(
-        ["🍔 Track the food I ate ", "📖 See my nutrition intake history ", "🩺 Assess my diabetes risk "]
+        ["🍔 Calculate nutrients content in my food", "📖 See my nutrition intake history ", "🩺 Assess my diabetes risk "]
 )
 
 # 1. Get dish description from user and estimate its ingredients
 with track_new_meal_tab:
-    estimated_ingredient_container = st.expander(":orange[**1. What Healthy Meal Today?**]")
+    estimated_ingredient_container = st.expander(":orange[**1. What healthy meal did you have today?**]")
     # estimated_ingredient_container = st.container(border=True)
     dish_description = estimated_ingredient_container.text_input("Enter your dish 😋", help="Describe your meal taken as best possible.").strip()
     if dish_description != st.session_state.get('dish_description', '###') and dish_description!= '':
@@ -230,7 +230,7 @@ if st.session_state.get('user_personal_data') is None:
 # Only run when we have user_personal_data
 # @Tu
 with track_new_meal_tab:
-    nutrient_intake_chart_container = st.expander(":orange[**2. View The Nutritional Value In The Meal You Enjoyed**]")
+    nutrient_intake_chart_container = st.expander(":orange[**2. View the nutritional value in the meal you enjoyed**]")
     # nutrient_intake_chart_container = st.container(border=True)
     logging.info("-----------Running combine_and_show_users_recommended_intake()-----------")
     user_recommended_intake_result = main_app_miscellaneous.combine_and_show_users_recommended_intake(
@@ -245,7 +245,7 @@ with track_new_meal_tab:
 # # Visualize data
 with track_new_meal_tab:
     # consumuption_date_save_info_container = st.container(border=True)
-    consumuption_date_save_info_container = st.expander(":orange[**3. Save Your Meal For Future Reference**]")
+    consumuption_date_save_info_container = st.expander(":orange[**3. Save your meal for future reference**]")
     meal_record_date = main_app_miscellaneous.get_meal_record_date(
         layout_position=consumuption_date_save_info_container,
         has_user_intake_df_temp_empty=has_user_intake_df_temp_empty
@@ -287,13 +287,8 @@ logging.info("Finished collecting the nutrient intake information for the dish r
 # Asking the user if they want dish recommendation
 with track_new_meal_tab:
     # dish_recommendation_preference_container = st.container(border=True)
-    dish_recommendation_preference_container = st.expander(":orange[**4. Lets Spice Up Your Next Meal With MealMinder's Inspiring Ideas**]")
+    dish_recommendation_preference_container = st.expander(":orange[**4. Lets spice up your next meal with MealMinder's inspiring ideas**]")
     dish_recommend_user_input = dish_recommendation_preference_container.radio("🍽️🥘Do you want a dish recommendation?", ["Yes", "No"], horizontal=True)
-    # if not st.session_state.get('dish_recommend_user_input') and dish_recommend_user_input:
-    #     st.session_state['dish_recommend_user_input'] = True
-    # If user selected "Yes", calling the dish recommendation function
-    # if st.session_state.get('dish_recommend_user_input'):
-    #     dish_recommend_user_input = dish_recommendation_output_container.radio("🍽️🥘 Do you want a dish recommendation?", ["Yes", "No"], index=None, horizontal=True)
 
     if dish_recommend_user_input is not None:
         st.session_state['dish_recommend_user_input'] = True
@@ -308,7 +303,7 @@ with track_new_meal_tab:
         dish_recommendation_preference_container.write("🍱🥗🥪 Bringing an awesome recipe to you ...")
 
 # Displaying the recommended dish recipe
-    dish_recommendation_output_container = st.expander(":orange[**5. Here's A Yummy Recommendation For You**]")
+    dish_recommendation_output_container = st.expander(":orange[**5. Here's a yummy recommendation for you**]")
     if st.session_state.get('recommended_recipe') is None:
         logging.info("Recommending dish to the user based on the given preferences.")
         recommended_recipe = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
@@ -323,13 +318,13 @@ with track_new_meal_tab:
 
     if st.session_state.get('recommended_dish_nutrients') is None:
         logging.info("Collecting the nutrients of the recommended dish.")
-        recommended_dish_nutrients = Nutrient.get_recommended_dish_nutrients(st.session_state['recommended_dish_ingredients'], layout_position=dish_recommendation_output_container)
+        recommended_dish_nutrients = Nutrient.get_recommended_dish_nutrients(st.session_state['recommended_dish_ingredients'])
         st.session_state["recommended_dish_nutrients"] = recommended_dish_nutrients
         logging.info("End of collecting the nutrients of the recommended dish.")
 
 #     dish_recommendation_output_container = st.expander(":orange[**5. Here's A Yummy Recommendation For You**]")
     if st.session_state.get('recommended_recipe') is not None:
-        track_new_meal_tab.write(st.session_state['recommended_recipe'])
+        dish_recommendation_output_container.write(st.session_state['recommended_recipe'])
         logging.info("Calculating and displaying the total nutrients after the dish recommendation.")
         if st.session_state.get('df_computed_recommended_nutrients') is None:
             df_computed_recommended_nutrients = dishrecommend.get_total_nutrients_after_dish_recommend(user_recommended_intake_result, st.session_state['recommended_dish_nutrients'], dish_recommendation_output_container)
@@ -341,7 +336,7 @@ with track_new_meal_tab:
 # Send dish recipe to Telegram
 with track_new_meal_tab:
     if st.session_state.get('recommended_recipe') is not None:
-        telegram_container = st.expander(":orange[**6. Lets Send This Yummy Recipe To You**]")
+        telegram_container = st.expander(":orange[**6. Lets send this tasty recipe to you**]")
         telegram_container.info("""
             If this is your first time with us,
             please search for @meal_minder_bot on Telegram and say hi so that we can reach out to you 😉
