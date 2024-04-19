@@ -12,12 +12,6 @@ from core.utils import handle_exception
 # Setting up logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s:%(levelname)s:%(name)s:%(funcName)s:%(message)s")
-
-# Setting up file handler to save logs in a log file
-file_handler = logging.FileHandler("data/logs.log")
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
 
 # Class for dish recommendation feature
 class DishRecommender:
