@@ -294,8 +294,14 @@ if st.session_state.get('recommended_recipe') is not None:
         df_computed_recommended_nutrients = dishrecommend.get_total_nutrients_after_dish_recommend(user_recommended_intake_result, st.session_state['recommended_dish_nutrients'], track_new_meal_tab)
         st.session_state["df_computed_recommended_nutrients"] = df_computed_recommended_nutrients
     logging.info("End of calculating and displaying the total nutrients after the dish recommendation.")
+    logging.info("-----------Running combined_intake_chart()-----------")
+    show_combined_chart = main_app_miscellaneous.combined_intake_chart(user_recommended_intake_result,st.session_state['df_computed_recommended_nutrients'],track_new_meal_tab)
+    st.session_state['show_combined_chart'] = show_combined_chart
+    logging.info("-----------Finished combined_intake_chart-----------")
 
 wait_while_condition_is_valid(condition=(st.session_state.get('recommended_recipe') is None))
+
+    
 
 if st.session_state.get('recommended_recipe') is not None:
 
