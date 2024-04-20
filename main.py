@@ -83,7 +83,29 @@ def reset_session_state():
 # container, grid, row settings
 buff1, maincol, buff2 = st.columns([1,8,1])
 
-main_app_miscellaneous.say_hello(user_name=st.session_state.get('user_name'))
+# Set the Main title
+with maincol:
+    original_title = '<h1 style="font-family: monospace; color:#D44A1A; font-size: 75px;">MealMinder </h1>'
+    st.markdown(original_title, unsafe_allow_html=True)
+
+# Set the Background image
+background_image = """
+<style>
+[data-testid="stAppViewContainer"] > .main {
+    background-image: url("https://i.pinimg.com/originals/57/b5/e2/57b5e2121c57ac65eaff26ef584ecd65.jpg");
+    background-size: cover;
+    # background-size: 100% 100%;
+    # background-size: 100vw 100vh;  # This sets the size to cover 100% of the viewport width and height
+    background-position: center;  
+    # background-repeat: no-repeat;
+}
+</style>
+"""
+st.markdown(background_image, unsafe_allow_html=True)
+
+with maincol:
+    main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
+    # intro_message = main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
 
 # Main page with 2 tabs
 with maincol:
@@ -268,7 +290,6 @@ with track_new_meal_tab:
         )
         st.session_state['save_meal_result'] = save_meal_result
         logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_data-----------")
-    st.session_state['save_meal_result'] = save_meal_result
 
 wait_while_condition_is_valid((st.session_state.get('save_meal_result') is None))
 
