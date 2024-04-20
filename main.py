@@ -95,7 +95,9 @@ if dish_description != st.session_state.get('dish_description', '###') and dish_
     st.session_state['dish_description'] = dish_description
 
 # Flow 3 - 12. User wants to get their historical data
-user_recommended_intake_history_tab.info('Please logged in first to see the intake history 😉', icon='🔐')
+if not st.session_state.get('is_logged_in'):
+    user_recommended_intake_history_tab.info('Please logged in first to see the intake history 😉', icon='🔐')
+
 get_intake_history_button = user_recommended_intake_history_tab.button("I want to get my nutrition intake history")
 if not st.session_state.get('get_intake_history_button') and get_intake_history_button:
     st.session_state['get_intake_history_button'] = True
