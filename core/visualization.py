@@ -1,3 +1,4 @@
+import textwrap
 import numpy as np
 import altair as alt
 import streamlit as st
@@ -59,7 +60,7 @@ def user_historical_square_heatmap(df, layout_position):
         y=alt.Y('nutrient:N', title='Nutrient', sort='ascending'),
         color=alt.Color('capped_intake_percent:Q', 
                     scale=alt.Scale(domain=[0, 100], scheme='goldgreen'),
-                    title='Intake Percentage - capped at 100%'),  # Custom color legend title
+                    title=textwrap.wrap('Recommended Intake Achieved (%)', width=20)),  # Custom color legend title
         tooltip=[
             alt.Tooltip('nutrient', title='Nutrient:'),
             alt.Tooltip('day_month', title='Date:'),
