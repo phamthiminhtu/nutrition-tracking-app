@@ -175,6 +175,7 @@ class DiabetesAssessor:
                 is_heavy_alcohol_consumer = st.radio(
                     "🍺 Do you have more than 14 alcoholic drinks per week?",
                     ["No", "Yes"],
+                    index=None,
                     horizontal=True
                 )
         with col1:
@@ -182,6 +183,7 @@ class DiabetesAssessor:
             has_physical_activity = st.radio(
                 "🏃‍♀️🏃 Do you have any physical activity in the past 30 days?",
                 ["No", "Yes"],
+                index=None,
                 horizontal=True
             )
         with col3:
@@ -189,6 +191,7 @@ class DiabetesAssessor:
             has_stroke = st.radio(
                 "🌪 Have you ever had a stroke?",
                 ["No", "Yes"],
+                index=None,
                 horizontal=True
             )
         with col1:
@@ -196,6 +199,7 @@ class DiabetesAssessor:
             has_heart_disease = st.radio(
                 "🫀 Do you have coronary heart disease or myocardial infarction?",
                 ["No", "Yes"],
+                index=None,
                 horizontal=True
             )
         with col3:
@@ -203,6 +207,7 @@ class DiabetesAssessor:
             has_cholesterol_check = st.radio(
                 "👩‍⚕👨‍⚕ Have you checked your cholesterol in the past 5 years?",
                 ["No", "Yes"],
+                index=None,
                 horizontal=True
             )
         with col1:
@@ -210,6 +215,7 @@ class DiabetesAssessor:
             overall_health = form.radio(
                 "🥇🥈🥉 Please rate your overall health",
                 [":green[Excellent]", ":green[Very good]", ":orange[Good]", ":orange[Fair]", ":red[Poor]"],
+                index=None,
                 horizontal=True
             )
         st.markdown(
