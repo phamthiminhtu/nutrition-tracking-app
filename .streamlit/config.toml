@@ -1,5 +1,6 @@
-[theme]
-base="light"
-primaryColor="#858f52"
-backgroundColor="#fff0d4"
-textColor="#858f52"
+    [theme]
+    base="light"
+    primaryColor="#EF9145"
+    font="monospace"
+    backgroundColor="#fff0d4"
+    textColor="#858f52"

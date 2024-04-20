@@ -116,7 +116,7 @@ class DishRecommender:
             Retrieve ingredients of the recommended dish.
         """
         recommended_dish_ingredients = {}
-
+        df_recommended_dish_ingredients = pd.DataFrame()
         for line in recommended_dish.split("Ingredients")[1].split("Recipe")[0].split("\n- "):
             try:
                 if ":" in line:

@@ -387,7 +387,7 @@ class MainAppMiscellaneous:
     def display_and_let_user_edit_ingredient(self, ingredient_df, layout_position=st):
         if not ingredient_df.empty:
             columns_to_display = ["Ingredient", "Estimated weight (g)"]
-            layout_position.write(f'Here is our estimated weight of each ingredient for one serving of 🍕 {st.session_state["dish_description"]} 🍳:')
+            layout_position.write(f'Here is our estimated weight of each ingredient for one serving of 🍴 {st.session_state["dish_description"]} 🍴:')
             
             # Show ingredients table and let users edit 
             edited_df = layout_position.data_editor(ingredient_df[columns_to_display], num_rows="dynamic")
