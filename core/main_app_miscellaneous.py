@@ -3,14 +3,14 @@ import jinja2
 import pandas as pd
 import streamlit as st
 import datetime
+import altair as alt
+import numpy as np
 from datetime import datetime as dt
 from core.openai_api import *
 from core.duckdb_connector import *
 from core.utils import handle_exception, wait_while_condition_is_valid
 from core.sql.user_daily_recommended_intake_history import anonymous_user_daily_nutrient_intake_query_template, combine_user_actual_vs_recommend_intake_logic
-from core.visualization import users_recommended_intake_chart, user_historical_hexbin_chart
-# from streamlit_option_menu import option_menu
-# from streamlit_extras.row import row
+from core.visualization import users_recommended_intake_chart, user_historical_square_heatmap
 
 RECOMMENDED_DAILY_NUTRIENT_INTAKE_TABLE_ID = "ilab.main.daily_nutrients_recommendation"
 USER_DAILY_RECOMMENDED_INTAKE_HISTORY_VIEW_ID = "ilab.main.user_daily_recommended_intake_history"
@@ -202,8 +202,7 @@ class MainAppMiscellaneous:
             result = {"status": 4000}
             return result
         result = {
-            "status": 200,
-            "login_or_create_account": "No"
+            "status": 200
         }
         has_historical_data_saved = layout_position.radio(
             "Do you want to save this meal info?",
@@ -225,14 +224,59 @@ class MainAppMiscellaneous:
                     storing_historical_data_message = storing_historical_data_result.get("message")
                     layout_position.write(storing_historical_data_message)
             else:
-                login_or_create_account = layout_position.selectbox(
-                    "Looks like you haven't logged in, do you want to log in to save this meal's intake estimation?",
-                    ("Yes", 'No'),
-                    index=None,
-                    placeholder="Select your answer..."
-                )
-                result["login_or_create_account"] = login_or_create_account
+                layout_position.info("Looks like you haven't logged in, please log in at the top of this page to save this meal 😉", icon="🔐")
         return result
+
+
+    @handle_exception(has_random_message_printed_out=True)
+    def combined_intake_chart(self,df1, df2, layout_position=st):
+        # Rename columns in df1 for clarity
+       
+        df1 = pd.DataFrame(df1['value'])
+        df2 = pd.DataFrame(df2)
+        
+        df1.rename(columns={'nutrient': 'Nutrient'}, inplace=True)
+        
+        df1=df1[['Nutrient','daily_recommended_intake','actual_intake']]
+        df2=df2[['Nutrient','Total_Nutrient_Value']]
+        
+        df2 = pd.merge(df1, df2, on='Nutrient')
+        
+        # Calculate remaining capacity for new intake
+        df2['old_percentage'] = np.minimum((df2['actual_intake'] / df2['daily_recommended_intake']) * 100, 100)
+
+        df2['remaining_capacity'] = 100 - df2['old_percentage']
+
+        # Calculate new intake percentage and adjust not to exceed the remaining capacity
+        df2['percentage'] = (df2['Total_Nutrient_Value'] / df2['daily_recommended_intake']) * 100
+        df2['percentage'] = np.minimum(df2['percentage'], df2['remaining_capacity'])
+        df2=df2[['Nutrient','daily_recommended_intake','Total_Nutrient_Value','percentage']]
+        df2.rename(columns={'Total_Nutrient_Value': 'actual_intake'}, inplace=True)
+
+        df1['type'] = 'Previous Meal'  # Adding a new column 'C' with all values set to 0
+        df2['type'] = 'Recommended Meal'
+        df1['percentage'] = np.minimum((df1['actual_intake'] / df1['daily_recommended_intake']) * 100, 100)
+
+        # Join the dataframes on the 'Nutrient' column
+        df = pd.concat([df1, df2], ignore_index=True)
+            
+        bar_chart = alt.Chart(df).mark_bar().encode(
+            x=alt.X('sum(percentage)', title='Percentage Intake'),
+            y=alt.Y('Nutrient', sort=alt.EncodingSortField(field='percentage', op='sum', order='ascending')),
+            color=alt.Color('type', scale=alt.Scale(domain=['Previous Meal', 'Recommended Meal'],
+                                                    range=['#096913', '#B6C471'])),
+            tooltip=[
+                alt.Tooltip('Nutrient', title='Nutrient:'),
+                alt.Tooltip('type', title='Meal:'),
+                alt.Tooltip('percentage', title='Intake Percentage:')
+            ]
+        ).properties(width=800,
+        title=alt.TitleParams('Cumulative Intake Chart', anchor='middle'))
+
+        # Show graph in the Streamlit layout position
+        layout_position.altair_chart(bar_chart)
+
+
 
     @handle_exception(has_random_message_printed_out=True)
     def get_user_historical_data(
@@ -281,7 +325,7 @@ class MainAppMiscellaneous:
             )
             result["value"] = user_recommended_intake_history_df
             if not user_recommended_intake_history_df.empty:
-                user_historical_hexbin_chart(user_recommended_intake_history_df, layout_position=layout_position)
+                user_historical_square_heatmap(user_recommended_intake_history_df, layout_position=layout_position)
             else:
                 layout_position.write("""
                     Oops, looks like you haven't tracked your nutrition.
