@@ -26,7 +26,7 @@ telegram_bot = TelegramBot(telegram_bot_token=TELEGRAM_BOT_TOKEN)
 Nutrient = NutrientMaster(openai_client=OPENAI_CLIENT)
 
 logging.basicConfig(level=logging.INFO)
-st.set_page_config(layout='wide', page_icon='image/picture_1.png')
+st.set_page_config(page_title="MealMinder", layout='wide', page_icon='image/picture_1.png')
 
 authenticator = Authenticator()
 with st.popover("Log in 🔐"):
