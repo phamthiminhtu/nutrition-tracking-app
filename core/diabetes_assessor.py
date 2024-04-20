@@ -11,11 +11,11 @@ from core.main_app_miscellaneous import MainAppMiscellaneous
 
 USER_NUTRIENT_INTAKE_HISTORY_TABLE_ID = "ilab.main.user_nutrient_intake_history"
 OVERALL_HEALTH_MAP = {
-    'Excellent': 1,
-    'Very good': 2,
-    'Good': 3,
-    'Fair': 4,
-    'Poor': 5
+    ':green[Excellent]': 1,
+    ':green[Very good]': 2,
+    ':orange[Good]': 3,
+    ':orange[Fair]': 4,
+    ':red[Poor]': 5
 }
 FRUIT_AND_VEGGIES_REPRESENTATIVES = [
     "Vitamin A",
