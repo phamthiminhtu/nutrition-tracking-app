@@ -16,7 +16,6 @@ class Authenticator:
     def __init__(self) -> None:
         self.conn = DuckdbConnector()
         self.jinja_environment = jinja2.Environment()
-        self.authenticator = self._authenticate_user()
 
     def _query_users_info_from_database(self, result_format='list'):
 
@@ -83,11 +82,12 @@ class Authenticator:
 
         # Check if is existing user and then login
         #if key is None:
-        name, authentication_status, username = self.authenticator.login()
+        authenticator = self._authenticate_user()
+        name, authentication_status, username = authenticator.login()
         #else:
         #    name, authentication_status, username = self.authenticator.login(fields={'Form name':key})
 
-        if authentication_status:
+        if authentication_status != False:
             logging.info("Login successful")
         else:
             logging.info("Incorrect username or password")
