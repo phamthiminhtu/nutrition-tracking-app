@@ -30,50 +30,53 @@ def user_historical_square_heatmap(df, layout_position):
     df['record_date'] = pd.to_datetime(df['record_date'])
     df['day_month'] = df['record_date'].dt.strftime('%d-%m')
 
-    # Only keep rows where 'nutrient' is not null to ensure no null nutrient entries are created
-    df_clean = df.dropna(subset=['nutrient'])
+    # Keep a separate list of unique nutrients
+    unique_nutrients = df['nutrient'].dropna().unique()
 
     # Ensure all dates are represented in the data, even those without data points
-    date_range = pd.date_range(df_clean['record_date'].min(), df_clean['record_date'].max())
-    all_dates = pd.DataFrame(date_range, columns=['record_date'])
-    all_dates['day_month'] = all_dates['record_date'].dt.strftime('%d-%m')
+    date_range = pd.date_range(start=df['record_date'].min(), end=df['record_date'].max())
+    all_dates_df = pd.DataFrame(date_range, columns=['record_date'])
+    all_dates_df['day_month'] = all_dates_df['record_date'].dt.strftime('%d-%m')
 
-    # Merge the complete date range with the cleaned data on 'day_month' using 'outer' join to keep all dates
-    df_merged = pd.merge(all_dates, df_clean, on='day_month', how='outer')
+    # Merge the complete date range with the original data
+    df_merged = pd.merge(all_dates_df, df, on='day_month', how='left')
 
-    # Drop rows where both nutrient and actual_over_recommended_intake_percent are null
-    df_merged = df_merged.dropna(subset=['nutrient', 'actual_over_recommended_intake_percent'], how='all')
+    # Ensure nutrient categories after merge do not contain nulls
+    df_merged['nutrient'] = pd.Categorical(df_merged['nutrient'], categories=unique_nutrients)
 
-    # Cap values at 100 for coloring and fill missing entries
-    df_merged['capped_intake_percent'] = df_merged['actual_over_recommended_intake_percent'].clip(upper=100).fillna(0)
-
-    # Define categories based on the original nutrient data to avoid introducing 'null' or '-1' categories
-    nutrient_categories = pd.Categorical(df_clean['nutrient'].unique())
-    df_merged['nutrient'] = pd.Categorical(df_merged['nutrient'], categories=nutrient_categories)
+    # Cap values at 100 for coloring and use NaN for days without data
+    df_merged['actual_over_recommended_intake_percent'] = df_merged['actual_over_recommended_intake_percent'].clip(upper=100)
 
     # Create the square heatmap plot
-    square_heatmap = alt.Chart(df_merged).mark_rect(
-        stroke='black',  # Black border around each square
-        strokeWidth=0.5  # Border width
-    ).encode(
-        x=alt.X('day_month:O', title='Date', axis=alt.Axis(labelAngle=270), sort=all_dates['day_month'].tolist()),  # Sorted by date
+    square_heatmap = alt.Chart(df_merged).mark_rect().encode(
+        x=alt.X('day_month:O', axis=alt.Axis(labelAngle=270), title='Date', sort=all_dates_df['day_month'].tolist()),
         y=alt.Y('nutrient:N', title='Nutrient', sort='ascending'),
-        color=alt.Color('capped_intake_percent:Q', 
-                    scale=alt.Scale(domain=[0, 100], scheme='goldgreen'),
-                    title=textwrap.wrap('Recommended Intake Achieved (%)', width=20)),  # Custom color legend title
+        color=alt.condition(
+            alt.datum.actual_over_recommended_intake_percent >= 1,  # Apply color only for values starting from 1
+            alt.Color('actual_over_recommended_intake_percent:Q',
+                      title='Intake Percentage', 
+                      scale=alt.Scale(domain=[1, 100], scheme='goldgreen'),
+                      legend=alt.Legend(orient='right', titleLimit=0, gradientLength=370, gradientThickness=20)  # Adjust legend size
+            ),
+            alt.value(None)  # Do not color boxes with values below 1
+        ),
         tooltip=[
-            alt.Tooltip('nutrient', title='Nutrient:'),
-            alt.Tooltip('day_month', title='Date:'),
-            alt.Tooltip('actual_over_recommended_intake_percent', title='Intake Percentage:')
+            alt.Tooltip('day_month', title='Date'),
+            alt.Tooltip('nutrient', title='Nutrient'),
+            alt.Tooltip('actual_over_recommended_intake_percent', title='Intake Percentage')
         ]
     ).properties(
         width=1000,
-        height=800,
-        title=alt.TitleParams('Historical Nutrient Intake Tracker', anchor='middle')
+        height=600,
+        title=alt.TitleParams(
+            text="Historical Nutrient Intake Tracker",  # Title text
+            anchor='middle'  # Center alignment
+        )
     ).configure_view(
         strokeWidth=0
     )
 
-    # Show the chart in the specified layout position
+    # Display the chart in the specified layout position
     layout_position.altair_chart(square_heatmap)
+
 
