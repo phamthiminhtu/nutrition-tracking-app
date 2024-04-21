@@ -89,7 +89,7 @@ background_image = """
 st.markdown(background_image, unsafe_allow_html=True)
 
 with maincol:
-    main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
+    main_app_miscellaneous.say_hello(user_name=st.session_state['name'])
     # intro_message = main_app_miscellaneous.say_hello(user_name=st.session_state['user_name'])
 
 # Main page with 2 tabs
