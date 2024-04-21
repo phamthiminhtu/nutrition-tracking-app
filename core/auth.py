@@ -16,7 +16,6 @@ class Authenticator:
     def __init__(self) -> None:
         self.conn = DuckdbConnector()
         self.jinja_environment = jinja2.Environment()
-        self.authenticator = self._authenticate_user()
 
     def _query_users_info_from_database(self, result_format='list'):
 
@@ -83,7 +82,8 @@ class Authenticator:
 
         # Check if is existing user and then login
         #if key is None:
-        name, authentication_status, username = self.authenticator.login()
+        authenticator = self._authenticate_user()
+        name, authentication_status, username = authenticator.login()
         #else:
         #    name, authentication_status, username = self.authenticator.login(fields={'Form name':key})
 
@@ -121,10 +121,6 @@ class Authenticator:
     @handle_exception(has_random_message_printed_out=True)
     def new_user_registration(self, layout_position=st):
 
-        # Extract existing usernames and emails from the database
-        query_result = self._query_users_info_from_database(result_format='dataframe')
-        usernames_and_emails = query_result[['username', 'email']]
-
         # Sign up page
         with layout_position.expander("Sign up"):
             with st.form('Sign up',clear_on_submit=True):    
@@ -141,6 +137,9 @@ class Authenticator:
                 # Check if existing user, check re_password and then save user info into the database
                 submitted = st.form_submit_button('Submit')
                 if submitted:
+                    # Extract existing usernames and emails from the database
+                    query_result = self._query_users_info_from_database(result_format='dataframe')
+                    usernames_and_emails = query_result[['username', 'email']]
                     if (username in usernames_and_emails['username'].values or email in usernames_and_emails['email'].values):
                         st.write("username or email already exist")
                     else:    
