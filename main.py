@@ -334,7 +334,7 @@ with track_new_meal_tab:
         )
         st.session_state["df_computed_recommended_nutrients"] = df_computed_recommended_nutrients
     logging.info("End of calculating and displaying the total nutrients after the dish recommendation.")
-    if not st.session_state.get('df_computed_recommended_nutrients').empty:
+    if st.session_state.get('df_computed_recommended_nutrients') is not None:
         logging.info("-----------Running combined_intake_chart()-----------")
         combine_new_meal_nutrition_container.write("Here is the new estimation of your nutrition intake after taking the above dish:")
         show_combined_chart = main_app_miscellaneous.combined_intake_chart(
