@@ -40,9 +40,9 @@ class MainAppMiscellaneous:
         layout_position=st,
     ) -> None:
         if user_name:
-            layout_position.write(f"It's good to see you back, {user_name}! What would you like to do today?")
+            layout_position.markdown(f"<p style='font-size:20px;'>It's good to see you back, {user_name}! What would you like to do today?</p>", unsafe_allow_html=True)
         else:
-            layout_position.write("Hello there, how can we help you?")
+            layout_position.markdown("<p style='font-size:20px;'>Hello there, how can we help you?</p>", unsafe_allow_html=True)
 
     @handle_exception(has_random_message_printed_out=True)
     def get_user_input_dish_and_estimate_ingredients(
