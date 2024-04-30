@@ -1,6 +1,3 @@
-import os
-import re
-import openai 
 import pandas as pd
 import numpy as np
 import logging
@@ -12,6 +9,7 @@ from core.utils import handle_exception
 # Setting up logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+logger.disabled = True
 
 # Class for dish recommendation feature
 class DishRecommender:
@@ -22,7 +20,7 @@ class DishRecommender:
     
     @handle_exception(has_random_message_printed_out=True)
     def retrieve_nutrient_intake_info(self, user_recommended_intake_result):
-        logging.info("Function call to retrieve nutrient intake information.")
+        logger.info("Function call to retrieve nutrient intake information.")
         """
             Collecting the nutrient, daily_recommended_intake, and its measurement information. 
         """
@@ -31,12 +29,12 @@ class DishRecommender:
 
         # Extracting nutrient, daily_recommended_intake, and its measurement
         nutrient_info = ", ".join([f"{row['nutrient']}-{row['intake_diff']} {row['measurement']}" for index, row in df_user_recommended_intake_result.iterrows()])
-        logging.info("End of the function call to retrieve nutrient intake information.")
+        logger.info("End of the function call to retrieve nutrient intake information.")
         return nutrient_info
 
     @handle_exception(has_random_message_printed_out=True)
     def get_user_input(self, layout_position):
-        logging.info("Function call to read user preferences for dish recommendation.")
+        logger.info("Function call to read user preferences for dish recommendation.")
         """
             Takes input from the user for Cuisine, Ingredients, and if any Allergies.
             Returns the user inputs. 
@@ -55,7 +53,7 @@ class DishRecommender:
         # Returing user preferences for cuisine, allergies, if any leftover ingredients
         return cuisine, allergies, ingredients
 
-        logging.info("End of the function call to read user preferences for dish recommendation.")
+        logger.info("End of the function call to read user preferences for dish recommendation.")
 
     
     
@@ -64,7 +62,7 @@ class DishRecommender:
         """
             Provides dish recommendations based on the given user preferences using the OpenAI API.
         """
-        logging.info("Function call for dish recommendation.")
+        logger.info("Function call for dish recommendation.")
         prompt = ""
         
         if (allergies is not None and ingredients is not None):
@@ -102,7 +100,7 @@ class DishRecommender:
         if response.get("status") == 200:
             dish_recommendation = response.get("value")
             recommended_dish = f"{dish_recommendation}"
-            logging.info("End of the function call for dish recommendation.")
+            logger.info("End of the function call for dish recommendation.")
             return recommended_dish
         else:
             raise ValueError("Sorry!! couldn't to retrieve dish recommendation for your preferences.")
@@ -113,7 +111,7 @@ class DishRecommender:
         """
             Retrieve ingredients of the recommended dish.
         """
-        logging.info("Function call to retrieve recommended dish ingredients.")
+        logger.info("Function call to retrieve recommended dish ingredients.")
         recommended_dish_ingredients = {}
         df_recommended_dish_ingredients = pd.DataFrame()
         for line in recommended_dish.split("Ingredients")[1].split("Recipe")[0].split("\n- "):
@@ -126,7 +124,7 @@ class DishRecommender:
                 pass
         if recommended_dish_ingredients:
             df_recommended_dish_ingredients = pd.DataFrame(recommended_dish_ingredients.items(), columns=['Ingredient', 'Estimated weight (g)'])
-        logging.info("End of the function call to retrieve recommended dish ingredients.")
+        logger.info("End of the function call to retrieve recommended dish ingredients.")
         return df_recommended_dish_ingredients
 
     @handle_exception(has_random_message_printed_out=True)
@@ -134,7 +132,7 @@ class DishRecommender:
         """
             Calculates and displays the total nutrients after the dish recommendation.
         """
-        logging.info("Function call to calculate and display the total nutrients after the dish recommendation.")
+        logger.info("Function call to calculate and display the total nutrients after the dish recommendation.")
         df_earlier_nutrients_intake = pd.DataFrame(earlier_nutrients_intake['value'])
         df_recommended_dish_nutrients = pd.DataFrame(recommended_dish_nutrients)
         
@@ -155,7 +153,7 @@ class DishRecommender:
         
         # Displaying the graph nutirents after the dish recommendation
         # users_recommended_intake_chart(df_computed_recommended_nutrients, layout_position=layout_position)
-        logging.info("End of the function call to calculate and display the total nutrients after the dish recommendation.")
+        logger.info("End of the function call to calculate and display the total nutrients after the dish recommendation.")
         
         return df_computed_recommended_nutrients
 

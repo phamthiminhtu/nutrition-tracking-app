@@ -26,6 +26,9 @@ telegram_bot = TelegramBot(telegram_bot_token=TELEGRAM_BOT_TOKEN)
 Nutrient = NutrientMaster(openai_client=OPENAI_CLIENT)
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
+logger.disabled = True
+
 st.set_page_config(page_title="MealMinder", layout='wide', page_icon='image/picture_1.png')
 
 authenticator = Authenticator()
@@ -110,14 +113,14 @@ with track_new_meal_tab:
 # Flow 3 - 12. User wants to get their historical data
 get_intake_history_button = user_recommended_intake_history_tab.button("I want to get my nutrition intake history", type="primary")
 if not st.session_state.get('is_logged_in'):
-    user_recommended_intake_history_tab.info('Please logged in first to see the intake history 😉', icon='🔐')
+    user_recommended_intake_history_tab.info("Let's log in to see your intake history 😉", icon='🔐')
 
 if not st.session_state.get('get_intake_history_button') and get_intake_history_button:
     st.session_state['get_intake_history_button'] = True
 
 if st.session_state.get('is_logged_in'):
     if st.session_state.get('get_intake_history_button'):
-        logging.info("-----------Running get_user_historical_data()-----------")
+        logger.info("-----------Running get_user_historical_data()-----------")
         selected_date_range = main_app_miscellaneous.select_date_range(layout_position=user_recommended_intake_history_tab)
         user_recommended_intake_history_result = main_app_miscellaneous.show_user_historical_data_result(
             is_logged_in=st.session_state['is_logged_in'],
@@ -127,7 +130,7 @@ if st.session_state.get('is_logged_in'):
         )
         user_recommended_intake_history_df = user_recommended_intake_history_result.get("value")
         st.session_state['user_recommended_intake_history_df'] = user_recommended_intake_history_df
-        logging.info("-----------Finished get_user_historical_data.-----------")
+        logger.info("-----------Finished get_user_historical_data.-----------")
 
 # Diabetes prediction
 assess_diabetes_risk_button = assess_diabetes_risk_tab.button("Start assessing my diabetes risk", type="primary")
@@ -136,7 +139,7 @@ if not st.session_state.get('assess_diabetes_risk_button') and assess_diabetes_r
 
 if st.session_state.get('assess_diabetes_risk_button'):
     if st.session_state.get('user_age_and_gender') is None:
-        logging.info("----------- Running main_app_miscellaneous.get_user_age_and_gender()-----------")
+        logger.info("----------- Running main_app_miscellaneous.get_user_age_and_gender()-----------")
         user_age_and_gender =  main_app_miscellaneous.get_user_age_and_gender(
             is_logged_in=st.session_state['is_logged_in'],
             user_id=st.session_state['user_id'],
@@ -144,7 +147,7 @@ if st.session_state.get('assess_diabetes_risk_button'):
             layout_position=assess_diabetes_risk_tab
         )
         st.session_state['user_age_and_gender'] = user_age_and_gender
-        logging.info("----------- Finished running main_app_miscellaneous.get_user_age_and_gender.-----------")
+        logger.info("----------- Finished running main_app_miscellaneous.get_user_age_and_gender.-----------")
 
     has_fruit_and_veggie_intake = diabetes_assessor.get_user_fruit_and_veggie_intake(
         user_id=st.session_state['user_id'],
@@ -153,27 +156,27 @@ if st.session_state.get('assess_diabetes_risk_button'):
     if has_fruit_and_veggie_intake != st.session_state.get('has_fruit_and_veggie_intake'):
         st.session_state['has_fruit_and_veggie_intake'] = has_fruit_and_veggie_intake
 
-    logging.info("-----------Running make_diabetes_prediction()-----------")
+    logger.info("-----------Running make_diabetes_prediction()-----------")
     diabetes_risk_message = diabetes_assessor.make_diabetes_prediction(
         is_logged_in=st.session_state['is_logged_in'],
         user_age_and_gender=st.session_state.get('user_age_and_gender'),
         has_fruit_and_veggie_intake=st.session_state.get('has_fruit_and_veggie_intake'),
         layout_position=assess_diabetes_risk_tab,
     )
-    logging.info("-----------Finished running make_diabetes_prediction-----------")
+    logger.info("-----------Finished running make_diabetes_prediction-----------")
 
 # Main flow
 # wait for users' input
 wait_while_condition_is_valid((st.session_state.get('dish_description') is None))
 
 if st.session_state.get('ingredient_df') is None:
-    logging.info("-----------Running get_user_input_dish_and_estimate_ingredients()-----------")
+    logger.info("-----------Running get_user_input_dish_and_estimate_ingredients()-----------")
     ingredient_df = main_app_miscellaneous.get_user_input_dish_and_estimate_ingredients(
         dish_description=st.session_state['dish_description'],
         layout_position=track_new_meal_tab
     )
     st.session_state['ingredient_df'] = ingredient_df
-    logging.info("-----------Finished get_user_input_dish_and_estimate_ingredients.-----------")
+    logger.info("-----------Finished get_user_input_dish_and_estimate_ingredients.-----------")
 
 wait_while_condition_is_valid((st.session_state.get('ingredient_df') is None))
 
@@ -212,7 +215,7 @@ user_intake_df_temp["user_id"] = st.session_state.get('user_name')
 # 4 + 5. Get user's age + gender
 has_user_intake_df_temp_empty = user_intake_df_temp.empty if isinstance(user_intake_df_temp, pd.DataFrame) else True
 if st.session_state.get('user_personal_data') is None:
-    logging.info("----------- Running get_user_personal_data()-----------")
+    logger.info("----------- Running get_user_personal_data()-----------")
     user_personal_data = main_app_miscellaneous.get_user_personal_data(
         is_logged_in=st.session_state['is_logged_in'],
         user_id=st.session_state['user_name'],
@@ -220,21 +223,21 @@ if st.session_state.get('user_personal_data') is None:
         layout_position=track_new_meal_tab
     )
     st.session_state['user_personal_data'] = user_personal_data
-    logging.info("-----------Finished get_user_personal_data-----------")
+    logger.info("-----------Finished get_user_personal_data-----------")
 
 # 6. Join with recommended intake
 
 with track_new_meal_tab:
     nutrient_intake_chart_container = st.expander(":orange[**2. View the nutritional value in the meal you enjoyed**]", expanded=True)
     # nutrient_intake_chart_container = st.container(border=True)
-    logging.info("-----------Running combine_and_show_users_recommended_intake()-----------")
+    logger.info("-----------Running combine_and_show_users_recommended_intake()-----------")
     user_recommended_intake_result = main_app_miscellaneous.combine_and_show_users_recommended_intake(
         user_personal_data=st.session_state['user_personal_data'],
         user_intake_df_temp=user_intake_df_temp,
         user_intake_df_temp_name="user_intake_df_temp",
         layout_position=nutrient_intake_chart_container
     )
-    logging.info("-----------Finished combine_and_show_users_recommended_intake-----------")
+    logger.info("-----------Finished combine_and_show_users_recommended_intake-----------")
 
 
 # Visualize data
@@ -247,7 +250,7 @@ with track_new_meal_tab:
     user_intake_df_temp['meal_record_date'] = meal_record_date
 
     if st.session_state.get('save_meal_result') is None:
-        logging.info("-----------Running get_user_confirmation_and_try_to_save_their_data()-----------")
+        logger.info("-----------Running get_user_confirmation_and_try_to_save_their_data()-----------")
         save_meal_result = main_app_miscellaneous.get_user_confirmation_and_try_to_save_their_data(
             dish_description=st.session_state['dish_description'],
             user_id=st.session_state['user_id'],
@@ -256,7 +259,7 @@ with track_new_meal_tab:
             has_user_intake_df_temp_empty=has_user_intake_df_temp_empty
         )
         st.session_state['save_meal_result'] = save_meal_result
-        logging.info("-----------Finished get_user_confirmation_and_try_to_save_their_data-----------")
+        logger.info("-----------Finished get_user_confirmation_and_try_to_save_their_data-----------")
 
 wait_while_condition_is_valid((st.session_state.get('save_meal_result') is None))
 
@@ -275,9 +278,9 @@ if st.session_state.get('user_recommended_intake_df') is None:
 # Recommend dish.
 dishrecommend = DishRecommender(openai_client=OPENAI_CLIENT)
 
-logging.info("Retrieving nutrient intake information.")
+logger.info("Retrieving nutrient intake information.")
 nutrient_info = dishrecommend.retrieve_nutrient_intake_info(user_recommended_intake_result)
-logging.info("Finished collecting the nutrient intake information for the dish recommendation.")
+logger.info("Finished collecting the nutrient intake information for the dish recommendation.")
 
 # Asking the user if they want dish recommendation
 with track_new_meal_tab:
@@ -290,19 +293,19 @@ with track_new_meal_tab:
 
     # If user selected "Yes", calling the dish recommendation function
     if st.session_state.get('dish_recommend_user_input'):
-        logging.info("Checking user preferences for cuisine, allergies, if any leftover ingredients.")
+        logger.info("Checking user preferences for cuisine, allergies, if any leftover ingredients.")
         cuisine, allergies, ingredients = dishrecommend.get_user_input(layout_position=dish_recommendation_preference_container)
-        logging.info("Finished reading user preferences for the dish recommendation..")
+        logger.info("Finished reading user preferences for the dish recommendation..")
 
     dish_recommendation_output_container = st.expander(":orange[**5. Here's a yummy recommendation for you**]", expanded=True)
     if dish_recommendation_preference_container.button("Recommend Dish", type="primary"):
         dish_recommendation_preference_container.write("1 sec... a nice surprise is coming...")
         if st.session_state.get('recommended_recipe') is None:
-            logging.info("Recommending dish to the user based on the given preferences.")
+            logger.info("Recommending dish to the user based on the given preferences.")
             recommended_recipe = dishrecommend.get_dish_recommendation(nutrient_info, cuisine, ingredients, allergies)
             st.session_state['recommended_recipe'] = recommended_recipe
             dish_recommendation_output_container.write(st.session_state['recommended_recipe'])
-            logging.info("Finished dish recommendation based on the user preferences.")
+            logger.info("Finished dish recommendation based on the user preferences.")
 
     wait_while_condition_is_valid(condition=(st.session_state.get('recommended_recipe') is None))
 
@@ -318,14 +321,14 @@ with track_new_meal_tab:
     wait_while_condition_is_valid(condition=(st.session_state.get('recommended_dish_ingredients') is None))
 
     if st.session_state.get('recommended_dish_nutrients') is None:
-        logging.info("Collecting the nutrients of the recommended dish.")
+        logger.info("Collecting the nutrients of the recommended dish.")
         recommended_dish_nutrients = Nutrient.get_recommended_dish_nutrients(
             st.session_state['recommended_dish_ingredients']
         )
         st.session_state["recommended_dish_nutrients"] = recommended_dish_nutrients
-        logging.info("End of collecting the nutrients of the recommended dish.")
+        logger.info("End of collecting the nutrients of the recommended dish.")
 
-    logging.info("Calculating and displaying the total nutrients after the dish recommendation.")
+    logger.info("Calculating and displaying the total nutrients after the dish recommendation.")
     if st.session_state.get('df_computed_recommended_nutrients') is None:
         df_computed_recommended_nutrients = dishrecommend.get_total_nutrients_after_dish_recommend(
             user_recommended_intake_result,
@@ -333,9 +336,9 @@ with track_new_meal_tab:
             combine_new_meal_nutrition_container
         )
         st.session_state["df_computed_recommended_nutrients"] = df_computed_recommended_nutrients
-    logging.info("End of calculating and displaying the total nutrients after the dish recommendation.")
+    logger.info("End of calculating and displaying the total nutrients after the dish recommendation.")
     if st.session_state.get('df_computed_recommended_nutrients') is not None:
-        logging.info("-----------Running combined_intake_chart()-----------")
+        logger.info("-----------Running combined_intake_chart()-----------")
         combine_new_meal_nutrition_container.write("Here is the new estimation of your nutrition intake after taking the above dish:")
         show_combined_chart = main_app_miscellaneous.combined_intake_chart(
             user_recommended_intake_result,
@@ -343,7 +346,7 @@ with track_new_meal_tab:
             combine_new_meal_nutrition_container
         )
         st.session_state['show_combined_chart'] = show_combined_chart
-        logging.info("-----------Finished combined_intake_chart-----------")
+        logger.info("-----------Finished combined_intake_chart-----------")
     else:
         combine_new_meal_nutrition_container.write("Oops! Looks like this meal is too complex for us to estimate 😅")
 

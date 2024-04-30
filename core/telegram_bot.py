@@ -9,6 +9,8 @@ from core.sql.user_telegram_info import insert_new_record_user_telegram_info_que
 
 USER_TELEGRAM_INFO_TABLE_ID = "ilab.main.user_telegram_info"
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
+logger.disabled = True
 
 class TelegramBot:
 
@@ -62,7 +64,7 @@ class TelegramBot:
         return result
 
     def save_user_telegram_info_to_database(self, new_telegram_info_result):
-        logging.info("------Running save_user_telegram_info_to_database------")
+        logger.info("------Running save_user_telegram_info_to_database------")
         if new_telegram_info_result.get("status") == 200:
 
             user_name_chat_id_map = new_telegram_info_result.get("value")
@@ -79,24 +81,24 @@ class TelegramBot:
                 self.db.run_query(
                     sql=query
                 )
-        logging.info("------Finished running save_user_telegram_info_to_database------")
+        logger.info("------Finished running save_user_telegram_info_to_database------")
 
     def get_and_save_to_database_new_chat_ids_from_user_names(
         self,
         user_names: list
     ) -> dict:
-        logging.info("------Running get_and_save_to_database_new_chat_ids_from_user_names------")
+        logger.info("------Running get_and_save_to_database_new_chat_ids_from_user_names------")
         bot_update_results = self.fetch_bot_updates()
         result = self.extract_new_chat_id_from_user_names(
             bot_update_results=bot_update_results,
             user_names=user_names
         )
         self.save_user_telegram_info_to_database(new_telegram_info_result=result)
-        logging.info("------Finished running get_and_save_to_database_new_chat_ids_from_user_names------")
+        logger.info("------Finished running get_and_save_to_database_new_chat_ids_from_user_names------")
         return result
 
     def get_chat_id_from_database(self, user_name):
-        logging.info("------Running get_chat_id_from_database------")
+        logger.info("------Running get_chat_id_from_database------")
         chat_id = ''
         query_template = self.jinja_environment.from_string(
             """
@@ -116,11 +118,11 @@ class TelegramBot:
         # checks all the values of a list are true or false. Note: None, empty string and 0 are considered false.
         if all(result[0]):
             chat_id = result[0][0]
-        logging.info("------Finished running get_chat_id_from_database------")
+        logger.info("------Finished running get_chat_id_from_database------")
         return chat_id
 
     def get_chat_id(self, user_name) -> str:
-        logging.info("------Running get_chat_id------")
+        logger.info("------Running get_chat_id------")
         # check chat_id from the database
         chat_id = self.get_chat_id_from_database(user_name)
 
@@ -131,7 +133,7 @@ class TelegramBot:
         chat_id_info = self.get_and_save_to_database_new_chat_ids_from_user_names(user_names=[user_name])
         if chat_id_info.get("status") == 200:
             chat_id = str(chat_id_info.get("value").get(user_name))
-        logging.info("------Finished running get_chat_id------")
+        logger.info("------Finished running get_chat_id------")
         return chat_id
 
 
@@ -140,7 +142,7 @@ class TelegramBot:
         chat_id,
         message
     ) -> None:
-        logging.info("------Running send_telegram_message------")
+        logger.info("------Running send_telegram_message------")
         sending_message_result = ""
         # URL for the Telegram Bot API endpoint to send messages
         telegram_bot_updates_url = self.telegram_bot_base_url + "sendMessage"
@@ -157,7 +159,7 @@ class TelegramBot:
             sending_message_result = "📩 Message sent successfully!"
         else:
             raise Exception(f"Failed to send message. Status code: {response.status_code}")
-        logging.info("------Finished running send_telegram_message------")
+        logger.info("------Finished running send_telegram_message------")
         return sending_message_result
 
     @handle_exception(funny_message="Oops, we couldn't send the recipe 😞 Double check your Telegram user name or try again later")
@@ -167,7 +169,7 @@ class TelegramBot:
         message,
         layout_position=st
     ) -> None:
-        logging.info("------Running send_message_to_user_name------")
+        logger.info("------Running send_message_to_user_name------")
         user_name_trim = user_name.strip()
         layout_position.write("Sending you the awesome recipe 🥘 ...")
         chat_id = self.get_chat_id(user_name=user_name_trim)
@@ -183,5 +185,5 @@ class TelegramBot:
                 layout_position.write("We couldn't send the recipe 😞 Double check your Telegram user name or try again later")
         else:
             layout_position.write("We couldn't send the recipe 😞 Double check your Telegram user name or try again later")
-        logging.info("------Finished running send_message_to_user_name------")
+        logger.info("------Finished running send_message_to_user_name------")
         return sending_message_result_dict

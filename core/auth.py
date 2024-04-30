@@ -11,6 +11,8 @@ from yaml.loader import SafeLoader
 
 USER_PROFILES_TABLE_ID = "ilab.main.user_details"
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
+logger.disabled = True
 
 class Authenticator:
     def __init__(self) -> None:
@@ -35,7 +37,7 @@ class Authenticator:
             result_format=result_format
         )
 
-        logging.info("Finished querying users info from the database")
+        logger.info("Finished querying users info from the database")
         return query_result
     
     def _authenticate_user(self):
@@ -88,9 +90,9 @@ class Authenticator:
         #    name, authentication_status, username = self.authenticator.login(fields={'Form name':key})
 
         if authentication_status != False:
-            logging.info("Login successful")
+            logger.info("Login successful")
         else:
-            logging.info("Incorrect username or password")
+            logger.info("Incorrect username or password")
             layout_position.write("Incorrect username or password")
 
         return name, authentication_status, username
@@ -116,7 +118,7 @@ class Authenticator:
             sql=query,
             parameters=parameters
         )
-        logging.info("Successfully inserted user info into the database")
+        logger.info("Successfully inserted user info into the database")
 
     @handle_exception(has_random_message_printed_out=True)
     def new_user_registration(self, layout_position=st):
