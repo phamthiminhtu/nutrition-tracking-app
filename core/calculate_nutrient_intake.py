@@ -1,4 +1,5 @@
 import logging
+import warnings
 import pandas as pd
 from fuzzywuzzy import fuzz, process
 from core.utils import handle_exception
@@ -9,7 +10,9 @@ import json
 # Setting up logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+logger.disabled = True
 formatter = logging.Formatter("%(asctime)s:%(levelname)s:%(name)s:%(funcName)s:%(message)s")
+warnings.filterwarnings("ignore")
 
 # Setting up file handler to save logs in a log file
 file_handler = logging.FileHandler("data/logs.log")

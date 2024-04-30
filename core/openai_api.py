@@ -27,7 +27,6 @@ class OpenAIAssistant:
                 - value: OpenAI's response.
         '''
         seed = 1234 # (beta version) to get deterministic estimation, but determinism is not guaranteed. https://platform.openai.com/docs/api-reference/chat/create#chat-create-seed
-        print("#### RUNNING OPENAI API")
         completion = self.openai_client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
