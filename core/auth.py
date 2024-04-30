@@ -10,7 +10,7 @@ import yaml
 from yaml.loader import SafeLoader
 
 USER_PROFILES_TABLE_ID = "ilab.main.user_details"
-logging.basicConfig(level=logging.info)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 logger.disabled = True
 

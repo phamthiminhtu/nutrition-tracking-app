@@ -25,7 +25,7 @@ diabetes_assessor = DiabetesAssessor(model_path=DIABETES_MODEL_PATH)
 telegram_bot = TelegramBot(telegram_bot_token=TELEGRAM_BOT_TOKEN)
 Nutrient = NutrientMaster(openai_client=OPENAI_CLIENT)
 
-logging.basicConfig(level=logging.info)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 logger.disabled = True
 
