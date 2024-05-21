@@ -14,7 +14,7 @@ This repo is the main source code for our MealMinder App, a nutrition tracking a
 - Early health issues detection: We also enable users to detect health issues by incorporating external survey data and users’ historical nutrition data using Classification (Random Forest Algorithm).
 
 Here is our little demo video on Youtube, check it out!
-[![MealMinder](https://github.com/phamthiminhtu/ilab/assets/56192840/a1218196-8feb-4bea-be93-e3cab18c1206)](https://youtu.be/V24zxQQulho?si=CM5krHL2BiFKQBpY "Everything Is AWESOME")
+[![MealMinder](https://github.com/phamthiminhtu/ilab/assets/56192840/a1218196-8feb-4bea-be93-e3cab18c1206)](https://youtu.be/aIandiLboPo"MealMinder")
 
 
 # Pre-requisites
